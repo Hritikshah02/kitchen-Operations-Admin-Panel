@@ -17,7 +17,7 @@ export class CapabilitiesGuard implements CanActivate {
     if (!required?.length) return true;
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    if (!request.user || !hasCapabilities(request.user.role, required)) {
+    if (!request.user || !hasCapabilities(request.user.capabilities, required)) {
       throw new ForbiddenException('You do not have access to this resource.');
     }
 

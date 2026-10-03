@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { AuthController } from './auth.controller';
+import { AuthController } from './auth.controller.js';
 
 describe('AuthController', () => {
   it('places the signed JWT in an HTTP-only session cookie', async () => {

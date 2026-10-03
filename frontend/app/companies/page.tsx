@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { AppShell } from "../components/app-shell";
 import { ProtectedPage } from "../components/protected-page";
 import { ApiError, apiFetch } from "../lib/api";
+import { Capability } from "../lib/capabilities";
 
 type Company = { id: number; name: string; emailDomain: string };
 function CompaniesContent() {
@@ -46,4 +47,4 @@ function CompaniesContent() {
     </section>
   </main></AppShell>;
 }
-export default function CompaniesPage() { return <ProtectedPage allowedRoles={["ADMIN"]}><CompaniesContent /></ProtectedPage>; }
+export default function CompaniesPage() { return <ProtectedPage requires={[Capability.COMPANIES_MANAGE]}><CompaniesContent /></ProtectedPage>; }

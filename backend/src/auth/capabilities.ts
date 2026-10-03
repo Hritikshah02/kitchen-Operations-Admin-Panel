@@ -1,6 +1,10 @@
-import type { RoleName } from './auth.types.js';
-
+// Capabilities are the only thing code checks. Roles are database rows that bundle capabilities,
+// so a new role is a new row (see prisma/seed.js), never a new branch in the code.
 export enum Capability {
+  DASHBOARD_VIEW = 'dashboard:view',
+  STAFF_MANAGE = 'staff:manage',
+  SETTINGS_MANAGE = 'settings:manage',
+  REFERENCE_DATA_MANAGE = 'reference-data:manage',
   COMPANIES_MANAGE = 'companies:manage',
   CATALOGUE_MANAGE = 'catalogue:manage',
   ORDERS_MANAGE = 'orders:manage',
@@ -10,19 +14,16 @@ export enum Capability {
   DISPATCH_BOARD_UPDATE = 'dispatch-board:update',
   DRIVER_DROPS_VIEW = 'driver-drops:view',
   DRIVER_DROPS_UPDATE = 'driver-drops:update',
-  DASHBOARD_VIEW = 'dashboard:view',
 }
 
-const allCapabilities = Object.values(Capability);
+export const ALL_CAPABILITIES: readonly Capability[] = Object.values(Capability);
+const known = new Set<string>(ALL_CAPABILITIES);
 
-export const roleCapabilities: Readonly<Record<RoleName, readonly Capability[]>> = {
-  ADMIN: allCapabilities,
-  KITCHEN: [Capability.DASHBOARD_VIEW, Capability.KITCHEN_BOARD_VIEW, Capability.KITCHEN_BOARD_UPDATE],
-  DISPATCH: [Capability.DASHBOARD_VIEW, Capability.DISPATCH_BOARD_VIEW, Capability.DISPATCH_BOARD_UPDATE],
-  DRIVER: [Capability.DASHBOARD_VIEW, Capability.DRIVER_DROPS_VIEW, Capability.DRIVER_DROPS_UPDATE],
-};
+/** Drops values the code no longer knows, so a stale row can never grant something unexpected. */
+export function parseCapabilities(values: readonly string[]): Capability[] {
+  return values.filter((value): value is Capability => known.has(value));
+}
 
-export function hasCapabilities(role: RoleName, required: readonly Capability[]): boolean {
-  const granted = roleCapabilities[role] ?? [];
+export function hasCapabilities(granted: readonly Capability[], required: readonly Capability[]): boolean {
   return required.every((capability) => granted.includes(capability));
 }

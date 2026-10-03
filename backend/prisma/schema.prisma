@@ -18,10 +18,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+// A role is data: its capabilities live here, so adding a role never means editing role-name checks in code.
 model Role {
-  id    Int     @id @default(autoincrement())
-  name  String  @unique
-  staff Staff[]
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  label        String
+  capabilities String[]
+  staff        Staff[]
 }
 
 model Staff {
@@ -83,4 +86,58 @@ model OrderItem {
   quantity  Int
   unitPrice Decimal  @db.Decimal(10, 2)
   lineTotal Decimal  @db.Decimal(10, 2)
+}
+
+// Singleton row (id = 1). Times are wall-clock in `timezone`, which is fixed at setup:
+// changing it would silently reinterpret every stored cut-off and delivery time.
+model KitchenSettings {
+  id                         Int      @id @default(1)
+  timezone                   String   @default("Asia/Kolkata")
+  currency                   String   @default("USD")
+  workingDays                Int[]    @default([1, 2, 3, 4, 5]) // ISO weekday: 1 = Monday ... 7 = Sunday
+  cutoffTime                 String   @default("16:00") // HH:mm in kitchen timezone
+  cutoffWorkingDays          Int      @default(1)
+  kitchenReadyBufferMinutes  Int      @default(30) // kitchen-ready = dispatch-ready minus this
+  defaultDispatchLeadMinutes Int      @default(60) // company default: minutes before delivery the order leaves
+  updatedAt                  DateTime @updatedAt
+}
+
+model KitchenHoliday {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @unique @db.Date
+  name      String
+  createdAt DateTime @default(now())
+}
+
+// Admin-managed reference lists. Rows are deactivated, never deleted, because catalogue items will reference them.
+model Allergen {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model DietaryTag {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model KitchenStation {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model PortionSize {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
 }

@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "./components/auth-provider";
 
 export const metadata: Metadata = {
-  title: "Fernleaf Kitchen",
+  title: "Kitchen",
   description: "Kitchen operations admin panel",
 };
 

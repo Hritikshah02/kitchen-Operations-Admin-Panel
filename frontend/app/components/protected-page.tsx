@@ -2,16 +2,17 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, type RoleName } from "./auth-provider";
+import type { Capability } from "../lib/capabilities";
+import { can, useAuth } from "./auth-provider";
 
-export function ProtectedPage({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: RoleName[] }) {
+export function ProtectedPage({ children, requires = [] }: { children: React.ReactNode; requires?: Capability[] }) {
   const router = useRouter();
   const { staff, status } = useAuth();
-  const hasRole = !allowedRoles || (staff ? allowedRoles.includes(staff.role) : false);
+  const allowed = can(staff, ...requires);
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/login");
-    if (status === "authenticated" && !hasRole) router.replace("/dashboard");
-  }, [hasRole, router, status]);
-  if (status === "loading" || !staff || !hasRole) return <main className="page-loader">Loading workspace...</main>;
+    if (status === "authenticated" && !allowed) router.replace("/dashboard");
+  }, [allowed, router, status]);
+  if (status === "loading" || !staff || !allowed) return <main className="page-loader">Loading workspace...</main>;
   return <>{children}</>;
 }

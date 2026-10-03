@@ -1,19 +1,20 @@
 import type { Request } from 'express';
-
-export const ROLE_NAMES = ['ADMIN', 'KITCHEN', 'DISPATCH', 'DRIVER'] as const;
-export type RoleName = (typeof ROLE_NAMES)[number];
+import type { Capability } from './capabilities.js';
 
 export type AuthenticatedStaff = {
   id: number;
   name: string;
   email: string;
-  role: RoleName;
+  role: string;
+  roleLabel: string;
+  capabilities: Capability[];
 };
 
+// Role and capabilities are deliberately not in the token: they are re-read on every request,
+// so a role change or deactivation takes effect immediately.
 export type JwtPayload = {
   sub: number;
   email: string;
-  role: RoleName;
 };
 
 export type AuthenticatedRequest = Request & { user: AuthenticatedStaff };

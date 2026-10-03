@@ -2,10 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
+import type { Capability } from "../lib/capabilities";
 
-export const ROLE_NAMES = ["ADMIN", "KITCHEN", "DISPATCH", "DRIVER"] as const;
-export type RoleName = (typeof ROLE_NAMES)[number];
-export type Staff = { id: number; name: string; email: string; role: RoleName };
+export type Staff = { id: number; name: string; email: string; role: string; roleLabel: string; capabilities: Capability[] };
+export const can = (staff: Staff | null, ...required: Capability[]) =>
+  !!staff && required.every((capability) => staff.capabilities.includes(capability));
 type AuthContextValue = {
   staff: Staff | null;
   status: "loading" | "authenticated" | "unauthenticated";

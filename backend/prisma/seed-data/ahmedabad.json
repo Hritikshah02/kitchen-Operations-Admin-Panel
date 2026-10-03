@@ -1,0 +1,2407 @@
+{
+  "_meta": {
+    "generated": "2026-10-03",
+    "purpose": "Seed and reference data for the 'Kitchen' operations admin panel demo (Ahmedabad corporate boxed-lunch kitchen)",
+    "fictionalEntities": "All companies, people, buildings, domains and phone numbers are fictional. Areas, roads and pincodes are real."
+  },
+  "kitchen": {
+    "appName": "Kitchen",
+    "address": {
+      "line1": "Shed No. 14, Shreeji Food Park (fictional estate)",
+      "line2": "Sarkhej–Bavla Highway, near Sarkhej Cross Roads",
+      "area": "Sarkhej",
+      "city": "Ahmedabad",
+      "state": "Gujarat",
+      "pincode": "382210",
+      "country": "India"
+    },
+    "locationRationale": "Sarkhej is on the south-west edge of the city, where SG Highway meets the Sarkhej–Bavla highway. It has industrial and food-processing sheds and is about 5–15 km from the main client clusters (Prahlad Nagar, Bodakdev, Thaltej, Science City Road). GIFT City is about 35 km away via SG Highway. Alternatives are Changodar GIDC (382213, cheaper but farther out) and Odhav GIDC (382415, east side, far from the west-side office belt).",
+    "timezone": "Asia/Kolkata",
+    "workingDays": [
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI",
+      "SAT"
+    ],
+    "workingDaysRationale": "Many Ahmedabad companies (manufacturing, textiles, diamonds, traders, some pharma) work Saturdays, while IT and fintech work Mon–Fri. A six-day kitchen covers both, and Sunday is the usual weekly off for Indian commercial kitchens.",
+    "orderCutoff": {
+      "time": "21:00",
+      "workingDaysBefore": 1,
+      "rationale": "Indian corporate tiffin and boxed-meal services usually lock next-day orders the previous evening (about 8–10 pm), so the kitchen can buy vegetables from the APMC or vendor early in the morning and start prep around 6 am for 12:30 delivery. Some services also offer a same-day 10:00 cutoff for small top-ups. Using 'previous working day' means Monday orders close on Saturday night.",
+      "sameDayTopUpCutoff": "10:00"
+    },
+    "service": {
+      "lunchDispatchWindow": "11:30–12:15",
+      "typicalDeliveryWindow": "12:30–13:30"
+    }
+  },
+  "holidays": [
+    {
+      "date": "2026-10-02",
+      "name": "Gandhi Jayanti",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-gazetted",
+      "closesKitchen": true
+    },
+    {
+      "date": "2026-10-20",
+      "name": "Dussehra (Vijaya Dashami)",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-gazetted",
+      "closesKitchen": true
+    },
+    {
+      "date": "2026-10-31",
+      "name": "Sardar Vallabhbhai Patel Jayanti",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026) (listed by sakshipost; missing from greythr's copy)",
+      "status": "verified-gazetted",
+      "closesKitchen": true,
+      "notes": "Falls on a Saturday."
+    },
+    {
+      "date": "2026-11-07",
+      "name": "Dhanteras",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-optional",
+      "closesKitchen": false,
+      "notes": "Optional holiday in Gujarat 2026. Kitchen stays open but expect lower order volume."
+    },
+    {
+      "date": "2026-11-08",
+      "name": "Diwali (Lakshmi Puja)",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-not-notified",
+      "closesKitchen": true,
+      "notes": "Sunday. Not notified separately because it falls on a Sunday."
+    },
+    {
+      "date": "2026-11-09",
+      "name": "Diwali break (day between Diwali and Bestu Varas)",
+      "source": "Business choice, not a gazetted holiday. In 2026 Gujarati New Year falls two days after Diwali, so most Ahmedabad offices and vendors shut for the whole stretch.",
+      "status": "kitchen-closure-non-gazetted",
+      "closesKitchen": true,
+      "notes": "Optional for the demo. Remove it if you want gazetted holidays only."
+    },
+    {
+      "date": "2026-11-10",
+      "name": "Bestu Varas (Gujarati New Year / Vikram Samvat New Year)",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-gazetted",
+      "closesKitchen": true
+    },
+    {
+      "date": "2026-11-11",
+      "name": "Bhai Bij (Bhai Dooj)",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-gazetted",
+      "closesKitchen": true
+    },
+    {
+      "date": "2026-11-24",
+      "name": "Guru Nanak Jayanti",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-gazetted",
+      "closesKitchen": true
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas",
+      "source": "Gujarat GAD notification GS/22/2025/JSR/2025/509/GH (2026 holiday list), as reproduced by greythr.com/wiki/acts/st-gujarat/holidays/2026/ and sakshipost.com (Gujarat Public Holidays 2026)",
+      "status": "verified-gazetted",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-01-14",
+      "name": "Uttarayan / Makar Sankranti",
+      "source": "Estimated Gujarat 2027 list: officeholidays.com/countries/india/gujarat/2027 and calendarlabs.com/gujarat-state-holidays-2027/; calendarlabs.com lists Jan 14",
+      "status": "tentative",
+      "closesKitchen": true,
+      "notes": "Gujarat has not yet published its 2027 list. drikpanchang puts the Sankranti moment at 21:14 IST on Jan 14 and the punya kaal on Jan 15 (officeholidays.com uses Jan 15), but Ahmedabad's kite-flying day is traditionally Jan 14."
+    },
+    {
+      "date": "2027-01-15",
+      "name": "Vasi Uttarayan (second day of kite festival)",
+      "source": "drikpanchang.com (2027 festival date pages) (Makar Sankranti punya kaal Fri 15 Jan 2027); officeholidays.com lists Gujarat Makar Sankranti on Jan 15",
+      "status": "tentative",
+      "closesKitchen": true,
+      "notes": "Ahmedabad businesses commonly close on both Jan 14 and Jan 15. Whichever day the Gujarat government notifies, a kitchen would likely close both."
+    },
+    {
+      "date": "2027-01-26",
+      "name": "Republic Day",
+      "source": "Fixed-date national/state holiday",
+      "status": "verified-fixed",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-03-06",
+      "name": "Maha Shivratri",
+      "source": "Estimated Gujarat 2027 list: officeholidays.com/countries/india/gujarat/2027 and calendarlabs.com/gujarat-state-holidays-2027/",
+      "status": "tentative",
+      "closesKitchen": true,
+      "notes": "Saturday."
+    },
+    {
+      "date": "2027-03-10",
+      "name": "Ramzan Eid (Eid-ul-Fitr)",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central-subject-to-moon",
+      "closesKitchen": true,
+      "notes": "Date depends on moon sighting. officeholidays.com gives Mar 9."
+    },
+    {
+      "date": "2027-03-23",
+      "name": "Dhuleti (Holi, colours day)",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html lists Holi on Tue 23 Mar 2027",
+      "status": "tentative",
+      "closesKitchen": true,
+      "notes": "Sources disagree. calendarlabs, officeholidays and dekhopanchang list Holi on Mon 22 Mar 2027 (Purnima), and Holika Dahan falls on Mar 21 or 22. Confirm against the Gujarat 2027 notification. A cautious demo could close both Mar 22 and Mar 23."
+    },
+    {
+      "date": "2027-04-14",
+      "name": "Dr. Babasaheb Ambedkar Jayanti",
+      "source": "Fixed-date national/state holiday",
+      "status": "verified-fixed",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-04-15",
+      "name": "Shree Ram Navami",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-04-19",
+      "name": "Mahavir Janma Kalyanak",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central",
+      "closesKitchen": true,
+      "notes": "officeholidays.com lists Apr 18 for Gujarat."
+    },
+    {
+      "date": "2027-05-17",
+      "name": "Bakri Eid (Eid-ul-Adha)",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central-subject-to-moon",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-05-20",
+      "name": "Buddha Purnima",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central",
+      "closesKitchen": true,
+      "notes": "Gujarat included Buddha Purnima in its 2026 list."
+    },
+    {
+      "date": "2027-06-16",
+      "name": "Muharram (Ashura)",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central-subject-to-moon",
+      "closesKitchen": true,
+      "notes": "calendarlabs lists Jun 15."
+    },
+    {
+      "date": "2027-07-05",
+      "name": "Rath Yatra (Ahmedabad, Ashadhi Bij)",
+      "source": "drikpanchang.com / dekhopanchang.com Jagannath Rath Yatra 2027 = Mon 5 Jul 2027",
+      "status": "tentative",
+      "closesKitchen": true,
+      "notes": "A Gujarat holiday (it was on the 2026 list as Jul 16). The procession blocks central Ahmedabad roads for the day."
+    },
+    {
+      "date": "2027-08-15",
+      "name": "Independence Day (also Parsi New Year and Milad-un-Nabi)",
+      "source": "Fixed-date national/state holiday; DoPT 2027 also lists Milad-un-Nabi on Aug 15",
+      "status": "verified-fixed",
+      "closesKitchen": true,
+      "notes": "Sunday."
+    },
+    {
+      "date": "2027-08-17",
+      "name": "Raksha Bandhan",
+      "source": "drikpanchang.com/festivals/raksha-bandhan/raksha-bandhan-date-time.html?year=2027 (Tue 17 Aug 2027); also officeholidays and calendarlabs",
+      "status": "verified-calendar",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-08-25",
+      "name": "Janmashtami",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central",
+      "closesKitchen": true,
+      "notes": "Some panchangs list Aug 24 (Smarta)."
+    },
+    {
+      "date": "2027-09-04",
+      "name": "Samvatsari (Jain)",
+      "source": "Estimated Gujarat 2027 list: officeholidays.com/countries/india/gujarat/2027 and calendarlabs.com/gujarat-state-holidays-2027/",
+      "status": "tentative",
+      "closesKitchen": true,
+      "notes": "Saturday. Unverified estimate."
+    },
+    {
+      "date": "2027-10-02",
+      "name": "Gandhi Jayanti",
+      "source": "Fixed-date national/state holiday",
+      "status": "verified-fixed",
+      "closesKitchen": true,
+      "notes": "Saturday."
+    },
+    {
+      "date": "2027-10-09",
+      "name": "Dussehra (Vijaya Dashami)",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central",
+      "closesKitchen": true,
+      "notes": "Saturday. calendarlabs lists Oct 10."
+    },
+    {
+      "date": "2027-10-29",
+      "name": "Diwali (Lakshmi Puja)",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html; drikpanchang.com (2027 festival date pages)",
+      "status": "verified-central",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-10-30",
+      "name": "Bestu Varas (Gujarati New Year / Vikram Samvat New Year)",
+      "source": "Estimated Gujarat 2027 list: officeholidays.com/countries/india/gujarat/2027 and calendarlabs.com/gujarat-state-holidays-2027/; drikpanchang gives Govardhan Puja on Sat 30 Oct 2027",
+      "status": "verified-calendar",
+      "closesKitchen": true
+    },
+    {
+      "date": "2027-10-31",
+      "name": "Bhai Bij and Sardar Vallabhbhai Patel Jayanti",
+      "source": "Estimated Gujarat 2027 list: officeholidays.com/countries/india/gujarat/2027 and calendarlabs.com/gujarat-state-holidays-2027/",
+      "status": "verified-calendar",
+      "closesKitchen": true,
+      "notes": "Sunday."
+    },
+    {
+      "date": "2027-11-14",
+      "name": "Guru Nanak Jayanti",
+      "source": "DoPT O.M. No. 12/2/2023-JCA dated 16 Jul 2026 (Central Govt gazetted holidays 2027), via staffnews.in/2026/07/list-of-holidays-for-the-year-2027-gazetted.html",
+      "status": "verified-central",
+      "closesKitchen": true,
+      "notes": "Sunday. calendarlabs lists Nov 13 or 14."
+    },
+    {
+      "date": "2027-12-25",
+      "name": "Christmas",
+      "source": "Fixed-date national/state holiday",
+      "status": "verified-fixed",
+      "closesKitchen": true,
+      "notes": "Saturday."
+    }
+  ],
+  "stations": [
+    {
+      "code": "ROTI",
+      "name": "Roti / Tandoor",
+      "description": "Phulka, chapati, bajra rotla, thepla, paratha and tandoori roti/naan. Tawa and tandoor line with a dough-kneading machine."
+    },
+    {
+      "code": "CURRY",
+      "name": "Curry & Gravy (Shaak)",
+      "description": "Gujarati dry and gravy shaak (sev tameta, ringan, undhiyu in season) plus North Indian gravies (paneer butter masala, chole, rajma). Bulk tilting pans and kadhai."
+    },
+    {
+      "code": "DALRICE",
+      "name": "Dal, Kadhi & Rice",
+      "description": "Gujarati khatti-meethi dal, dal fry, kadhi, jeera and steamed rice, khichdi and pulao. Steam-jacketed kettles and rice steamers."
+    },
+    {
+      "code": "FARSAN",
+      "name": "Farsan / Fry",
+      "description": "Dhokla, khaman, handvo and patra (steamed) plus fried items (samosa, kachori, bhajiya) and papad. Steamers and fryers."
+    },
+    {
+      "code": "SWEETS",
+      "name": "Sweets / Mithai",
+      "description": "Shrikhand, mohanthal, sukhdi, gulab jamun, kheer and basundi. Halwai section with milk-reduction kettles. Cold desserts move to the cold station for holding."
+    },
+    {
+      "code": "COLD",
+      "name": "Cold / Salad & Chaas",
+      "description": "Kachumber, sprout salad, raita, chutneys, chaas (buttermilk) and cold beverages. Chilled prep area at 5°C or below."
+    },
+    {
+      "code": "JAIN",
+      "name": "Jain & Satvik Prep",
+      "description": "Separate counter and utensils for Jain and Swaminarayan orders (no onion, garlic or root vegetables) to prevent cross-contact. Common in Ahmedabad kitchens."
+    },
+    {
+      "code": "PACK",
+      "name": "Packing & Dispatch",
+      "description": "Portioning into compartment boxes, sealing, labelling (employee name, company, allergen and diet tags), and batching by company and delivery route."
+    }
+  ],
+  "allergens": [
+    {
+      "code": "MILK",
+      "name": "Milk / Dairy",
+      "description": "Ghee, paneer, dahi, chaas, khoya, cream and butter. Present in most Gujarati and North Indian dishes and sweets."
+    },
+    {
+      "code": "GLUTEN",
+      "name": "Cereals containing gluten (wheat, barley, rye, oats)",
+      "description": "Wheat roti, thepla, puri, naan, sev and many farsan items. Hing (asafoetida) is often cut with wheat flour, so it is a hidden source."
+    },
+    {
+      "code": "PEANUT",
+      "name": "Peanuts (groundnut)",
+      "description": "Used heavily in Gujarati cooking: groundnut oil, crushed peanuts in shaak, poha, sabudana, chikki. Groundnut is the default frying oil in many Gujarati kitchens."
+    },
+    {
+      "code": "TREENUT",
+      "name": "Tree nuts (cashew, almond, pistachio, walnut)",
+      "description": "Cashew paste in Mughlai and North Indian gravies, plus almond and pistachio garnish on sweets (shrikhand, basundi, kheer)."
+    },
+    {
+      "code": "SESAME",
+      "name": "Sesame (til)",
+      "description": "Til in handvo, dhokla tempering, til chikki (especially around Uttarayan) and til oil. A major allergen in the EU, US and Codex, though not in FSSAI's mandatory list."
+    },
+    {
+      "code": "MUSTARD",
+      "name": "Mustard (rai)",
+      "description": "Rai seeds in almost every Gujarati tadka, plus mustard oil and pickles (athanu). An EU allergen, not on FSSAI's mandatory list."
+    },
+    {
+      "code": "SOY",
+      "name": "Soy",
+      "description": "Tofu, soya chunks and soy sauce in Indo-Chinese dishes. On FSSAI's mandatory list."
+    },
+    {
+      "code": "SULPHITE",
+      "name": "Sulphites (≥10 mg/kg)",
+      "description": "Found in some dried fruits, pickles, packaged vinegar and preserved items. On FSSAI's mandatory list."
+    },
+    {
+      "code": "EGG",
+      "name": "Egg",
+      "description": "Rare in a pure-veg kitchen, but some bought-in bakery items (cakes, mayonnaise, bread) contain egg. The kitchen should buy eggless bakery items. Kept here for completeness."
+    }
+  ],
+  "allergenNotes": {
+    "fssai": "Under the FSS (Labelling and Display) Regulations 2020, pre-packed food must declare allergens. The listed categories are cereals containing gluten, crustaceans, milk, eggs, fish, peanuts, tree nuts, soybeans and sulphite (≥10 mg/kg). Mustard and sesame are not mandatory in India, but list them because they are common in Gujarati food and expected by global clients (EU/US/Codex lists). Since 2022, FSSAI has also required food service businesses with a central licence or 10+ outlets to display allergen and veg/non-veg info on menus. A single-kitchen B2B caterer may not strictly be covered, but labelling every box is best practice.",
+    "vegNonVegLogo": "FSSAI requires the green dot-in-square vegetarian symbol on packaged food labels. Print it on every box label.",
+    "sources": [
+      "https://mail.fssai.gov.in/upload/uploadfiles/files/FAQ_Labelling_Display_01_11_2023.pdf",
+      "https://freyrsolutions.com/blog/decode-the-fssais-new-labeling-display-regulations"
+    ],
+    "uncertainty": "The exact mandatory allergen list was recalled from the 2020 regulations. Search results confirmed that allergen declaration is mandatory but did not list every item. Check against Schedule/Regulation 5 of the FSSAI gazette before relying on it legally."
+  },
+  "dietaryTags": [
+    {
+      "code": "VEG",
+      "name": "Vegetarian",
+      "definition": "Lacto-vegetarian: no meat, fish or egg, dairy allowed. The default for every item in a pure-veg kitchen."
+    },
+    {
+      "code": "JAIN",
+      "name": "Jain",
+      "definition": "No onion, garlic or root/underground vegetables (potato, carrot, beetroot, radish, ginger, sweet potato), and usually no mushrooms or honey. Cooked fresh and served before sunset. Ginger is often replaced with dry ginger (sunth)."
+    },
+    {
+      "code": "SWAMINARAYAN",
+      "name": "Swaminarayan",
+      "definition": "No onion or garlic (root vegetables like potato are allowed), and hing is usually avoided too. Followers are a large community in Ahmedabad."
+    },
+    {
+      "code": "VEGAN",
+      "name": "Vegan",
+      "definition": "No animal products at all, so no ghee, paneer, dahi, chaas, butter, cream or honey. Cook in oil and use tofu instead of paneer."
+    },
+    {
+      "code": "GF",
+      "name": "Gluten-free",
+      "definition": "No wheat, barley, rye or oats, and no hing cut with wheat (use gluten-free hing). Bajra, jowar, rice and nachni are fine. The kitchen cannot guarantee zero cross-contact with wheat."
+    },
+    {
+      "code": "EGGLESS",
+      "name": "Eggless",
+      "definition": "Mainly matters for bakery and dessert items (cakes, brownies, mayo). Default in a pure-veg kitchen."
+    },
+    {
+      "code": "LOWOIL",
+      "name": "Low-oil / Diabetic-friendly",
+      "definition": "Steamed or tawa-cooked with ≤1 tsp oil per portion, no added sugar or jaggery, and a millet or brown-rice base with high fibre and protein."
+    },
+    {
+      "code": "HIGHPROTEIN",
+      "name": "High-protein",
+      "definition": "At least 20 g protein per portion (paneer, tofu, chana, rajma, sprouts)."
+    },
+    {
+      "code": "NOONIONGARLIC",
+      "name": "No onion / no garlic",
+      "definition": "A broader satvik tag that covers Swaminarayan diets and people fasting during Navratri, Shravan or Paryushan."
+    }
+  ],
+  "dietRecommendation": "Run a 100% pure-vegetarian (and eggless) kitchen. In Ahmedabad this is effectively expected: many corporate canteens and caterers are pure-veg, the clientele is heavily Jain, Swaminarayan and Vaishnav, and a non-veg kitchen would lose Jain/Swaminarayan orders over cross-contact concerns. Offer Jain and no-onion/garlic versions of most dishes through a separate Jain station. Seed VEG and EGGLESS on every item.",
+  "portionSizes": [
+    {
+      "code": "REG",
+      "name": "Regular",
+      "description": "Standard single-person box: about 450–550 g of food (2 phulka or 1 rotla, 1 shaak, 1 dal or kadhi, 1 rice portion, plus side).",
+      "priceMultiplier": 1.0
+    },
+    {
+      "code": "LRG",
+      "name": "Large",
+      "description": "Hungry or plant-floor portion: about 650–750 g (4 phulka, larger shaak and rice). Common for factory and auto-component clients.",
+      "priceMultiplier": 1.3,
+      "typicalSurchargeINR": "₹30–₹50 per box"
+    },
+    {
+      "code": "MINI",
+      "name": "Mini / Half",
+      "description": "Light lunch or snack-sized portion, about 300 g. Optional; some services sell 'half thali' at about 65% of the price.",
+      "priceMultiplier": 0.65,
+      "optional": true
+    }
+  ],
+  "packagingTypes": [
+    {
+      "code": "BAGASSE",
+      "name": "Bagasse 4/5-compartment box with lid",
+      "notes": "Compostable sugarcane-fibre box. Gujarat enforces the single-use plastic ban (2022), so this has become the default for disposable corporate lunch boxes. Costs about ₹8–₹14 per box. Holds hot dal poorly, so pair it with a sealed dal cup.",
+      "isDefault": true
+    },
+    {
+      "code": "STEEL_TIFFIN",
+      "name": "Reusable stainless-steel tiffin (3/4 tier) in insulated bag",
+      "notes": "The classic Indian dabba. Collected the same afternoon or next day, washed and sanitised centrally. Needs deposit tracking per company and is popular with ESG-minded clients. Lowest per-meal cost after the initial investment."
+    },
+    {
+      "code": "PP_TRAY",
+      "name": "Sealed food-grade PP compartment tray (microwavable)",
+      "notes": "Tray film-sealed by machine. Tamper-evident and best for gravies and long transit (for example GIFT City). Uses heavier plastic, so check it complies with the plastic-ban thickness rules. About ₹10–₹18 per tray."
+    },
+    {
+      "code": "PAPER_BOWL",
+      "name": "Kraft paper bowl with PP-lined lid",
+      "notes": "For North Indian bowls, khichdi and salads. About ₹6–₹10."
+    },
+    {
+      "code": "TRAY_BULK",
+      "name": "Aluminium foil tray / bulk chafing (for meetings)",
+      "notes": "For desserts or farsan sold by the tray (serves 10–12) and for meeting or event orders."
+    }
+  ],
+  "companies": [
+    {
+      "name": "Kesarloop Technologies Pvt. Ltd.",
+      "industry": "IT services & SaaS",
+      "emailDomains": [
+        "kesarloop.in",
+        "kesarloop.com"
+      ],
+      "deliveryAddresses": [
+        {
+          "label": "HQ",
+          "line1": "7th Floor, Aranya Corporate Tower (fictional)",
+          "road": "Sindhu Bhavan Road",
+          "area": "Bodakdev",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380054",
+          "country": "India"
+        },
+        {
+          "label": "Dev Center",
+          "line1": "4th Floor, Nilgiri Tech Park (fictional)",
+          "road": "Science City Road",
+          "area": "Sola",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380060",
+          "country": "India"
+        }
+      ],
+      "lunchDeliveryWindow": "12:30–13:15",
+      "employeeCountToSeed": 18,
+      "billingContact": {
+        "name": "Riddhi Parikh",
+        "role": "Admin & Facilities Manager",
+        "email": "riddhi.parikh@kesarloop.in",
+        "phone": "+91 90000 01101"
+      },
+      "workingDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI"
+      ],
+      "priceTier": "Enterprise"
+    },
+    {
+      "name": "Narmavedha Lifesciences Ltd.",
+      "industry": "Pharmaceuticals (formulations R&D and corporate office)",
+      "emailDomains": [
+        "narmavedha.com"
+      ],
+      "deliveryAddresses": [
+        {
+          "label": "Corporate Office",
+          "line1": "Narmavedha House, 11th Floor, Shaligram Crest (fictional)",
+          "road": "Corporate Road",
+          "area": "Prahlad Nagar",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380015",
+          "country": "India"
+        }
+      ],
+      "lunchDeliveryWindow": "13:00–13:45",
+      "employeeCountToSeed": 14,
+      "billingContact": {
+        "name": "Hemant Trivedi",
+        "role": "Head – HR & Admin",
+        "email": "hemant.trivedi@narmavedha.com",
+        "phone": "+91 90000 01102"
+      },
+      "workingDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI",
+        "SAT"
+      ],
+      "priceTier": "Standard"
+    },
+    {
+      "name": "Ledgerkite Fintech IFSC Pvt. Ltd.",
+      "industry": "Fintech / IFSC fund services (GIFT City)",
+      "emailDomains": [
+        "ledgerkite.in"
+      ],
+      "deliveryAddresses": [
+        {
+          "label": "GIFT City Office",
+          "line1": "Unit 1204, Sabar Tower One (fictional), Zone 5, GIFT SEZ",
+          "road": "Road 5C",
+          "area": "GIFT City",
+          "city": "Gandhinagar",
+          "state": "Gujarat",
+          "pincode": "382050",
+          "country": "India"
+        }
+      ],
+      "lunchDeliveryWindow": "12:45–13:30",
+      "employeeCountToSeed": 10,
+      "billingContact": {
+        "name": "Farhan Sheikh",
+        "role": "Finance Controller",
+        "email": "farhan.sheikh@ledgerkite.in",
+        "phone": "+91 90000 01103"
+      },
+      "workingDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI"
+      ],
+      "priceTier": "Partner",
+      "notes": "India Post changed GIFT City's PIN from 382355 to 382050 (around 2025). Older addresses still show 382355. Allow about 60 minutes of transit from Sarkhej."
+    },
+    {
+      "name": "Kalamtantu Textiles Ltd.",
+      "industry": "Textiles & apparel (head office; mills in Narol/Kalol)",
+      "emailDomains": [
+        "kalamtantu.com",
+        "kalamtantu.in"
+      ],
+      "deliveryAddresses": [
+        {
+          "label": "Head Office",
+          "line1": "3rd Floor, Kapasiya Bhavan (fictional)",
+          "road": "Ashram Road",
+          "area": "Navrangpura",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380009",
+          "country": "India"
+        }
+      ],
+      "lunchDeliveryWindow": "12:30–13:30",
+      "employeeCountToSeed": 12,
+      "billingContact": {
+        "name": "Nilesh Shah",
+        "role": "Accounts Manager",
+        "email": "accounts@kalamtantu.com",
+        "phone": "+91 90000 01104"
+      },
+      "workingDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI",
+        "SAT"
+      ],
+      "priceTier": "Standard"
+    },
+    {
+      "name": "Gearvardhan Auto Components Pvt. Ltd.",
+      "industry": "Auto components (corporate & engineering office)",
+      "emailDomains": [
+        "gearvardhan.in"
+      ],
+      "deliveryAddresses": [
+        {
+          "label": "Corporate & Engineering Office",
+          "line1": "B-902, Vrundavan Business Hub (fictional)",
+          "road": "SG Highway, near Thaltej Cross Roads",
+          "area": "Thaltej",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380059",
+          "country": "India"
+        }
+      ],
+      "lunchDeliveryWindow": "12:15–13:00",
+      "employeeCountToSeed": 16,
+      "billingContact": {
+        "name": "Rajesh Solanki",
+        "role": "Purchase Manager",
+        "email": "rajesh.solanki@gearvardhan.in",
+        "phone": "+91 90000 01105"
+      },
+      "workingDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI",
+        "SAT"
+      ],
+      "priceTier": "Standard",
+      "notes": "Engineering staff prefer the Large portion."
+    },
+    {
+      "name": "Hiranyaprabha Gems & Jewels LLP",
+      "industry": "Diamonds & jewellery (design studio and trading office)",
+      "emailDomains": [
+        "hiranyaprabha.com"
+      ],
+      "deliveryAddresses": [
+        {
+          "label": "Design Studio",
+          "line1": "5th Floor, Ratnaprabha Arcade (fictional)",
+          "road": "Vastrapur Lake Road",
+          "area": "Vastrapur",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380015",
+          "country": "India"
+        },
+        {
+          "label": "Trading Office",
+          "line1": "Office 210, Mansi Square (fictional)",
+          "road": "Jodhpur Cross Road–Satellite Road",
+          "area": "Satellite",
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "pincode": "380015",
+          "country": "India"
+        }
+      ],
+      "lunchDeliveryWindow": "13:00–13:30",
+      "employeeCountToSeed": 8,
+      "billingContact": {
+        "name": "Pooja Mehta",
+        "role": "Office Administrator",
+        "email": "pooja.mehta@hiranyaprabha.com",
+        "phone": "+91 90000 01106"
+      },
+      "workingDays": [
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI",
+        "SAT"
+      ],
+      "priceTier": "Standard",
+      "notes": "Mostly Jain staff, so a high share of Jain-tagged orders."
+    }
+  ],
+  "companiesNotes": {
+    "domains": "All 6 base names were checked with DNS (`host`) on 2026-10-03 and returned NXDOMAIN, so none appears to be a live registered domain. Re-check before any public demo.",
+    "phones": "Every number uses the clearly fake +91 90000 011NN pattern."
+  },
+  "employeeNames": [
+    {
+      "firstName": "Aarav",
+      "lastName": "Patel",
+      "gender": "M"
+    },
+    {
+      "firstName": "Riya",
+      "lastName": "Shah",
+      "gender": "F"
+    },
+    {
+      "firstName": "Dhruv",
+      "lastName": "Desai",
+      "gender": "M"
+    },
+    {
+      "firstName": "Krupa",
+      "lastName": "Mehta",
+      "gender": "F"
+    },
+    {
+      "firstName": "Jay",
+      "lastName": "Joshi",
+      "gender": "M"
+    },
+    {
+      "firstName": "Nidhi",
+      "lastName": "Parikh",
+      "gender": "F"
+    },
+    {
+      "firstName": "Harsh",
+      "lastName": "Trivedi",
+      "gender": "M"
+    },
+    {
+      "firstName": "Khushi",
+      "lastName": "Bhatt",
+      "gender": "F"
+    },
+    {
+      "firstName": "Vishal",
+      "lastName": "Chauhan",
+      "gender": "M"
+    },
+    {
+      "firstName": "Mansi",
+      "lastName": "Solanki",
+      "gender": "F"
+    },
+    {
+      "firstName": "Parth",
+      "lastName": "Vyas",
+      "gender": "M"
+    },
+    {
+      "firstName": "Hetal",
+      "lastName": "Amin",
+      "gender": "F"
+    },
+    {
+      "firstName": "Kunal",
+      "lastName": "Modi",
+      "gender": "M"
+    },
+    {
+      "firstName": "Dhara",
+      "lastName": "Pandya",
+      "gender": "F"
+    },
+    {
+      "firstName": "Chirag",
+      "lastName": "Thakkar",
+      "gender": "M"
+    },
+    {
+      "firstName": "Bhavna",
+      "lastName": "Rathod",
+      "gender": "F"
+    },
+    {
+      "firstName": "Ronak",
+      "lastName": "Patel",
+      "gender": "M"
+    },
+    {
+      "firstName": "Foram",
+      "lastName": "Patel",
+      "gender": "F"
+    },
+    {
+      "firstName": "Nirav",
+      "lastName": "Shah",
+      "gender": "M"
+    },
+    {
+      "firstName": "Ishita",
+      "lastName": "Desai",
+      "gender": "F"
+    },
+    {
+      "firstName": "Mihir",
+      "lastName": "Mehta",
+      "gender": "M"
+    },
+    {
+      "firstName": "Zeel",
+      "lastName": "Joshi",
+      "gender": "F"
+    },
+    {
+      "firstName": "Yash",
+      "lastName": "Parikh",
+      "gender": "M"
+    },
+    {
+      "firstName": "Komal",
+      "lastName": "Trivedi",
+      "gender": "F"
+    },
+    {
+      "firstName": "Sagar",
+      "lastName": "Bhatt",
+      "gender": "M"
+    },
+    {
+      "firstName": "Pinal",
+      "lastName": "Chauhan",
+      "gender": "F"
+    },
+    {
+      "firstName": "Darshan",
+      "lastName": "Solanki",
+      "gender": "M"
+    },
+    {
+      "firstName": "Ami",
+      "lastName": "Vyas",
+      "gender": "F"
+    },
+    {
+      "firstName": "Tejas",
+      "lastName": "Amin",
+      "gender": "M"
+    },
+    {
+      "firstName": "Jinal",
+      "lastName": "Modi",
+      "gender": "F"
+    },
+    {
+      "firstName": "Hardik",
+      "lastName": "Pandya",
+      "gender": "M"
+    },
+    {
+      "firstName": "Vidhi",
+      "lastName": "Thakkar",
+      "gender": "F"
+    },
+    {
+      "firstName": "Ketan",
+      "lastName": "Rathod",
+      "gender": "M"
+    },
+    {
+      "firstName": "Shreya",
+      "lastName": "Dave",
+      "gender": "F"
+    },
+    {
+      "firstName": "Maulik",
+      "lastName": "Dave",
+      "gender": "M"
+    },
+    {
+      "firstName": "Nisha",
+      "lastName": "Jani",
+      "gender": "F"
+    },
+    {
+      "firstName": "Bhavik",
+      "lastName": "Kothari",
+      "gender": "M"
+    },
+    {
+      "firstName": "Payal",
+      "lastName": "Sanghvi",
+      "gender": "F"
+    },
+    {
+      "firstName": "Jainam",
+      "lastName": "Doshi",
+      "gender": "M"
+    },
+    {
+      "firstName": "Twinkle",
+      "lastName": "Gandhi",
+      "gender": "F"
+    },
+    {
+      "firstName": "Pratik",
+      "lastName": "Prajapati",
+      "gender": "M"
+    },
+    {
+      "firstName": "Rinku",
+      "lastName": "Panchal",
+      "gender": "F"
+    },
+    {
+      "firstName": "Ankit",
+      "lastName": "Gohil",
+      "gender": "M"
+    },
+    {
+      "firstName": "Disha",
+      "lastName": "Jadeja",
+      "gender": "F"
+    },
+    {
+      "firstName": "Brijesh",
+      "lastName": "Makwana",
+      "gender": "M"
+    },
+    {
+      "firstName": "Avni",
+      "lastName": "Upadhyay",
+      "gender": "F"
+    },
+    {
+      "firstName": "Kalpesh",
+      "lastName": "Bhavsar",
+      "gender": "M"
+    },
+    {
+      "firstName": "Rutvi",
+      "lastName": "Raval",
+      "gender": "F"
+    },
+    {
+      "firstName": "Sanket",
+      "lastName": "Brahmbhatt",
+      "gender": "M"
+    },
+    {
+      "firstName": "Devanshi",
+      "lastName": "Chokshi",
+      "gender": "F"
+    },
+    {
+      "firstName": "Utsav",
+      "lastName": "Nanavati",
+      "gender": "M"
+    },
+    {
+      "firstName": "Heena",
+      "lastName": "Kapadia",
+      "gender": "F"
+    },
+    {
+      "firstName": "Viral",
+      "lastName": "Soni",
+      "gender": "M"
+    },
+    {
+      "firstName": "Ruchita",
+      "lastName": "Lakhani",
+      "gender": "F"
+    },
+    {
+      "firstName": "Rohit",
+      "lastName": "Sharma",
+      "gender": "M"
+    },
+    {
+      "firstName": "Neha",
+      "lastName": "Gupta",
+      "gender": "F"
+    },
+    {
+      "firstName": "Amit",
+      "lastName": "Verma",
+      "gender": "M"
+    },
+    {
+      "firstName": "Pooja",
+      "lastName": "Agarwal",
+      "gender": "F"
+    },
+    {
+      "firstName": "Saurabh",
+      "lastName": "Jain",
+      "gender": "M"
+    },
+    {
+      "firstName": "Ananya",
+      "lastName": "Iyer",
+      "gender": "F"
+    },
+    {
+      "firstName": "Karthik",
+      "lastName": "Nair",
+      "gender": "M"
+    },
+    {
+      "firstName": "Sneha",
+      "lastName": "Kulkarni",
+      "gender": "F"
+    },
+    {
+      "firstName": "Abhishek",
+      "lastName": "Singh",
+      "gender": "M"
+    },
+    {
+      "firstName": "Priyanka",
+      "lastName": "Mishra",
+      "gender": "F"
+    },
+    {
+      "firstName": "Arjun",
+      "lastName": "Reddy",
+      "gender": "M"
+    },
+    {
+      "firstName": "Shweta",
+      "lastName": "Deshpande",
+      "gender": "F"
+    },
+    {
+      "firstName": "Gurpreet",
+      "lastName": "Sandhu",
+      "gender": "M"
+    },
+    {
+      "firstName": "Debjani",
+      "lastName": "Banerjee",
+      "gender": "F"
+    },
+    {
+      "firstName": "Imran",
+      "lastName": "Saiyed",
+      "gender": "M"
+    },
+    {
+      "firstName": "Zoya",
+      "lastName": "Mansuri",
+      "gender": "F"
+    },
+    {
+      "firstName": "Faizal",
+      "lastName": "Shaikh",
+      "gender": "M"
+    },
+    {
+      "firstName": "Sana",
+      "lastName": "Memon",
+      "gender": "F"
+    },
+    {
+      "firstName": "Arif",
+      "lastName": "Kadri",
+      "gender": "M"
+    },
+    {
+      "firstName": "Rehana",
+      "lastName": "Pathan",
+      "gender": "F"
+    },
+    {
+      "firstName": "Aamir",
+      "lastName": "Vohra",
+      "gender": "M"
+    },
+    {
+      "firstName": "Joseph",
+      "lastName": "Christian",
+      "gender": "M"
+    },
+    {
+      "firstName": "Sharon",
+      "lastName": "Macwan",
+      "gender": "F"
+    },
+    {
+      "firstName": "Neville",
+      "lastName": "Parmar",
+      "gender": "M"
+    },
+    {
+      "firstName": "Merlyn",
+      "lastName": "D'Souza",
+      "gender": "F"
+    },
+    {
+      "firstName": "Cyrus",
+      "lastName": "Engineer",
+      "gender": "M"
+    },
+    {
+      "firstName": "Freya",
+      "lastName": "Wadia",
+      "gender": "F"
+    },
+    {
+      "firstName": "Behram",
+      "lastName": "Contractor",
+      "gender": "M"
+    },
+    {
+      "firstName": "Delnaz",
+      "lastName": "Batliwala",
+      "gender": "F"
+    }
+  ],
+  "menu": [
+    {
+      "category": "Gujarati Thali Boxes",
+      "dishes": [
+        {
+          "sku": "GUJ-001",
+          "name": "Gujarati Mini Thali Box",
+          "description": "2 phulka, 1 seasonal shaak, khatti-meethi dal, steamed rice, salad and pickle.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "MILK",
+            "GLUTEN",
+            "PEANUT",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 62,
+          "sellingPriceINR": 130,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "ROTI",
+            "DAL",
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "GUJ-002",
+          "name": "Gujarati Full Thali Box",
+          "description": "4 phulka, 2 shaak (1 dry, 1 gravy), dal or kadhi, rice, 1 farsan, 1 sweet, salad and chaas.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "MILK",
+            "GLUTEN",
+            "PEANUT",
+            "MUSTARD",
+            "SESAME"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 95,
+          "sellingPriceINR": 190,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "ROTI",
+            "DAL",
+            "RICE",
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "GUJ-003",
+          "name": "Kathiyawadi Box",
+          "description": "Bajra rotla, sev tameta nu shaak, ringan no olo (baingan bharta), lasaniya chutney, khichdi and chaas.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "MILK",
+            "GLUTEN",
+            "PEANUT",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 80,
+          "sellingPriceINR": 170,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true,
+          "notes": "Not Jain or Swaminarayan (contains garlic and onion)."
+        },
+        {
+          "sku": "GUJ-004",
+          "name": "Jain Thali Box",
+          "description": "Same as the Full Thali but cooked at the Jain station: no onion, garlic or root vegetables, with a raw-banana or tindora shaak and Jain kadhi.",
+          "temperature": "hot",
+          "station": "JAIN",
+          "allergens": [
+            "MILK",
+            "GLUTEN",
+            "PEANUT",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "JAIN",
+            "SWAMINARAYAN",
+            "NOONIONGARLIC"
+          ],
+          "costPriceINR": 98,
+          "sellingPriceINR": 195,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "ROTI",
+            "DAL",
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "GUJ-005",
+          "name": "Undhiyu Puri Box (seasonal, Nov–Feb)",
+          "description": "Surti undhiyu with methi muthiya, 4 puri, shrikhand, kadhi and rice. Popular around Uttarayan.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "MILK",
+            "GLUTEN",
+            "PEANUT",
+            "SESAME",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 120,
+          "sellingPriceINR": 240,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true,
+          "notes": "Available in winter only."
+        }
+      ]
+    },
+    {
+      "category": "North Indian Bowls",
+      "dishes": [
+        {
+          "sku": "NIB-001",
+          "name": "Paneer Butter Masala Bowl",
+          "description": "Paneer in a tomato-cashew makhani gravy over jeera rice, with 1 tandoori roti.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "MILK",
+            "TREENUT",
+            "GLUTEN"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "HIGHPROTEIN"
+          ],
+          "costPriceINR": 85,
+          "sellingPriceINR": 180,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "RICE",
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "NIB-002",
+          "name": "Rajma Chawal Bowl",
+          "description": "Punjabi-style rajma over steamed rice, with onion-lemon salad.",
+          "temperature": "hot",
+          "station": "DALRICE",
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "HIGHPROTEIN"
+          ],
+          "costPriceINR": 52,
+          "sellingPriceINR": 140,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "RICE",
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "NIB-003",
+          "name": "Chole Kulcha Box",
+          "description": "Amritsari chole with 2 kulchas, pickled onion and green chutney.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "GLUTEN",
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 58,
+          "sellingPriceINR": 150,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "NIB-004",
+          "name": "Build-your-own Protein Bowl",
+          "description": "Choose a protein and a rice or millet base, with sautéed veg and mint chutney.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 70,
+          "sellingPriceINR": 170,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "PROTEIN",
+            "RICE",
+            "SIDE"
+          ],
+          "usesPortions": true,
+          "notes": "Allergens depend on the options chosen (tofu adds SOY, paneer adds MILK)."
+        },
+        {
+          "sku": "NIB-005",
+          "name": "Dal Makhani & Jeera Rice Bowl",
+          "description": "Slow-cooked black dal with butter and cream, jeera rice and papad.",
+          "temperature": "hot",
+          "station": "DALRICE",
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 55,
+          "sellingPriceINR": 150,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        }
+      ]
+    },
+    {
+      "category": "Rice & Khichdi",
+      "dishes": [
+        {
+          "sku": "RIC-001",
+          "name": "Gujarati Khichdi Kadhi",
+          "description": "Moong dal–rice khichdi with ghee, Gujarati kadhi, papad and pickle. Light comfort food.",
+          "temperature": "hot",
+          "station": "DALRICE",
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 38,
+          "sellingPriceINR": 110,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "RIC-002",
+          "name": "Veg Dum Biryani",
+          "description": "Hyderabadi-style vegetable biryani with raita and mirchi ka salan.",
+          "temperature": "hot",
+          "station": "DALRICE",
+          "allergens": [
+            "MILK",
+            "TREENUT",
+            "PEANUT",
+            "SESAME"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 60,
+          "sellingPriceINR": 160,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "RIC-003",
+          "name": "Vaghareli Khichdi (Masala Khichdi)",
+          "description": "Spiced tempered khichdi with vegetables, served with chaas.",
+          "temperature": "hot",
+          "station": "DALRICE",
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 40,
+          "sellingPriceINR": 120,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "RIC-004",
+          "name": "Jain Pulao with Kadhi",
+          "description": "Vegetable pulao without onion, garlic or root vegetables, with Jain kadhi.",
+          "temperature": "hot",
+          "station": "JAIN",
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "JAIN",
+            "SWAMINARAYAN",
+            "NOONIONGARLIC",
+            "GF"
+          ],
+          "costPriceINR": 45,
+          "sellingPriceINR": 125,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        }
+      ]
+    },
+    {
+      "category": "Breakfast & Farsan",
+      "dishes": [
+        {
+          "sku": "FAR-001",
+          "name": "Khaman Dhokla (250 g)",
+          "description": "Steamed gram-flour khaman with rai-til tadka and green chutney.",
+          "temperature": "cold",
+          "station": "FARSAN",
+          "allergens": [
+            "MUSTARD",
+            "SESAME"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN"
+          ],
+          "costPriceINR": 22,
+          "sellingPriceINR": 70,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false,
+          "notes": "Check that the hing is gluten-free before claiming GF."
+        },
+        {
+          "sku": "FAR-002",
+          "name": "Patra (8 pcs)",
+          "description": "Steamed colocasia-leaf rolls with besan and tamarind-jaggery, tempered with sesame.",
+          "temperature": "cold",
+          "station": "FARSAN",
+          "allergens": [
+            "SESAME",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN"
+          ],
+          "costPriceINR": 24,
+          "sellingPriceINR": 75,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "FAR-003",
+          "name": "Handvo Slice (2 pcs)",
+          "description": "Baked mixed-dal and rice cake with bottle gourd, sesame crust.",
+          "temperature": "hot",
+          "station": "FARSAN",
+          "allergens": [
+            "MILK",
+            "SESAME",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 26,
+          "sellingPriceINR": 80,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "FAR-004",
+          "name": "Samosa (2 pcs) with Chutney",
+          "description": "Punjabi aloo samosa with tamarind and mint chutneys.",
+          "temperature": "hot",
+          "station": "FARSAN",
+          "allergens": [
+            "GLUTEN"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN"
+          ],
+          "costPriceINR": 18,
+          "sellingPriceINR": 60,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "FAR-005",
+          "name": "Farsan Platter Tray (serves 10)",
+          "description": "Mix of khaman, khandvi, patra and mini samosa for meetings.",
+          "temperature": "cold",
+          "station": "FARSAN",
+          "allergens": [
+            "GLUTEN",
+            "MILK",
+            "SESAME",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 320,
+          "sellingPriceINR": 850,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false,
+          "notes": "Sold per tray. Order before 18:00 the previous day."
+        }
+      ]
+    },
+    {
+      "category": "Healthy / Millet",
+      "dishes": [
+        {
+          "sku": "HLT-001",
+          "name": "Bajra Rotla & Lauki Shaak Box",
+          "description": "2 bajra rotla, bottle-gourd shaak, moong dal, kachumber and chaas. Low-oil.",
+          "temperature": "hot",
+          "station": "ROTI",
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "LOWOIL"
+          ],
+          "costPriceINR": 48,
+          "sellingPriceINR": 140,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "HLT-002",
+          "name": "Jowar Roti & Sprouts Usal Bowl",
+          "description": "2 jowar rotis, mixed sprouts usal, cucumber raita and salad.",
+          "temperature": "hot",
+          "station": "ROTI",
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "LOWOIL",
+            "HIGHPROTEIN"
+          ],
+          "costPriceINR": 50,
+          "sellingPriceINR": 150,
+          "minOrderQty": 1,
+          "optionGroups": [
+            "SIDE"
+          ],
+          "usesPortions": true
+        },
+        {
+          "sku": "HLT-003",
+          "name": "Tofu Millet Bowl (Vegan)",
+          "description": "Foxtail-millet pulao, tofu tikka, sautéed greens and mint chutney.",
+          "temperature": "hot",
+          "station": "CURRY",
+          "allergens": [
+            "SOY"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN",
+            "GF",
+            "LOWOIL",
+            "HIGHPROTEIN"
+          ],
+          "costPriceINR": 72,
+          "sellingPriceINR": 180,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": true
+        },
+        {
+          "sku": "HLT-004",
+          "name": "Moong Sprout & Paneer Salad",
+          "description": "Moong sprouts, paneer cubes, pomegranate, cucumber and lemon-chaat dressing.",
+          "temperature": "cold",
+          "station": "COLD",
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "LOWOIL",
+            "HIGHPROTEIN"
+          ],
+          "costPriceINR": 45,
+          "sellingPriceINR": 130,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        }
+      ]
+    },
+    {
+      "category": "Desserts",
+      "dishes": [
+        {
+          "sku": "DES-001",
+          "name": "Kesar Shrikhand (100 g)",
+          "description": "Hung-curd shrikhand with saffron, cardamom and pistachio.",
+          "temperature": "cold",
+          "station": "SWEETS",
+          "allergens": [
+            "MILK",
+            "TREENUT"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 22,
+          "sellingPriceINR": 60,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "DES-002",
+          "name": "Mohanthal (2 pcs)",
+          "description": "Ghee-roasted besan fudge with nuts.",
+          "temperature": "cold",
+          "station": "SWEETS",
+          "allergens": [
+            "MILK",
+            "TREENUT"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 20,
+          "sellingPriceINR": 55,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "DES-003",
+          "name": "Gulab Jamun (2 pcs)",
+          "description": "Khoya dumplings in cardamom syrup.",
+          "temperature": "hot",
+          "station": "SWEETS",
+          "allergens": [
+            "MILK",
+            "GLUTEN"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 14,
+          "sellingPriceINR": 45,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "DES-004",
+          "name": "Sukhdi (2 pcs)",
+          "description": "Wheat flour, ghee and jaggery squares, a Gujarati classic.",
+          "temperature": "cold",
+          "station": "SWEETS",
+          "allergens": [
+            "MILK",
+            "GLUTEN"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ],
+          "costPriceINR": 12,
+          "sellingPriceINR": 40,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "DES-005",
+          "name": "Basundi Tray (serves 10)",
+          "description": "Reduced sweetened milk with charoli and nuts, sold by the tray for celebrations.",
+          "temperature": "cold",
+          "station": "SWEETS",
+          "allergens": [
+            "MILK",
+            "TREENUT"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 260,
+          "sellingPriceINR": 650,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false,
+          "notes": "Sold per tray (10 × 100 ml). Order 1 working day in advance."
+        }
+      ]
+    },
+    {
+      "category": "Beverages",
+      "dishes": [
+        {
+          "sku": "BEV-001",
+          "name": "Masala Chaas (250 ml)",
+          "description": "Spiced buttermilk with roasted jeera, ginger and coriander.",
+          "temperature": "cold",
+          "station": "COLD",
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "LOWOIL"
+          ],
+          "costPriceINR": 7,
+          "sellingPriceINR": 25,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "BEV-002",
+          "name": "Sweet Lassi (200 ml)",
+          "description": "Thick sweet lassi.",
+          "temperature": "cold",
+          "station": "COLD",
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ],
+          "costPriceINR": 14,
+          "sellingPriceINR": 45,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "BEV-003",
+          "name": "Nimbu Shikanji (250 ml)",
+          "description": "Fresh lime with black salt and roasted cumin.",
+          "temperature": "cold",
+          "station": "COLD",
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN",
+            "GF",
+            "JAIN"
+          ],
+          "costPriceINR": 6,
+          "sellingPriceINR": 30,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "BEV-004",
+          "name": "Kokum Sharbat (250 ml)",
+          "description": "Cooling kokum cooler.",
+          "temperature": "cold",
+          "station": "COLD",
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN",
+            "GF",
+            "JAIN"
+          ],
+          "costPriceINR": 8,
+          "sellingPriceINR": 35,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        },
+        {
+          "sku": "BEV-005",
+          "name": "Packaged Mineral Water (500 ml)",
+          "description": "Sealed bottled water.",
+          "temperature": "cold",
+          "station": "PACK",
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN",
+            "GF",
+            "JAIN"
+          ],
+          "costPriceINR": 6,
+          "sellingPriceINR": 15,
+          "minOrderQty": 1,
+          "optionGroups": [],
+          "usesPortions": false
+        }
+      ]
+    }
+  ],
+  "optionGroups": [
+    {
+      "code": "ROTI",
+      "name": "Choose your roti",
+      "required": true,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "usesPortions": true,
+      "largeSurchargeINR": 10,
+      "options": [
+        {
+          "code": "ROTI_PHULKA",
+          "name": "Phulka (ghee)",
+          "costINR": 4,
+          "priceAddOnINR": 5,
+          "allergens": [
+            "GLUTEN",
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS"
+          ]
+        },
+        {
+          "code": "ROTI_BAJRA",
+          "name": "Bajra rotla",
+          "costINR": 5,
+          "priceAddOnINR": 8,
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        },
+        {
+          "code": "ROTI_THEPLA",
+          "name": "Methi thepla",
+          "costINR": 6,
+          "priceAddOnINR": 10,
+          "allergens": [
+            "GLUTEN",
+            "SESAME"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN"
+          ]
+        },
+        {
+          "code": "ROTI_TANDOORI",
+          "name": "Tandoori roti",
+          "costINR": 5,
+          "priceAddOnINR": 8,
+          "allergens": [
+            "GLUTEN"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "VEGAN"
+          ]
+        },
+        {
+          "code": "ROTI_JOWAR",
+          "name": "Jowar roti",
+          "costINR": 6,
+          "priceAddOnINR": 10,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN",
+            "LOWOIL"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "RICE",
+      "name": "Choose your rice",
+      "required": true,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "usesPortions": true,
+      "largeSurchargeINR": 15,
+      "options": [
+        {
+          "code": "RICE_JEERA",
+          "name": "Jeera rice",
+          "costINR": 6,
+          "priceAddOnINR": 5,
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        },
+        {
+          "code": "RICE_STEAMED",
+          "name": "Plain steamed rice",
+          "costINR": 4,
+          "priceAddOnINR": 5,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN",
+            "JAIN"
+          ]
+        },
+        {
+          "code": "RICE_BROWN",
+          "name": "Brown rice",
+          "costINR": 8,
+          "priceAddOnINR": 15,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN",
+            "LOWOIL",
+            "JAIN"
+          ]
+        },
+        {
+          "code": "RICE_MILLET",
+          "name": "Foxtail millet",
+          "costINR": 10,
+          "priceAddOnINR": 20,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN",
+            "LOWOIL",
+            "JAIN"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "DAL",
+      "name": "Choose your dal",
+      "required": true,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "usesPortions": true,
+      "largeSurchargeINR": 10,
+      "options": [
+        {
+          "code": "DAL_GUJ",
+          "name": "Gujarati khatti-meethi dal",
+          "costINR": 7,
+          "priceAddOnINR": 5,
+          "allergens": [
+            "PEANUT",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN"
+          ]
+        },
+        {
+          "code": "DAL_FRY",
+          "name": "Dal fry",
+          "costINR": 7,
+          "priceAddOnINR": 5,
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        },
+        {
+          "code": "DAL_KADHI",
+          "name": "Gujarati kadhi",
+          "costINR": 6,
+          "priceAddOnINR": 5,
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        },
+        {
+          "code": "DAL_JAIN_KADHI",
+          "name": "Jain kadhi (no ginger)",
+          "costINR": 6,
+          "priceAddOnINR": 8,
+          "allergens": [
+            "MILK",
+            "MUSTARD"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "JAIN",
+            "SWAMINARAYAN"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "PROTEIN",
+      "name": "Choose your protein",
+      "required": true,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "usesPortions": true,
+      "largeSurchargeINR": 30,
+      "options": [
+        {
+          "code": "PRO_PANEER",
+          "name": "Paneer tikka (100 g)",
+          "costINR": 32,
+          "priceAddOnINR": 40,
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "HIGHPROTEIN"
+          ]
+        },
+        {
+          "code": "PRO_TOFU",
+          "name": "Tofu masala (100 g)",
+          "costINR": 26,
+          "priceAddOnINR": 35,
+          "allergens": [
+            "SOY"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN",
+            "HIGHPROTEIN"
+          ]
+        },
+        {
+          "code": "PRO_CHANA",
+          "name": "Chana masala",
+          "costINR": 12,
+          "priceAddOnINR": 15,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN"
+          ]
+        },
+        {
+          "code": "PRO_RAJMA",
+          "name": "Rajma masala",
+          "costINR": 12,
+          "priceAddOnINR": 15,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "SIDE",
+      "name": "Add a side",
+      "required": false,
+      "minSelect": 0,
+      "maxSelect": 3,
+      "usesPortions": false,
+      "options": [
+        {
+          "code": "SIDE_CHAAS",
+          "name": "Masala chaas (200 ml)",
+          "costINR": 6,
+          "priceAddOnINR": 20,
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        },
+        {
+          "code": "SIDE_RAITA",
+          "name": "Boondi raita",
+          "costINR": 8,
+          "priceAddOnINR": 25,
+          "allergens": [
+            "MILK"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        },
+        {
+          "code": "SIDE_PAPAD",
+          "name": "Roasted papad",
+          "costINR": 2,
+          "priceAddOnINR": 10,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN"
+          ]
+        },
+        {
+          "code": "SIDE_SALAD",
+          "name": "Kachumber salad",
+          "costINR": 6,
+          "priceAddOnINR": 20,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN",
+            "LOWOIL"
+          ]
+        },
+        {
+          "code": "SIDE_MINT",
+          "name": "Mint chutney (30 g)",
+          "costINR": 2,
+          "priceAddOnINR": 10,
+          "allergens": [],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF",
+            "VEGAN"
+          ]
+        },
+        {
+          "code": "SIDE_SWEET",
+          "name": "Shrikhand (50 g)",
+          "costINR": 11,
+          "priceAddOnINR": 30,
+          "allergens": [
+            "MILK",
+            "TREENUT"
+          ],
+          "dietaryTags": [
+            "VEG",
+            "EGGLESS",
+            "GF"
+          ]
+        }
+      ]
+    }
+  ],
+  "menuNotes": {
+    "pricingBasis": "Ahmedabad office-lunch tiffins usually cost ₹100–₹150 per meal, and an executive thali from a local Ahmedabad tiffin service is listed at ₹140 per plate (IndiaMART). Premium or paneer boxes reach ₹180–₹250. Selling prices here run from ₹110 to ₹240 for mains. 'costPriceINR' includes ingredients plus direct labour (about 45–55% of the selling price), but not packaging (₹8–₹18) or delivery.",
+    "priceSources": [
+      "https://m.indiamart.com/the-tiffin-zone",
+      "https://www.magicpin.com/blog/category/food-and-beverage/corporate-catering-services-india"
+    ],
+    "portions": "Dishes with usesPortions=true support Regular and Large. Large adds about ₹30–₹50 on the base box (suggest +₹40 on thali boxes and +₹35 on bowls), plus each option group's largeSurchargeINR for the portion-scaled groups (ROTI, RICE, DAL, PROTEIN). SIDE is never portioned.",
+    "optionPricing": "Every option has a non-zero priceAddOnINR, as required. For required groups, the box's sellingPriceINR assumes the add-on of the chosen option is charged on top, so the cheapest real total for GUJ-001 is ₹130 + ₹5 phulka + ₹5 dal = ₹140."
+  },
+  "priceTiers": [
+    {
+      "code": "STANDARD",
+      "name": "Standard",
+      "isDefault": true,
+      "rule": "List price (sellingPriceINR).",
+      "notes": "For SMEs and new clients. Usually monthly invoicing with 15-day credit."
+    },
+    {
+      "code": "ENTERPRISE",
+      "name": "Enterprise",
+      "rule": "Standard − 8% (round to the nearest ₹5).",
+      "notes": "For clients with about 50+ boxes a day or an annual contract. Indian corporate caterers commonly give 5–10% volume discounts."
+    },
+    {
+      "code": "PARTNER",
+      "name": "Partner",
+      "rule": "cost × 1.6 (floor at Standard − 15%).",
+      "notes": "For strategic or anchor clients and co-working partners (for example a GIFT City anchor tenant). This keeps a 37.5% gross margin on cost."
+    }
+  ],
+  "drivers": [
+    {
+      "name": "Mahesh Bharwad",
+      "vehicleType": "Tata Ace (mini truck), insulated crates",
+      "route": "West belt: SG Highway, Thaltej, Bodakdev, Science City Road"
+    },
+    {
+      "name": "Salim Ghanchi",
+      "vehicleType": "Petrol bike (Hero Splendor) with insulated delivery box",
+      "route": "Prahlad Nagar, Satellite, Vastrapur"
+    },
+    {
+      "name": "Kiran Vaghela",
+      "vehicleType": "E-bike / electric scooter with insulated box",
+      "route": "Navrangpura, Ashram Road (old city side)"
+    },
+    {
+      "name": "Dinesh Thakor",
+      "vehicleType": "Maruti Eeco van",
+      "route": "GIFT City, Gandhinagar (long run via SG Highway)"
+    }
+  ],
+  "notes": {
+    "currency": {
+      "code": "INR",
+      "symbol": "₹",
+      "format": "Indian digit grouping: ₹1,23,456.00 (lakh/crore). Use Intl.NumberFormat('en-IN', {style:'currency', currency:'INR'}). Store amounts as integer paise or as decimals with 2 places."
+    },
+    "gst": "Taxes are out of scope for the app: all totals are pre-tax. For context, restaurant and outdoor catering services in India usually charge 5% GST without input tax credit (18% in some cases), and invoices to companies need the client's GSTIN. Neither is modelled.",
+    "uttarayan": "In Ahmedabad, Jan 14 (Uttarayan) and Jan 15 (Vasi Uttarayan) are effectively both off. Offices empty out for kite flying, so close the kitchen both days even though only one is gazetted.",
+    "diwali": "Many Ahmedabad businesses stay closed or run thin from Diwali to Labh Pancham (5th day of the new year, about Nov 14 in 2026 and about Nov 3 in 2027). Expect very low order volume that week even on open days.",
+    "navratri": "Navratri (9 nights, about Oct 11–19 in 2026, unverified) is not a holiday, but staff fast and late-night garba lowers lunch orders. Offer farali (fasting) items: sabudana khichdi, rajgira roti, farali pattice.",
+    "fasting": "Jain Paryushan (about 8 days ending at Samvatsari) and Shravan month bring demand for Jain and no-onion/garlic meals.",
+    "weather": "Summer (April–June) often exceeds 42°C in Ahmedabad. Keep hot holding to 90 minutes or less and send chaas and cold items in insulated bags. Monsoon (July–September) brings waterlogging, so add a delivery buffer.",
+    "plasticBan": "Gujarat enforces the national single-use plastic ban (July 2022). Use bagasse, paper or reusable steel packaging.",
+    "fssaiLicence": "A central kitchen serving corporate clients needs an FSSAI State licence (or Central, depending on turnover/capacity). Show the 14-digit licence number on box labels and invoices.",
+    "holidayCaveat": "Gujarat had not published its official 2027 holiday list as of 2026-10-03. Entries marked 'tentative' or 'verified-central' come from the Central DoPT 2027 list, panchang calendars or estimates and must be re-checked once the Gujarat GAD 2027 notification is out (usually Nov–Dec of the previous year)."
+  }
+}

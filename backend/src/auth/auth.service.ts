@@ -2,7 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service.js';
-import type { AuthenticatedStaff, JwtPayload, RoleName } from './auth.types.js';
+import { parseCapabilities } from './capabilities.js';
+import type { AuthenticatedStaff, JwtPayload } from './auth.types.js';
 
 const invalidCredentials = () => new UnauthorizedException('Invalid email or password.');
 
@@ -24,7 +25,7 @@ export class AuthService {
     }
 
     const safeStaff = this.toAuthenticatedStaff(staff);
-    const payload: JwtPayload = { sub: safeStaff.id, email: safeStaff.email, role: safeStaff.role };
+    const payload: JwtPayload = { sub: safeStaff.id, email: safeStaff.email };
     return { staff: safeStaff, token: await this.jwtService.signAsync(payload) };
   }
 
@@ -42,8 +43,15 @@ export class AuthService {
     id: number;
     name: string;
     email: string;
-    role: { name: string };
+    role: { name: string; label: string; capabilities: string[] };
   }): AuthenticatedStaff {
-    return { id: staff.id, name: staff.name, email: staff.email, role: staff.role.name as RoleName };
+    return {
+      id: staff.id,
+      name: staff.name,
+      email: staff.email,
+      role: staff.role.name,
+      roleLabel: staff.role.label,
+      capabilities: parseCapabilities(staff.role.capabilities),
+    };
   }
 }

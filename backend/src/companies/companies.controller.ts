@@ -1,18 +1,16 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { CapabilitiesGuard } from '../auth/capabilities.guard.js';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Authorize } from '../auth/authorize.decorator.js';
 import { Capability } from '../auth/capabilities.js';
-import { RequireCapabilities } from '../auth/require-capabilities.decorator.js';
 import { CompaniesService } from './companies.service.js';
+import { CreateCompanyDto } from './dto/create-company.dto.js';
 
 @Controller('companies')
-@UseGuards(JwtAuthGuard, CapabilitiesGuard)
-@RequireCapabilities(Capability.COMPANIES_MANAGE)
+@Authorize(Capability.COMPANIES_MANAGE)
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  create(@Body() body: { name: string; emailDomain: string }) {
+  create(@Body() body: CreateCompanyDto) {
     return this.companiesService.create(body);
   }
 
