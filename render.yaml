@@ -1,0 +1,56 @@
+# Render Blueprint: two backend services from one repo.
+#   main branch -> kitchenops-api-prod
+#   dev  branch -> kitchenops-api-dev
+# Secrets marked `sync: false` are entered once in the Render dashboard and never committed.
+# `region` MUST match the region of the Postgres instance, otherwise its internal URL won't resolve.
+services:
+  - type: web
+    name: kitchenops-api-prod
+    runtime: node
+    plan: free
+    region: Singapore
+    branch: main
+    rootDir: backend
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+    # Migrations run on start: Render's build step has no private-network access to the DB.
+    startCommand: npx prisma migrate deploy && node dist/main.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: prod
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+
+  - type: web
+    name: kitchenops-api-dev
+    runtime: node
+    plan: free
+    region: Singapore
+    branch: dev
+    rootDir: backend
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && node dist/main.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: dev
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false

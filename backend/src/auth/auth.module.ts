@@ -8,14 +8,14 @@ import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { CapabilitiesGuard } from './capabilities.guard.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
-import { JwtStrategy } from './jwt.strategy.js';
+import { JwtStrategy, jwtSecret } from './jwt.strategy.js';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'development-only-secret-change-before-deployment',
+      secret: jwtSecret(),
       signOptions: { expiresIn: '8h' },
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),

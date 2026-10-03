@@ -1,4 +1,5 @@
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+// Same-origin path proxied to the backend by next.config.ts rewrites.
+const apiUrl = "/api";
 
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string) {
@@ -11,7 +12,6 @@ function dispatchUnauthorized() {
 }
 
 export async function apiFetch(path: string, init: RequestInit = {}) {
-  if (!apiUrl) throw new Error("NEXT_PUBLIC_API_URL is not configured.");
   const headers = new Headers(init.headers);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 

@@ -4,10 +4,11 @@ import { CompaniesModule } from './companies/companies.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { HealthController } from './health.controller.js';
 
 @Module({
   imports: [PrismaModule, AuthModule, CompaniesModule],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}
