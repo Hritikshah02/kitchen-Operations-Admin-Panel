@@ -27,7 +27,14 @@ export class CutoffService implements OnApplicationBootstrap, OnApplicationShutd
   ) {}
 
   onApplicationBootstrap() {
-    if (process.env.NODE_ENV === 'test' || process.env.VITEST) return;
+    // if (process.env.NODE_ENV === 'test' || process.env.VITEST) return;
+    if (
+      process.env.NODE_ENV === 'test' ||
+      process.env.VITEST ||
+      process.env.SKIP_CUTOFF_SCHEDULER === 'true'
+    ) {
+      return;
+    }
     void this.processDue('scheduler');
     this.timer = setInterval(() => void this.processDue('scheduler'), SCHEDULE_MS);
     this.timer.unref();
