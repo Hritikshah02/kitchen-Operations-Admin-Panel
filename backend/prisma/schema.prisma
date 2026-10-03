@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -28,37 +27,108 @@ model Role {
 }
 
 model Staff {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String   @unique
-  passwordHash String
-  roleId       Int
-  role         Role     @relation(fields: [roleId], references: [id])
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id              Int       @id @default(autoincrement())
+  name            String
+  email           String    @unique
+  passwordHash    String
+  roleId          Int
+  role            Role      @relation(fields: [roleId], references: [id])
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  defaultDriverOf Company[] @relation("CompanyDefaultDriver")
 }
 
+// Never hard-deleted (orders reference it). Deactivating blocks new orders and cancels open ones.
 model Company {
-  id          Int        @id @default(autoincrement())
-  name        String
-  emailDomain String     @unique
-  status      String     @default("ACTIVE")
-  employees   Employee[]
-  orders      Order[]
-  createdAt   DateTime   @default(now())
+  id                     Int              @id @default(autoincrement())
+  name                   String
+  isActive               Boolean          @default(true)
+  billingContactName     String
+  billingContactEmail    String
+  billingContactPhone    String?
+  // Nullable only because the owner row is created in the same transaction as the company;
+  // the API never leaves an active company without one.
+  ownerId                Int?             @unique
+  owner                  Employee?        @relation("CompanyOwner", fields: [ownerId], references: [id])
+  workingDays            Int[]            @default([1, 2, 3, 4, 5]) // ISO weekday the company accepts deliveries
+  defaultDeliveryTime    String           @default("12:30") // HH:mm, kitchen timezone
+  deliveryWindowStart    String           @default("12:00") // employees allowed to change time pick inside this window
+  deliveryWindowEnd      String           @default("14:00")
+  dispatchLeadMinutes    Int              @default(60) // order must leave the kitchen this long before delivery
+  defaultPackagingTypeId Int?
+  defaultPackagingType   PackagingType?   @relation(fields: [defaultPackagingTypeId], references: [id])
+  driverInstructions     String?
+  defaultDriverId        Int?
+  defaultDriver          Staff?           @relation("CompanyDefaultDriver", fields: [defaultDriverId], references: [id])
+  domains                CompanyDomain[]
+  addresses              CompanyAddress[]
+  holidays               CompanyHoliday[]
+  employees              Employee[]       @relation("CompanyEmployees")
+  orders                 Order[]
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  @@index([isActive, name])
+}
+
+// Globally unique: an email domain identifies exactly one company.
+model CompanyDomain {
+  id        Int     @id @default(autoincrement())
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  domain    String  @unique
+
+  @@index([companyId])
+}
+
+// Addresses are deactivated, not deleted, so past orders keep a valid delivery address.
+// At most one default per company (partial unique index in the migration).
+model CompanyAddress {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id])
+  label     String
+  line1     String
+  line2     String?
+  area      String?
+  city      String
+  pincode   String
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model CompanyHoliday {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id])
+  date      DateTime @db.Date
+  name      String
+
+  @@unique([companyId, date])
 }
 
 model Employee {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String
-  companyId Int
-  company   Company  @relation(fields: [companyId], references: [id])
-  isActive  Boolean  @default(true)
-  orders    Order[]
-  createdAt DateTime @default(now())
+  id                    Int          @id @default(autoincrement())
+  name                  String
+  email                 String       @unique // must match one of the company's domains (enforced by the API)
+  phone                 String?
+  companyId             Int
+  company               Company      @relation("CompanyEmployees", fields: [companyId], references: [id])
+  ownerOf               Company?     @relation("CompanyOwner")
+  isActive              Boolean      @default(true)
+  canChooseAddress      Boolean      @default(false) // may pick any of the company's active addresses
+  canChangeDeliveryTime Boolean      @default(false) // may pick a time inside the company's delivery window
+  canChangePackaging    Boolean      @default(false)
+  allergens             Allergen[]
+  dietaryTags           DietaryTag[] // dietary preferences
+  orders                Order[]
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
 
-  @@unique([companyId, email])
+  @@index([companyId, isActive])
 }
 
 model Order {
@@ -79,13 +149,13 @@ model Order {
 }
 
 model OrderItem {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   dishName  String
   quantity  Int
-  unitPrice Decimal  @db.Decimal(10, 2)
-  lineTotal Decimal  @db.Decimal(10, 2)
+  unitPrice Decimal @db.Decimal(10, 2)
+  lineTotal Decimal @db.Decimal(10, 2)
 }
 
 // Singleton row (id = 1). Times are wall-clock in `timezone`, which is fixed at setup:
@@ -111,19 +181,21 @@ model KitchenHoliday {
 
 // Admin-managed reference lists. Rows are deactivated, never deleted, because catalogue items will reference them.
 model Allergen {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
   description String?
-  sortOrder   Int     @default(0)
-  isActive    Boolean @default(true)
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  employees   Employee[]
 }
 
 model DietaryTag {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
   description String?
-  sortOrder   Int     @default(0)
-  isActive    Boolean @default(true)
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  employees   Employee[]
 }
 
 model KitchenStation {
@@ -140,4 +212,13 @@ model PortionSize {
   description String?
   sortOrder   Int     @default(0)
   isActive    Boolean @default(true)
+}
+
+model PackagingType {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  companies   Company[]
 }

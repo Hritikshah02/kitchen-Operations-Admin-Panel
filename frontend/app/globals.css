@@ -50,6 +50,15 @@ input:focus, select:focus { outline: 2px solid #73b8af; outline-offset: 1px; }
 .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .badge.green { background: #dcfae6; color: #067647; } .badge.grey { background: #eef1ef; color: #4d5a54; }
 .badge.amber { background: #fef0c7; color: #93370d; } .badge.red { background: #fee4e2; color: #b42318; }
+.section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 14px; } .kv dt { color: var(--muted); } .kv dd { margin: 0; }
+.chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+textarea { width: 100%; min-height: 72px; border: 1px solid #bcc7c1; border-radius: 5px; padding: 10px 12px; }
+.link { color: var(--accent-dark); font-weight: 600; text-decoration: none; } .link:hover { text-decoration: underline; }
+.notice { border: 1px solid #f7d58a; border-radius: 6px; background: #fffaeb; color: #93370d; padding: 10px 14px; font-size: 14px; }
+.form-stack { display: grid; gap: 20px; }
+.panel-fieldset { display: grid; gap: 16px; min-width: 0; border: 0; margin: 0; padding: 0; }
+fieldset.panel { margin: 0; min-width: 0; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; }
 .tab { border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); padding: 10px 14px; font-weight: 600; white-space: nowrap; }
 .tab.active { border-bottom-color: var(--accent); color: var(--accent-dark); }

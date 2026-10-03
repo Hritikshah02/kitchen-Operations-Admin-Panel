@@ -2,7 +2,7 @@ import { Transform } from 'class-transformer';
 import { Injectable, NotFoundException, type PipeTransform } from '@nestjs/common';
 import { IsBoolean, IsInt, IsOptional, IsString, Length, Max, MaxLength, Min } from 'class-validator';
 
-export const REFERENCE_KINDS = ['allergens', 'dietary-tags', 'stations', 'portion-sizes'] as const;
+export const REFERENCE_KINDS = ['allergens', 'dietary-tags', 'stations', 'portion-sizes', 'packaging-types'] as const;
 export type ReferenceKind = (typeof REFERENCE_KINDS)[number];
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);

@@ -15,6 +15,7 @@ const KINDS = [
   { kind: "dietary-tags", label: "Dietary tags", hint: "Jain, Swaminarayan, vegan... shown on the menu and used for employee preferences." },
   { kind: "stations", label: "Kitchen stations", hint: "Where a dish is cooked. The kitchen board groups prep units by station." },
   { kind: "portion-sizes", label: "Portion sizes", hint: "Sizes an option group can sell (e.g. Regular, Large)." },
+  { kind: "packaging-types", label: "Packaging types", hint: "How meals are packed; each company has a default and some employees may choose." },
 ] as const;
 
 function ReferenceList({ kind, hint }: { kind: string; hint: string }) {

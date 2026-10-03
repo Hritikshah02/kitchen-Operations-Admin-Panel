@@ -46,6 +46,11 @@ export function cutoffFor(deliveryDate: IsoDate, rule: CutoffRule, calendar: Kit
   return day.set({ hour, minute, second: 0, millisecond: 0 });
 }
 
+/** True while orders for `deliveryDate` can still be changed or cancelled without an admin override. */
+export function isBeforeCutoff(deliveryDate: IsoDate, rule: CutoffRule, calendar: KitchenCalendar, now: Date = new Date()): boolean {
+  return DateTime.fromJSDate(now) < cutoffFor(deliveryDate, rule, calendar);
+}
+
 /** Today's date in the kitchen, regardless of the server's or browser's timezone. */
 export function kitchenToday(timezone: string, now: Date = new Date()): IsoDate {
   return DateTime.fromJSDate(now, { zone: timezone }).toISODate()!;

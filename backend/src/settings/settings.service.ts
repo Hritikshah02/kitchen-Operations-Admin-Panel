@@ -6,6 +6,7 @@ import {
   addDays,
   cutoffFor,
   fromDbDate,
+  isBeforeCutoff,
   isKitchenWorkingDay,
   kitchenToday,
   toDbDate,
@@ -59,6 +60,17 @@ export class SettingsService {
       cutoffTime: settings.cutoffTime,
       cutoffWorkingDays: settings.cutoffWorkingDays,
     };
+  }
+
+  /**
+   * Of the given open orders, the ids still before their cut-off (cancellable without an admin override).
+   * Orders past cut-off are locked: cut-off processing confirms them and they become billable (4.6).
+   */
+  async idsBeforeCutoff(orders: { id: number; deliveryDate: Date }[], now: Date = new Date()): Promise<number[]> {
+    if (!orders.length) return [];
+    const dates = orders.map((order) => fromDbDate(order.deliveryDate)).sort();
+    const calendar = await this.calendar(dates[0], dates[dates.length - 1]);
+    return orders.filter((order) => isBeforeCutoff(fromDbDate(order.deliveryDate), calendar, calendar, now)).map((order) => order.id);
   }
 
   /** Upcoming delivery dates with their cut-off, so staff can see the effect of the settings before orders exist. */

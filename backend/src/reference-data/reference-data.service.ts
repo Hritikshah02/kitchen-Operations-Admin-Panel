@@ -17,6 +17,7 @@ const LABELS: Record<ReferenceKind, string> = {
   'dietary-tags': 'dietary tag',
   stations: 'kitchen station',
   'portion-sizes': 'portion size',
+  'packaging-types': 'packaging type',
 };
 
 @Injectable()
@@ -29,6 +30,7 @@ export class ReferenceDataService {
       'dietary-tags': this.prisma.dietaryTag,
       stations: this.prisma.kitchenStation,
       'portion-sizes': this.prisma.portionSize,
+      'packaging-types': this.prisma.packagingType,
     };
     return delegates[kind] as ReferenceDelegate;
   }

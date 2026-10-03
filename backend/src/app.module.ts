@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { CompaniesModule } from './companies/companies.module.js';
+import { EmployeesModule } from './employees/employees.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ReferenceDataModule } from './reference-data/reference-data.module.js';
 import { SettingsModule } from './settings/settings.module.js';
@@ -10,7 +11,7 @@ import { AppService } from './app.service.js';
 import { HealthController } from './health.controller.js';
 
 @Module({
-  imports: [PrismaModule, AuthModule, SettingsModule, ReferenceDataModule, StaffModule, CompaniesModule],
+  imports: [PrismaModule, AuthModule, SettingsModule, ReferenceDataModule, StaffModule, CompaniesModule, EmployeesModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cutoffFor, isKitchenWorkingDay, kitchenToday, type KitchenCalendar } from './kitchen-calendar.js';
+import { cutoffFor, isBeforeCutoff, isKitchenWorkingDay, kitchenToday, type KitchenCalendar } from './kitchen-calendar.js';
 
 const monToFri: KitchenCalendar = { timezone: 'Asia/Kolkata', workingDays: [1, 2, 3, 4, 5], holidays: new Set() };
 const at = (date: string, rule = { cutoffTime: '16:00', cutoffWorkingDays: 2 }, calendar = monToFri) =>
@@ -48,5 +48,11 @@ describe('kitchen calendar', () => {
   it('rejects malformed dates and a calendar with no working days', () => {
     expect(() => at('2026-13-01')).toThrow(RangeError);
     expect(() => at('2026-10-07', undefined, { ...monToFri, workingDays: [] })).toThrow(RangeError);
+  });
+
+  it('is before cut-off up to, but not at, the cut-off instant', () => {
+    const rule = { cutoffTime: '16:00', cutoffWorkingDays: 2 };
+    expect(isBeforeCutoff('2026-10-07', rule, monToFri, new Date('2026-10-05T10:29:59Z'))).toBe(true); // Mon 15:59:59 IST
+    expect(isBeforeCutoff('2026-10-07', rule, monToFri, new Date('2026-10-05T10:30:00Z'))).toBe(false); // Mon 16:00 IST
   });
 });

@@ -1,50 +1,44 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
+import { useState } from "react";
 import { AppShell } from "../components/app-shell";
+import { Pagination } from "../components/form-controls";
 import { ProtectedPage } from "../components/protected-page";
-import { ApiError, apiFetch } from "../lib/api";
 import { Capability } from "../lib/capabilities";
+import type { CompanySummary, Page } from "../lib/types";
+import { useResource } from "../lib/use-resource";
 
-type Company = { id: number; name: string; emailDomain: string };
+const PAGE_SIZE = 20;
+
 function CompaniesContent() {
-  const [companies, setCompanies] = useState<Company[]>([]); const [name, setName] = useState(""); const [emailDomain, setEmailDomain] = useState("");
-  const [loading, setLoading] = useState(true); const [submitting, setSubmitting] = useState(false); const [error, setError] = useState("");
-  async function fetchCompanies() { const response = await apiFetch("/companies"); setCompanies((await response.json()) as Company[]); }
-  useEffect(() => {
-    let cancelled = false;
-    async function loadCompanies() {
-      try {
-        const response = await apiFetch("/companies");
-        const data = (await response.json()) as Company[];
-        if (!cancelled) setCompanies(data);
-      } catch (caught) {
-        if (!cancelled) setError(caught instanceof ApiError ? caught.message : "Could not load companies.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    void loadCompanies();
-    return () => { cancelled = true; };
-  }, []);
-  async function addCompany(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setError(""); setSubmitting(true);
-    try { await apiFetch("/companies", { method: "POST", body: JSON.stringify({ name, emailDomain }) }); setName(""); setEmailDomain(""); await fetchCompanies(); }
-    catch (caught) { setError(caught instanceof ApiError ? caught.message : "Could not add company."); }
-    finally { setSubmitting(false); }
-  }
-  return <AppShell><main className="content-page">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Companies</h1></div></div>
-    <section className="company-form-section" aria-labelledby="add-company-heading"><h2 id="add-company-heading">Add company</h2>
-      <form className="company-form" onSubmit={addCompany}>
-        <label>Company name<input disabled={submitting} onChange={(event) => setName(event.target.value)} required value={name} /></label>
-        <label>Email domain<input disabled={submitting} onChange={(event) => setEmailDomain(event.target.value)} placeholder="acme.com" required value={emailDomain} /></label>
-        <button className="primary-button" disabled={submitting} type="submit">{submitting ? "Adding..." : "Add company"}</button>
-      </form>{error ? <p aria-live="polite" className="form-error">{error}</p> : null}
-    </section>
-    <section aria-labelledby="company-list-heading"><h2 id="company-list-heading">Company list</h2>
-      {loading ? <p className="muted">Loading companies...</p> : <div className="company-list">{companies.map((company) => <div className="company-row" key={company.id}><strong>{company.name}</strong><span>{company.emailDomain}</span></div>)}{!companies.length ? <p className="muted">No companies yet.</p> : null}</div>}
+  const [search, setSearch] = useState(""); const [includeInactive, setIncludeInactive] = useState(false); const [page, setPage] = useState(1);
+  const query = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE), includeInactive: String(includeInactive), ...(search.trim() ? { search: search.trim() } : {}) });
+  const { data, error, loading } = useResource<Page<CompanySummary>>(`/companies?${query}`);
+
+  return <AppShell><main className="content-page wide">
+    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Companies</h1></div><Link className="primary-button" href="/companies/new">New company</Link></div>
+    <section className="panel">
+      <div className="toolbar">
+        <label>Search<input onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Name or email domain" value={search} /></label>
+        <label className="check"><input checked={includeInactive} onChange={(event) => { setIncludeInactive(event.target.checked); setPage(1); }} type="checkbox" />Show deactivated</label>
+      </div>
+      {error ? <p className="form-error">{error}</p> : null}
+      {loading && !data ? <p className="muted">Loading companies...</p> : <div className="table-wrap"><table className="data-table"><thead><tr><th>Company</th><th>Email domains</th><th>Owner</th><th>Default address</th><th>Employees</th><th>Delivery</th><th>Status</th></tr></thead><tbody>
+        {data?.items.map((company) => <tr className={company.isActive ? "" : "inactive"} key={company.id}>
+          <td><Link className="link" href={`/companies/${company.id}`}>{company.name}</Link></td>
+          <td>{company.domains.map((domain) => `@${domain}`).join(", ")}</td>
+          <td>{company.owner?.name ?? <span className="badge amber">No owner</span>}</td>
+          <td>{company.defaultAddress ? `${company.defaultAddress.label}${company.defaultAddress.area ? `, ${company.defaultAddress.area}` : ""}` : <span className="badge amber">None</span>}</td>
+          <td>{company.activeEmployees}</td>
+          <td>{company.defaultDeliveryTime}</td>
+          <td>{company.isActive ? <span className="badge green">Active</span> : <span className="badge grey">Deactivated</span>}</td>
+        </tr>)}
+        {data && !data.items.length ? <tr><td className="muted" colSpan={7}>No companies match.</td></tr> : null}
+      </tbody></table></div>}
+      {data ? <Pagination noun="companies" onPage={setPage} page={data.page} pageSize={data.pageSize} total={data.total} /> : null}
     </section>
   </main></AppShell>;
 }
+
 export default function CompaniesPage() { return <ProtectedPage requires={[Capability.COMPANIES_MANAGE]}><CompaniesContent /></ProtectedPage>; }

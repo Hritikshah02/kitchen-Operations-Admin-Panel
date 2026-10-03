@@ -9,6 +9,7 @@ import { can, useAuth } from "./auth-provider";
 const navigation: { href: string; label: string; requires: Capability }[] = [
   { href: "/dashboard", label: "Overview", requires: Capability.DASHBOARD_VIEW },
   { href: "/companies", label: "Companies", requires: Capability.COMPANIES_MANAGE },
+  { href: "/employees", label: "Employees", requires: Capability.COMPANIES_MANAGE },
   { href: "/staff", label: "Staff", requires: Capability.STAFF_MANAGE },
   { href: "/reference-data", label: "Reference data", requires: Capability.REFERENCE_DATA_MANAGE },
   { href: "/settings", label: "Settings", requires: Capability.SETTINGS_MANAGE },
