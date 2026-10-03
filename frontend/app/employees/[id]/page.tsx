@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { AppShell } from "../../components/app-shell";
+import { BackLink } from "../../components/back-link";
 import { ChipSelect } from "../../components/form-controls";
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
@@ -112,6 +113,7 @@ function EmployeeContent() {
   }
 
   return <AppShell><main className="content-page">
+    <BackLink href="/employees" label="Back" />
     <div className="page-heading">
       <div><p className="eyebrow"><Link className="link" href={`/companies/${employee.company.id}`}>{employee.company.name}</Link></p><h1>{employee.name}</h1></div>
       <div className="form-actions">

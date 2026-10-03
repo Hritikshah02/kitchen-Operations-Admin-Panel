@@ -56,6 +56,8 @@ input:focus, select:focus { outline: 2px solid #73b8af; outline-offset: 1px; }
 textarea { width: 100%; min-height: 72px; border: 1px solid #bcc7c1; border-radius: 5px; padding: 10px 12px; }
 .link { color: var(--accent-dark); font-weight: 600; text-decoration: none; } .link:hover { text-decoration: underline; }
 .notice { border: 1px solid #f7d58a; border-radius: 6px; background: #fffaeb; color: #93370d; padding: 10px 14px; font-size: 14px; }
+.back-link { justify-self: start; margin-bottom: -16px; color: var(--accent-dark); font-size: 14px; font-weight: 600; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
 .form-stack { display: grid; gap: 20px; }
 .panel-fieldset { display: grid; gap: 16px; min-width: 0; border: 0; margin: 0; padding: 0; }
 fieldset.panel { margin: 0; min-width: 0; }

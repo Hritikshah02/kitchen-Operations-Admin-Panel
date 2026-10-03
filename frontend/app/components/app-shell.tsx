@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Capability } from "../lib/capabilities";
 import { can, useAuth } from "./auth-provider";
+import { useTrackPageViews } from "./back-link";
 
 // Navigation is driven by capabilities, so a new role needs no change here.
 const navigation: { href: string; label: string; requires: Capability }[] = [
@@ -17,6 +18,7 @@ const navigation: { href: string; label: string; requires: Capability }[] = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); const router = useRouter(); const { staff, logout } = useAuth();
+  useTrackPageViews();
   if (!staff) return null;
   async function handleLogout() { await logout(); router.replace("/login"); }
   return <div className="app-frame"><aside className="sidebar">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { AppShell } from "../../components/app-shell";
+import { BackLink } from "../../components/back-link";
 import { formatDate, Pagination, WeekdayPicker } from "../../components/form-controls";
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
@@ -201,6 +202,7 @@ function CompanyContent() {
   // Re-key the editable sections on updatedAt so they pick up saved values without effect-driven state sync.
   const key = company.updatedAt;
   return <AppShell><main className="content-page wide">
+    <BackLink href="/companies" label="Back to companies" />
     <div className="page-heading">
       <div><p className="eyebrow"><Link className="link" href="/companies">Companies</Link></p><h1>{company.name}</h1></div>
       <div className="form-actions">{company.isActive ? <span className="badge green">Active</span> : <span className="badge grey">Deactivated</span>}<button className={company.isActive ? "danger-button" : "secondary-button"} disabled={busy} onClick={() => void toggleActive()} type="button">{company.isActive ? "Deactivate company" : "Reactivate company"}</button></div>

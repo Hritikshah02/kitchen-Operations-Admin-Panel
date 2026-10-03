@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { AppShell } from "../../components/app-shell";
+import { BackLink } from "../../components/back-link";
 import { WeekdayPicker } from "../../components/form-controls";
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
@@ -45,6 +46,7 @@ function NewCompanyContent() {
   }
 
   return <AppShell><main className="content-page wide">
+    <BackLink href="/companies" label="Back to companies" />
     <div className="page-heading"><div><p className="eyebrow">Companies</p><h1>New company</h1></div></div>
     <form className="form-stack" onSubmit={submit}><div className="section-grid">
       <fieldset className="panel" disabled={busy}>
