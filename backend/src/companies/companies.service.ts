@@ -3,7 +3,7 @@ import { OrderStatus, Prisma } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { Capability } from '../auth/capabilities.js';
 import { pageArgs, type Page } from '../common/pagination.js';
-import { emailDomainOf, minutesOf } from '../common/validation.js';
+import { definedOnly, emailDomainOf, minutesOf } from '../common/validation.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
 import { SettingsService } from '../settings/settings.service.js';
@@ -97,7 +97,7 @@ export class CompaniesService {
       throw new ConflictException(`An employee with email ${owner.email} already exists.`);
     }
     const settings = await this.prisma.kitchenSettings.findUniqueOrThrow({ where: { id: 1 } });
-    const merged = { dispatchLeadMinutes: settings.defaultDispatchLeadMinutes, ...fields };
+    const merged = { ...fields, dispatchLeadMinutes: fields.dispatchLeadMinutes ?? settings.defaultDispatchLeadMinutes };
     this.assertDeliveryTimes(merged);
     await this.assertDefaults(this.prisma, merged);
 
@@ -119,7 +119,7 @@ export class CompaniesService {
   async update(id: number, data: UpdateCompanyDto) {
     const current = await this.prisma.company.findUnique({ where: { id } });
     if (!current) throw new NotFoundException('Company not found.');
-    this.assertDeliveryTimes({ ...current, ...data });
+    this.assertDeliveryTimes({ ...current, ...definedOnly(data) });
     await this.assertDefaults(this.prisma, data);
     if (data.ownerId !== undefined) {
       const owner = await this.prisma.employee.findUnique({ where: { id: data.ownerId } });

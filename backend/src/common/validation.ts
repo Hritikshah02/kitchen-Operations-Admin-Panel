@@ -18,3 +18,10 @@ export const minutesOf = (time: string) => {
 };
 
 export const emailDomainOf = (email: string) => email.slice(email.lastIndexOf('@') + 1).toLowerCase();
+
+/**
+ * DTO instances carry `undefined` for every omitted field, so `{ ...defaults, ...dto }` would wipe the defaults.
+ * Merge `definedOnly(dto)` instead.
+ */
+export const definedOnly = <T extends object>(value: T): Partial<T> =>
+  Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as Partial<T>;

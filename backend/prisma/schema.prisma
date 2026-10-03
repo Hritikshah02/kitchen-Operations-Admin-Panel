@@ -187,6 +187,8 @@ model Allergen {
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
   employees   Employee[]
+  dishes      Dish[]
+  options     Option[]
 }
 
 model DietaryTag {
@@ -196,6 +198,8 @@ model DietaryTag {
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
   employees   Employee[]
+  dishes      Dish[]
+  options     Option[]
 }
 
 model KitchenStation {
@@ -204,14 +208,17 @@ model KitchenStation {
   description String?
   sortOrder   Int     @default(0)
   isActive    Boolean @default(true)
+  dishes      Dish[]
 }
 
 model PortionSize {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
+  id          Int                      @id @default(autoincrement())
+  name        String                   @unique
   description String?
-  sortOrder   Int     @default(0)
-  isActive    Boolean @default(true)
+  sortOrder   Int                      @default(0)
+  isActive    Boolean                  @default(true)
+  groups      OptionGroupPortion[]
+  surcharges  OptionPortionSurcharge[]
 }
 
 model PackagingType {
@@ -221,4 +228,101 @@ model PackagingType {
   sortOrder   Int       @default(0)
   isActive    Boolean   @default(true)
   companies   Company[]
+}
+
+// ---------- Catalogue (4.1). Money is integer cents everywhere. ----------
+
+enum Temperature {
+  HOT
+  COLD
+}
+
+// Never hard-deleted: historical orders reference dishes.
+model Dish {
+  id           Int               @id @default(autoincrement())
+  sku          String            @unique
+  name         String
+  description  String
+  imageUrl     String?
+  temperature  Temperature
+  costCents    Int
+  stationId    Int? // null = "Unassigned" on the kitchen board
+  station      KitchenStation?   @relation(fields: [stationId], references: [id])
+  minOrderQty  Int               @default(1) // minimum quantity of this dish on one order line
+  isActive     Boolean           @default(true)
+  allergens    Allergen[]
+  dietaryTags  DietaryTag[]
+  optionGroups DishOptionGroup[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+// A reusable choice (paneer, jeera rice, raita) with its own cost, allergens and tags.
+model Option {
+  id          Int                      @id @default(autoincrement())
+  name        String                   @unique
+  costCents   Int
+  isActive    Boolean                  @default(true)
+  allergens   Allergen[]
+  dietaryTags DietaryTag[]
+  groups      OptionGroupItem[]
+  surcharges  OptionPortionSurcharge[]
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+}
+
+// Reusable group ("Choose your roti") attached to many dishes. required = minSelect > 0.
+model OptionGroup {
+  id           Int                  @id @default(autoincrement())
+  name         String               @unique
+  minSelect    Int                  @default(1)
+  maxSelect    Int                  @default(1)
+  usesPortions Boolean              @default(false)
+  isActive     Boolean              @default(true)
+  items        OptionGroupItem[]
+  portionSizes OptionGroupPortion[]
+  dishes       DishOptionGroup[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+model OptionGroupItem {
+  groupId   Int
+  group     OptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  optionId  Int
+  option    Option      @relation(fields: [optionId], references: [id])
+  sortOrder Int
+
+  @@id([groupId, optionId])
+}
+
+// Sizes a portioned group sells. Every option in the group must have a surcharge for each of these.
+model OptionGroupPortion {
+  groupId       Int
+  group         OptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  portionSizeId Int
+  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id])
+
+  @@id([groupId, portionSizeId])
+}
+
+// Extra charge for an option in a size, on top of the option's tier price. Same on every tier.
+model OptionPortionSurcharge {
+  optionId       Int
+  option         Option      @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  portionSizeId  Int
+  portionSize    PortionSize @relation(fields: [portionSizeId], references: [id])
+  surchargeCents Int
+
+  @@id([optionId, portionSizeId])
+}
+
+model DishOptionGroup {
+  dishId    Int
+  dish      Dish        @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  groupId   Int
+  group     OptionGroup @relation(fields: [groupId], references: [id])
+  sortOrder Int
+
+  @@id([dishId, groupId])
 }

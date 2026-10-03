@@ -162,6 +162,88 @@ async function seedCompanies(roleIds) {
   }
 }
 
+// Researched prices are in rupees; the app prices in USD. ₹85 = $1, rounded up to the next 5 cents.
+const INR_PER_USD = 85;
+const usdCents = (inr) => Math.ceil((inr * 100) / INR_PER_USD / 5) * 5;
+
+async function seedCatalogue() {
+  const byName = async (delegate) => Object.fromEntries((await delegate.findMany()).map((row) => [row.name, row.id]));
+  const stations = await byName(prisma.kitchenStation);
+  const allergens = await byName(prisma.allergen);
+  const tags = await byName(prisma.dietaryTag);
+  const sizes = await byName(prisma.portionSize);
+  const stationName = Object.fromEntries(data.stations.map((station) => [station.code, station.name]));
+  const tagName = Object.fromEntries(data.dietaryTags.map((tag) => [tag.code, tag.name]));
+  const allergenIds = (codes) => codes.map((code) => allergens[allergenNames[code]]).filter(Boolean).map((id) => ({ id }));
+  const tagIds = (codes) => codes.map((code) => tags[tagName[code]]).filter(Boolean).map((id) => ({ id }));
+
+  const groupIds = {};
+  for (const group of data.optionGroups) {
+    const saved = await prisma.optionGroup.upsert({
+      where: { name: group.name },
+      update: {},
+      create: { name: group.name, minSelect: group.minSelect, maxSelect: group.maxSelect, usesPortions: group.usesPortions },
+    });
+    groupIds[group.code] = saved.id;
+    for (const [index, option] of group.options.entries()) {
+      const savedOption = await prisma.option.upsert({
+        where: { name: option.name },
+        update: {},
+        create: {
+          name: option.name,
+          costCents: usdCents(option.costINR),
+          allergens: { connect: allergenIds(option.allergens) },
+          dietaryTags: { connect: tagIds(option.dietaryTags) },
+        },
+      });
+      await prisma.optionGroupItem.upsert({
+        where: { groupId_optionId: { groupId: saved.id, optionId: savedOption.id } },
+        update: {},
+        create: { groupId: saved.id, optionId: savedOption.id, sortOrder: (index + 1) * 10 },
+      });
+      if (group.usesPortions) {
+        for (const [size, inr] of [['Regular', 0], ['Large', group.largeSurchargeINR ?? 0]]) {
+          await prisma.optionPortionSurcharge.upsert({
+            where: { optionId_portionSizeId: { optionId: savedOption.id, portionSizeId: sizes[size] } },
+            update: {},
+            create: { optionId: savedOption.id, portionSizeId: sizes[size], surchargeCents: inr ? usdCents(inr) : 0 },
+          });
+        }
+      }
+    }
+    if (group.usesPortions) {
+      await prisma.optionGroupPortion.createMany({
+        data: ['Regular', 'Large'].map((size) => ({ groupId: saved.id, portionSizeId: sizes[size] })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  for (const category of data.menu) {
+    for (const dish of category.dishes) {
+      const saved = await prisma.dish.upsert({
+        where: { sku: dish.sku },
+        update: {},
+        create: {
+          sku: dish.sku,
+          name: dish.name,
+          description: dish.description,
+          temperature: dish.temperature === 'cold' ? 'COLD' : 'HOT',
+          costCents: usdCents(dish.costPriceINR),
+          stationId: stations[stationName[dish.station]] ?? null,
+          minOrderQty: dish.minOrderQty ?? 1,
+          allergens: { connect: allergenIds(dish.allergens) },
+          dietaryTags: { connect: tagIds(dish.dietaryTags) },
+        },
+      });
+      await prisma.dishOptionGroup.createMany({
+        data: (dish.optionGroups ?? []).filter((code) => groupIds[code]).map((code, index) => ({ dishId: saved.id, groupId: groupIds[code], sortOrder: (index + 1) * 10 })),
+        skipDuplicates: true,
+      });
+    }
+  }
+}
+
 async function createMissing(delegate, items) {
   for (const [index, item] of items.entries()) {
     await delegate.upsert({
@@ -223,10 +305,11 @@ async function main() {
   );
 
   await seedCompanies(roleIds);
+  await seedCatalogue();
 }
 
 main()
-  .then(() => console.log('Seeded roles, staff, settings, holidays, reference data, companies and employees.'))
+  .then(() => console.log('Seeded roles, staff, settings, holidays, reference data, companies, employees and catalogue.'))
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;

@@ -24,3 +24,20 @@ export type Employee = {
   canChooseAddress: boolean; canChangeDeliveryTime: boolean; canChangePackaging: boolean;
   company: Option & { isActive: boolean }; allergens: Option[]; dietaryTags: Option[];
 };
+
+export type Dish = {
+  id: number; sku: string; name: string; description: string; imageUrl: string | null; temperature: "HOT" | "COLD";
+  costCents: number; minOrderQty: number; isActive: boolean; station: Option | null; stationId: number | null;
+  allergens: Option[]; dietaryTags: Option[]; updatedAt: string;
+  optionGroups: { id: number; name: string; required: boolean; minSelect: number; maxSelect: number; usesPortions: boolean; isActive: boolean }[];
+};
+
+export type CatalogueOption = {
+  id: number; name: string; costCents: number; isActive: boolean; allergens: Option[]; dietaryTags: Option[];
+  surcharges: { portionSizeId: number; surchargeCents: number; portionSize: Option }[]; groups: Option[];
+};
+
+export type OptionGroup = {
+  id: number; name: string; minSelect: number; maxSelect: number; required: boolean; usesPortions: boolean; isActive: boolean;
+  options: { id: number; name: string; costCents: number; isActive: boolean }[]; portionSizes: Option[]; dishCount: number;
+};

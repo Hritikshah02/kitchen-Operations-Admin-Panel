@@ -29,3 +29,12 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
   - the email must change to a domain of the new company. The owner cannot be moved until another owner is chosen.
 - **Allergies** use the allergen list; **dietary preferences** use the dietary tag list.
 - **CSV import [Should]:** deferred until the Must items are done.
+
+## Catalogue (4.1)
+- **Money** is stored and computed as integer cents; the UI parses dollar input as text, never through floats.
+- **Prices:** the researched Ahmedabad rupee prices are converted at ₹85 = $1, rounded up to the next 5 cents, so a ₹130 thali is $1.55. They're low by US standards because they're real local prices.
+- **Option groups are reusable:** a group ("Choose your roti") is defined once and attached to many dishes, in a per-dish display order. The group carries its own rules: minimum choices (0 = optional, 1+ = required) and maximum choices.
+- **Portions:** a group either sells sizes or not. If it does, every option in it must have a surcharge for every size the group offers. This is enforced whenever options, sizes or surcharges change. Surcharges are per option and size, the same on every price tier.
+- **Minimum order quantity** applies to one order line (the dish quantity on an order).
+- **Images:** an https URL per dish. Uploads go straight from the browser to Cloudinary using a short-lived signature from the API (the secret never leaves the server); enabled when `CLOUDINARY_URL` is set, otherwise staff paste a URL.
+- **Deactivate, never delete:** dishes and options are deactivated; past orders keep referencing them.

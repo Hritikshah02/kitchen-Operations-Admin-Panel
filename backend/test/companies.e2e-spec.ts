@@ -65,6 +65,10 @@ describe('Companies and employees (e2e)', () => {
     await admin.patch(`/api/companies/${companyId}`).send({ deliveryWindowStart: '13:00', deliveryWindowEnd: '12:00' }).expect(400);
     await admin.patch(`/api/companies/${companyId}`).send({ defaultDeliveryTime: '15:00' }).expect(400);
     await admin.patch(`/api/companies/${companyId}`).send({ deliveryWindowStart: '12:00', deliveryWindowEnd: '13:30', defaultDeliveryTime: '13:00' }).expect(200);
+    // A partial update is checked against the company's saved window, not the defaults.
+    await admin.patch(`/api/companies/${companyId}`).send({ deliveryWindowStart: '14:00', deliveryWindowEnd: '15:00', defaultDeliveryTime: '14:30' }).expect(200);
+    await admin.patch(`/api/companies/${companyId}`).send({ defaultDeliveryTime: '14:45' }).expect(200);
+    await admin.patch(`/api/companies/${companyId}`).send({ deliveryWindowStart: '12:00', deliveryWindowEnd: '13:30', defaultDeliveryTime: '13:00' }).expect(200);
   });
 
   it('requires employee emails to use a company domain', async () => {
