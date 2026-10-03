@@ -31,4 +31,6 @@ export class VisibilityDto {
 export class PreviewQueryDto {
   @Transform(({ value }) => Number(value)) @IsInt() @Min(1) employeeId!: number;
   @IsOptional() @Trim() @IsString() @MaxLength(80) search?: string;
+  // Dishes already on an order being edited (may be in a secret category): returned in `requested` if still orderable.
+  @IsOptional() @Transform(({ value }) => (typeof value === 'string' ? value.split(',').filter(Boolean).map(Number) : value)) @IsArray() @IsInt({ each: true }) dishIds?: number[];
 }

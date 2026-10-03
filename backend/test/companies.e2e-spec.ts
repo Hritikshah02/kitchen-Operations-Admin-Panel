@@ -36,6 +36,16 @@ describe('Companies and employees (e2e)', () => {
     await admin.post('/api/auth/login').send({ email: 'admin@test.com', password: 'Test@1234' }).expect(200);
   });
 
+  /** Inserts an order directly (bypassing order validation) to set up company/employee rules. */
+  const rawOrder = async (employeeId: number, orderCompanyId: number, date: string, status: OrderStatus) => {
+    const address = await prisma.companyAddress.findFirstOrThrow({ where: { companyId: orderCompanyId, isDefault: true } });
+    const tier = await prisma.priceTier.findFirstOrThrow({ where: { isDefault: true } });
+    const staff = await prisma.staff.findUniqueOrThrow({ where: { email: 'admin@test.com' } });
+    return prisma.order.create({
+      data: { employeeId, companyId: orderCompanyId, deliveryDate: new Date(`${date}T00:00:00Z`), deliveryTime: '12:30', addressId: address.id, priceTierId: tier.id, createdById: staff.id, status },
+    });
+  };
+
   afterAll(async () => {
     await prisma.$disconnect();
     await app.close();
@@ -99,8 +109,7 @@ describe('Companies and employees (e2e)', () => {
     const id = employee.body.id;
     await admin.post(`/api/employees/${id}/move`).send({ companyId: otherCompanyId, email: `mover@${domain}` }).expect(400); // wrong domain
 
-    const make = (status: OrderStatus, date: string) =>
-      prisma.order.create({ data: { employeeId: id, companyId, deliveryDate: new Date(`${date}T00:00:00Z`), status } });
+    const make = (status: OrderStatus, date: string) => rawOrder(id, companyId, date, status);
     const futureDraft = await make(OrderStatus.DRAFT, '2030-01-07');
     const futurePlaced = await make(OrderStatus.PLACED, '2030-01-08');
     const lockedPlaced = await make(OrderStatus.PLACED, '2026-01-06'); // cut-off long past, awaiting cut-off processing
@@ -129,12 +138,11 @@ describe('Companies and employees (e2e)', () => {
 
   it('deactivating a company cancels open orders before cut-off and keeps locked ones billable', async () => {
     const employee = await prisma.employee.findFirstOrThrow({ where: { companyId: otherCompanyId } });
-    const make = (status: OrderStatus, date: string) =>
-      prisma.order.create({ data: { employeeId: employee.id, companyId: otherCompanyId, deliveryDate: new Date(`${date}T00:00:00Z`), status } });
-    const draft = await make(OrderStatus.DRAFT, '2030-01-08');
-    const placed = await make(OrderStatus.PLACED, '2030-01-08');
+    const make = (status: OrderStatus, date: string) => rawOrder(employee.id, otherCompanyId, date, status);
+    const draft = await make(OrderStatus.DRAFT, '2030-01-14');
+    const placed = await make(OrderStatus.PLACED, '2030-01-15');
     const lockedPlaced = await make(OrderStatus.PLACED, '2026-01-06'); // past cut-off, awaiting processing
-    const confirmed = await make(OrderStatus.CONFIRMED, '2030-01-08');
+    const confirmed = await make(OrderStatus.CONFIRMED, '2030-01-16');
 
     const { body } = await admin.post(`/api/companies/${otherCompanyId}/deactivate`).expect(201);
     expect(body).toMatchObject({ isActive: false, cancelledOrders: 2, lockedOrdersKept: 1 });

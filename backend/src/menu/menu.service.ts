@@ -78,15 +78,18 @@ export class MenuService {
   }
 
   /** 4.2: the menu exactly as this employee would see it (plus search, which also reaches secret categories). */
-  async employeeMenu(employeeId: number, search?: string) {
+  async employeeMenu(employeeId: number, search?: string, dishIds: number[] = []) {
     const { categories, dishes } = await this.inputs();
     const { employee, tier, ctx } = await this.contextFor(employeeId, dishes);
     const menu = buildMenu(categories, dishes, ctx, search);
+    const orderable = dishIds.length ? orderableDishIds(categories, dishes, ctx) : new Map();
+    const requested = dishIds.flatMap((id) => (orderable.has(id) ? [orderable.get(id)!] : []));
     return {
       employee: { id: employee.id, name: employee.name, email: employee.email, allergens: employee.allergens, dietaryTags: employee.dietaryTags },
       company: { id: employee.company.id, name: employee.company.name, isActive: employee.company.isActive },
       tier,
       ...menu,
+      requested,
     };
   }
 

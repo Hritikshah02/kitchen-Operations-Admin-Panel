@@ -23,7 +23,7 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "db:seed": "node prisma/seed.js",
+    "db:seed": "node prisma/seed.js && nest build && node dist/scripts/seed-demo-orders.js",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

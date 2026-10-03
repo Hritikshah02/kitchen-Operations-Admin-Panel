@@ -9,6 +9,7 @@ import { useTrackPageViews } from "./back-link";
 // Navigation is driven by capabilities, so a new role needs no change here.
 const navigation: { href: string; label: string; requires: Capability }[] = [
   { href: "/dashboard", label: "Overview", requires: Capability.DASHBOARD_VIEW },
+  { href: "/orders", label: "Orders", requires: Capability.ORDERS_MANAGE },
   { href: "/companies", label: "Companies", requires: Capability.COMPANIES_MANAGE },
   { href: "/employees", label: "Employees", requires: Capability.COMPANIES_MANAGE },
   { href: "/catalogue", label: "Catalogue", requires: Capability.CATALOGUE_MANAGE },

@@ -11,7 +11,7 @@ export class MenuController {
   constructor(private readonly menu: MenuService) {}
 
   @Get('preview') @RequireCapabilities(Capability.ORDERS_MANAGE)
-  preview(@Query() query: PreviewQueryDto) { return this.menu.employeeMenu(query.employeeId, query.search); }
+  preview(@Query() query: PreviewQueryDto) { return this.menu.employeeMenu(query.employeeId, query.search, query.dishIds); }
 
   @Get('categories') @RequireCapabilities(Capability.CATALOGUE_MANAGE)
   listCategories() { return this.menu.listCategories(); }

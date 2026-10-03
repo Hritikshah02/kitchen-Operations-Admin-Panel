@@ -77,3 +77,33 @@ export type EmployeeMenu = {
   categories: { id: number; name: string; description: string | null; items: MenuDishView[] }[];
   searchResults: MenuDishView[]; excluded: { dishId: number; name: string; category: string; reason: string }[];
 };
+
+export type OrderStatus = "DRAFT" | "PLACED" | "CONFIRMED" | "DELIVERED" | "CANCELLED" | "REJECTED";
+export const ORDER_STATUSES: OrderStatus[] = ["DRAFT", "PLACED", "CONFIRMED", "DELIVERED", "CANCELLED", "REJECTED"];
+export const STATUS_TONE: Record<OrderStatus, string> = { DRAFT: "grey", PLACED: "amber", CONFIRMED: "green", DELIVERED: "green", CANCELLED: "grey", REJECTED: "red" };
+
+export type OrderSummary = {
+  id: number; status: OrderStatus; deliveryDate: string; deliveryTime: string; totalCents: number;
+  employee: Option; company: Option; placedAt: string | null; lineCount: number; boxCount: number;
+};
+
+export type OrderChoiceView = { groupId: number; groupName: string; optionId: number; optionName: string; portionSizeId: number | null; portionName: string | null; unitPriceCents: number };
+export type OrderCombinationView = { signature: string; quantity: number; unitPriceCents: number; totalCents: number; choices: OrderChoiceView[] };
+export type OrderLineView = { dishId: number; dishName: string; dishSku: string; quantity: number; unitPriceCents: number; totalCents: number; combinations: OrderCombinationView[] };
+
+export type OrderDetail = {
+  id: number; status: OrderStatus; version: number; deliveryDate: string; deliveryTime: string; totalCents: number; notes: string | null;
+  allergyAcknowledged: boolean; cutoffAt: string; pastCutoff: boolean; addressId: number; packagingTypeId: number | null;
+  placedAt: string | null; confirmedAt: string | null; deliveredAt: string | null; cancelledAt: string | null; cancellationReason: string | null; rejectedAt: string | null; rejectionReason: string | null;
+  employee: Option & { email: string; canChooseAddress: boolean; canChangeDeliveryTime: boolean; canChangePackaging: boolean; allergens: Option[] };
+  company: Option & { isActive: boolean }; address: Address; packagingType: Option | null; priceTier: Option; createdBy: Option;
+  lines: (OrderLineView & { id: number })[];
+  events: { id: number; type: string; message: string; createdAt: string; actor: Option | null }[];
+  permissions: { edit: boolean; place: boolean; cancel: boolean; reject: boolean; overrideDelivery: boolean };
+};
+
+export type Quote = {
+  lines: OrderLineView[]; totalCents: number; allergyConflicts: Option[]; errors: string[]; tier: Option;
+  delivery: { deliveryDate: string; deliveryTime: string; addressId: number | null; packagingTypeId: number | null };
+  cutoffAt: string; pastCutoff: boolean;
+};

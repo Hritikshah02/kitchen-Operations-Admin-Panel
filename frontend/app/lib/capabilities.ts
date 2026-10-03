@@ -7,6 +7,7 @@ export const Capability = {
   COMPANIES_MANAGE: "companies:manage",
   CATALOGUE_MANAGE: "catalogue:manage",
   ORDERS_MANAGE: "orders:manage",
+  ORDERS_OVERRIDE: "orders:override",
   KITCHEN_BOARD_VIEW: "kitchen-board:view",
   KITCHEN_BOARD_UPDATE: "kitchen-board:update",
   DISPATCH_BOARD_VIEW: "dispatch-board:view",

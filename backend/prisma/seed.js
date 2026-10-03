@@ -11,7 +11,7 @@ const data = JSON.parse(readFileSync(new URL('./seed-data/ahmedabad.json', impor
 
 const ALL = [
   'dashboard:view', 'staff:manage', 'settings:manage', 'reference-data:manage', 'companies:manage',
-  'catalogue:manage', 'orders:manage', 'kitchen-board:view', 'kitchen-board:update',
+  'catalogue:manage', 'orders:manage', 'orders:override', 'kitchen-board:view', 'kitchen-board:update',
   'dispatch-board:view', 'dispatch-board:update', 'driver-drops:view', 'driver-drops:update',
 ];
 

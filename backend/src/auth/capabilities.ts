@@ -8,6 +8,7 @@ export enum Capability {
   COMPANIES_MANAGE = 'companies:manage',
   CATALOGUE_MANAGE = 'catalogue:manage',
   ORDERS_MANAGE = 'orders:manage',
+  ORDERS_OVERRIDE = 'orders:override', // change orders after cut-off, reject, override delivery details
   KITCHEN_BOARD_VIEW = 'kitchen-board:view',
   KITCHEN_BOARD_UPDATE = 'kitchen-board:update',
   DISPATCH_BOARD_VIEW = 'dispatch-board:view',

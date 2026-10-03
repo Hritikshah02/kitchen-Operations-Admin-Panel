@@ -7,14 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 4.6. Kitchen and delivery progress are tracked separately (phases 7-8), not as order statuses.
 enum OrderStatus {
   DRAFT
   PLACED
   CONFIRMED
-  KITCHEN_READY
-  DISPATCHED
   DELIVERED
+  CANCELLED // withdrawn by staff, or a draft still open at cut-off
+  REJECTED // the kitchen refused it (with a reason); never billable
+}
+
+enum OrderEventType {
+  CREATED
+  UPDATED
+  PLACED
+  CONFIRMED
   CANCELLED
+  REJECTED
+  DELIVERY_CHANGED
+  ALLERGY_ACKNOWLEDGED
+  DELIVERED
 }
 
 // A role is data: its capabilities live here, so adding a role never means editing role-name checks in code.
@@ -27,15 +39,17 @@ model Role {
 }
 
 model Staff {
-  id              Int       @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   name            String
-  email           String    @unique
+  email           String       @unique
   passwordHash    String
   roleId          Int
-  role            Role      @relation(fields: [roleId], references: [id])
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  defaultDriverOf Company[] @relation("CompanyDefaultDriver")
+  role            Role         @relation(fields: [roleId], references: [id])
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  defaultDriverOf Company[]    @relation("CompanyDefaultDriver")
+  ordersCreated   Order[]      @relation("OrderCreatedBy")
+  orderEvents     OrderEvent[] @relation("OrderEventActor")
 }
 
 // Never hard-deleted (orders reference it). Deactivating blocks new orders and cancels open ones.
@@ -100,6 +114,7 @@ model CompanyAddress {
   isDefault Boolean  @default(false)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  orders    Order[]
 
   @@index([companyId])
 }
@@ -136,30 +151,110 @@ model Employee {
 }
 
 model Order {
-  id           Int         @id @default(autoincrement())
-  employeeId   Int
-  companyId    Int
-  employee     Employee    @relation(fields: [employeeId], references: [id])
-  company      Company     @relation(fields: [companyId], references: [id])
-  status       OrderStatus @default(DRAFT)
-  total        Decimal     @default(0) @db.Decimal(10, 2)
-  deliveryDate DateTime
-  items        OrderItem[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id                  Int            @id @default(autoincrement())
+  employeeId          Int
+  employee            Employee       @relation(fields: [employeeId], references: [id])
+  companyId           Int // snapshot: the company billed, even if the employee moves later
+  company             Company        @relation(fields: [companyId], references: [id])
+  status              OrderStatus    @default(DRAFT)
+  deliveryDate        DateTime       @db.Date // a day in the kitchen timezone
+  deliveryTime        String // HH:mm, kitchen timezone
+  addressId           Int
+  address             CompanyAddress @relation(fields: [addressId], references: [id])
+  packagingTypeId     Int?
+  packagingType       PackagingType? @relation(fields: [packagingTypeId], references: [id])
+  priceTierId         Int // the tier that priced it
+  priceTier           PriceTier      @relation(fields: [priceTierId], references: [id])
+  totalCents          Int            @default(0)
+  allergyAcknowledged Boolean        @default(false)
+  notes               String?
+  version             Int            @default(1) // optimistic concurrency: every write must send the version it read
+  placedAt            DateTime?
+  confirmedAt         DateTime?
+  deliveredAt         DateTime?
+  cancelledAt         DateTime?
+  cancellationReason  String?
+  rejectedAt          DateTime?
+  rejectionReason     String?
+  createdById         Int
+  createdBy           Staff          @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  lines               OrderLine[]
+  events              OrderEvent[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
+  @@index([deliveryDate, status])
   @@index([companyId, deliveryDate])
-  @@index([status, deliveryDate])
+  @@index([employeeId, deliveryDate])
 }
 
-model OrderItem {
-  id        Int     @id @default(autoincrement())
+// What was ordered and at what price; names are snapshotted so catalogue edits never change a past order.
+model OrderLine {
+  id             Int                @id @default(autoincrement())
+  orderId        Int
+  order          Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dishId         Int
+  dish           Dish               @relation(fields: [dishId], references: [id])
+  dishName       String
+  dishSku        String
+  quantity       Int
+  unitPriceCents Int // the dish's own price
+  totalCents     Int // sum of its combinations
+  sortOrder      Int
+  combinations   OrderCombination[]
+}
+
+// One distinct set of choices for part of a line's quantity. The kitchen cooks each as one prep unit (4.7).
+model OrderCombination {
+  id             Int           @id @default(autoincrement())
+  lineId         Int
+  line           OrderLine     @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  signature      String // normalised choice key; identical combinations are merged
+  quantity       Int
+  unitPriceCents Int // dish price + chosen option prices (+ size surcharges)
+  totalCents     Int // unitPriceCents × quantity
+  choices        OrderChoice[]
+
+  @@unique([lineId, signature])
+}
+
+model OrderChoice {
+  id             Int              @id @default(autoincrement())
+  combinationId  Int
+  combination    OrderCombination @relation(fields: [combinationId], references: [id], onDelete: Cascade)
+  groupId        Int
+  groupName      String
+  optionId       Int
+  optionName     String
+  portionSizeId  Int?
+  portionName    String?
+  unitPriceCents Int // option price + size surcharge
+}
+
+model OrderEvent {
+  id        Int            @id @default(autoincrement())
   orderId   Int
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  dishName  String
-  quantity  Int
-  unitPrice Decimal @db.Decimal(10, 2)
-  lineTotal Decimal @db.Decimal(10, 2)
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      OrderEventType
+  message   String
+  actorId   Int? // null = the system (cut-off processing)
+  actor     Staff?         @relation("OrderEventActor", fields: [actorId], references: [id])
+  createdAt DateTime       @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+// Log of cut-off processing runs (automatic or manual); processing itself is idempotent.
+model CutoffRun {
+  id             Int      @id @default(autoincrement())
+  deliveryDate   DateTime @db.Date
+  trigger        String // "scheduler" | "manual"
+  actorId        Int?
+  confirmedCount Int
+  cancelledCount Int
+  ranAt          DateTime @default(now())
+
+  @@index([deliveryDate])
 }
 
 // Singleton row (id = 1). Times are wall-clock in `timezone`, which is fixed at setup:
@@ -232,6 +327,7 @@ model PackagingType {
   sortOrder   Int       @default(0)
   isActive    Boolean   @default(true)
   companies   Company[]
+  orders      Order[]
 }
 
 // ---------- Catalogue (4.1). Money is integer cents everywhere. ----------
@@ -262,6 +358,7 @@ model Dish {
   prices       DishPrice[]
   menuItems    MenuItem[]
   hiddenFor    CompanyHiddenDish[]
+  orderLines   OrderLine[]
 }
 
 // A reusable choice (paneer, jeera rice, raita) with its own cost, allergens and tags.
@@ -358,6 +455,7 @@ model PriceTier {
   optionPrices OptionPrice[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  orders       Order[]
 }
 
 // A typed price (MANUAL tier) or an override (derived tier); isUnavailable = deliberately not sold on this tier.
