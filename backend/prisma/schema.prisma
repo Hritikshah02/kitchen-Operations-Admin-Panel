@@ -40,35 +40,37 @@ model Staff {
 
 // Never hard-deleted (orders reference it). Deactivating blocks new orders and cancels open ones.
 model Company {
-  id                     Int              @id @default(autoincrement())
+  id                     Int                     @id @default(autoincrement())
   name                   String
-  isActive               Boolean          @default(true)
+  isActive               Boolean                 @default(true)
   billingContactName     String
   billingContactEmail    String
   billingContactPhone    String?
   // Nullable only because the owner row is created in the same transaction as the company;
   // the API never leaves an active company without one.
-  ownerId                Int?             @unique
-  owner                  Employee?        @relation("CompanyOwner", fields: [ownerId], references: [id])
-  workingDays            Int[]            @default([1, 2, 3, 4, 5]) // ISO weekday the company accepts deliveries
-  defaultDeliveryTime    String           @default("12:30") // HH:mm, kitchen timezone
-  deliveryWindowStart    String           @default("12:00") // employees allowed to change time pick inside this window
-  deliveryWindowEnd      String           @default("14:00")
-  dispatchLeadMinutes    Int              @default(60) // order must leave the kitchen this long before delivery
+  ownerId                Int?                    @unique
+  owner                  Employee?               @relation("CompanyOwner", fields: [ownerId], references: [id])
+  workingDays            Int[]                   @default([1, 2, 3, 4, 5]) // ISO weekday the company accepts deliveries
+  defaultDeliveryTime    String                  @default("12:30") // HH:mm, kitchen timezone
+  deliveryWindowStart    String                  @default("12:00") // employees allowed to change time pick inside this window
+  deliveryWindowEnd      String                  @default("14:00")
+  dispatchLeadMinutes    Int                     @default(60) // order must leave the kitchen this long before delivery
   defaultPackagingTypeId Int?
-  defaultPackagingType   PackagingType?   @relation(fields: [defaultPackagingTypeId], references: [id])
+  defaultPackagingType   PackagingType?          @relation(fields: [defaultPackagingTypeId], references: [id])
   driverInstructions     String?
   defaultDriverId        Int?
-  defaultDriver          Staff?           @relation("CompanyDefaultDriver", fields: [defaultDriverId], references: [id])
+  defaultDriver          Staff?                  @relation("CompanyDefaultDriver", fields: [defaultDriverId], references: [id])
   domains                CompanyDomain[]
   addresses              CompanyAddress[]
   holidays               CompanyHoliday[]
-  employees              Employee[]       @relation("CompanyEmployees")
+  employees              Employee[]              @relation("CompanyEmployees")
   orders                 Order[]
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
-  priceTier              PriceTier?       @relation(fields: [priceTierId], references: [id])
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  priceTier              PriceTier?              @relation(fields: [priceTierId], references: [id])
   priceTierId            Int?
+  hiddenCategories       CompanyHiddenCategory[]
+  hiddenDishes           CompanyHiddenDish[]
 
   @@index([isActive, name])
 }
@@ -241,23 +243,25 @@ enum Temperature {
 
 // Never hard-deleted: historical orders reference dishes.
 model Dish {
-  id           Int               @id @default(autoincrement())
-  sku          String            @unique
+  id           Int                 @id @default(autoincrement())
+  sku          String              @unique
   name         String
   description  String
   imageUrl     String?
   temperature  Temperature
   costCents    Int
   stationId    Int? // null = "Unassigned" on the kitchen board
-  station      KitchenStation?   @relation(fields: [stationId], references: [id])
-  minOrderQty  Int               @default(1) // minimum quantity of this dish on one order line
-  isActive     Boolean           @default(true)
+  station      KitchenStation?     @relation(fields: [stationId], references: [id])
+  minOrderQty  Int                 @default(1) // minimum quantity of this dish on one order line
+  isActive     Boolean             @default(true)
   allergens    Allergen[]
   dietaryTags  DietaryTag[]
   optionGroups DishOptionGroup[]
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
   prices       DishPrice[]
+  menuItems    MenuItem[]
+  hiddenFor    CompanyHiddenDish[]
 }
 
 // A reusable choice (paneer, jeera rice, raita) with its own cost, allergens and tags.
@@ -379,4 +383,52 @@ model OptionPrice {
   updatedAt     DateTime  @updatedAt
 
   @@id([tierId, optionId])
+}
+
+// ---------- Menu (4.2) ----------
+
+// Secret = left out of the browsable menu but still reachable by searching when building an order.
+model MenuCategory {
+  id          Int                     @id @default(autoincrement())
+  name        String                  @unique
+  description String?
+  sortOrder   Int
+  isActive    Boolean                 @default(true)
+  isSecret    Boolean                 @default(false)
+  items       MenuItem[]
+  hiddenFor   CompanyHiddenCategory[]
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+}
+
+// A dish placed in a category. A dish may appear in several categories.
+model MenuItem {
+  id         Int          @id @default(autoincrement())
+  categoryId Int
+  category   MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  dishId     Int
+  dish       Dish         @relation(fields: [dishId], references: [id])
+  sortOrder  Int
+  isActive   Boolean      @default(true)
+
+  @@unique([categoryId, dishId])
+}
+
+model CompanyHiddenCategory {
+  companyId  Int
+  company    Company      @relation(fields: [companyId], references: [id])
+  categoryId Int
+  category   MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, categoryId])
+}
+
+// Hiding is per dish, so a dish hidden from a company is hidden in every category it appears in.
+model CompanyHiddenDish {
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  dishId    Int
+  dish      Dish    @relation(fields: [dishId], references: [id])
+
+  @@id([companyId, dishId])
 }

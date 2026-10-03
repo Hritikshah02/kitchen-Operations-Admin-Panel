@@ -47,3 +47,11 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Portion surcharges** are added on top of the option's tier price and are the same on every tier.
 - **Prices affect new orders only:** orders snapshot the prices they were placed with (Phase 6).
 - **Seed:** Standard (default, typed) uses the researched prices; Enterprise = Standard − 8%; Partner = cost × 1.6. The research also suggested a floor of Standard − 15% for Partner, which is not modelled. Mineral water deliberately has no Standard price, and the seasonal Undhiyu box is marked not sold on Enterprise, to show both cases.
+
+## Menu (4.2)
+- **Categories** are ordered and can be switched off; each lists dishes in order, and each item can be switched off within that category. A dish may appear in several categories.
+- **Hiding is per company:** whole categories, or individual dishes. A hidden dish is hidden in every category it appears in.
+- **Secret categories** are left out of the browsable menu, but their dishes are found by searching (name or SKU) when staff build an order. Company hiding wins over secrecy: hidden items are not reachable at all.
+- **What an employee sees** = active category, not hidden for their company, item on, dish active, dish has a price on their tier, and every required option group still has enough priced, sellable options. An optional group with nothing to offer is simply not shown.
+- **Preview** shows the menu exactly as a chosen employee sees it, at their tier's prices, with their allergies highlighted. It also lists every dish left out and why ("No price on the Standard tier", "Dish is hidden for this company", ...).
+- **One rule set:** the same pure function drives the preview and the server-side order validation, so the menu and what an order accepts cannot drift apart.

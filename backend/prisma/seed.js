@@ -282,6 +282,59 @@ async function seedPricing() {
   }
 }
 
+// Two meeting trays (not in the research menu) make up a secret category, reachable only by search.
+const meetingTrays = [
+  { sku: 'MTG-001', name: 'Khaman Dhokla Party Tray (serves 10)', description: 'Steamed khaman with green chutney and fried chillies, foil tray.', station: 'FARSAN', costINR: 380, priceINR: 750, allergens: ['MUSTARD', 'SESAME'], tags: ['VEG', 'EGGLESS'] },
+  { sku: 'MTG-002', name: 'Kesar Shrikhand Tray (serves 12)', description: 'Saffron-cardamom shrikhand with pistachio, chilled tray.', station: 'SWEETS', costINR: 520, priceINR: 1100, allergens: ['MILK', 'TREENUT'], tags: ['VEG', 'EGGLESS', 'GF'], temperature: 'COLD' },
+];
+
+async function seedMenu() {
+  if ((await prisma.menuCategory.count()) > 0) return; // menu is curated in the admin panel after the first seed
+  const stationName = Object.fromEntries(data.stations.map((station) => [station.code, station.name]));
+  const stations = Object.fromEntries((await prisma.kitchenStation.findMany()).map((row) => [row.name, row.id]));
+  const allergens = Object.fromEntries((await prisma.allergen.findMany()).map((row) => [row.name, row.id]));
+  const tagName = Object.fromEntries(data.dietaryTags.map((tag) => [tag.code, tag.name]));
+  const tags = Object.fromEntries((await prisma.dietaryTag.findMany()).map((row) => [row.name, row.id]));
+  const standard = await prisma.priceTier.findUniqueOrThrow({ where: { name: 'Standard' } });
+
+  for (const tray of meetingTrays) {
+    const dish = await prisma.dish.upsert({
+      where: { sku: tray.sku },
+      update: {},
+      create: {
+        sku: tray.sku, name: tray.name, description: tray.description, temperature: tray.temperature ?? 'HOT',
+        costCents: usdCents(tray.costINR), stationId: stations[stationName[tray.station]] ?? null, minOrderQty: 2,
+        allergens: { connect: tray.allergens.map((code) => ({ id: allergens[allergenNames[code]] })) },
+        dietaryTags: { connect: tray.tags.map((code) => ({ id: tags[tagName[code]] })).filter((entry) => entry.id) },
+      },
+    });
+    await prisma.dishPrice.createMany({ data: [{ tierId: standard.id, dishId: dish.id, priceCents: usdCents(tray.priceINR) }], skipDuplicates: true });
+  }
+
+  const dishes = Object.fromEntries((await prisma.dish.findMany()).map((dish) => [dish.sku, dish.id]));
+  const categories = [
+    ...data.menu.map((category) => ({ name: category.category, skus: category.dishes.map((dish) => dish.sku), isSecret: false })),
+    { name: 'Meeting & bulk trays', skus: meetingTrays.map((tray) => tray.sku), isSecret: true, description: 'Not listed: staff find these by searching when ordering for meetings.' },
+  ];
+  const ids = {};
+  for (const [index, category] of categories.entries()) {
+    const saved = await prisma.menuCategory.create({
+      data: {
+        name: category.name, description: category.description ?? null, isSecret: category.isSecret, sortOrder: (index + 1) * 10,
+        items: { create: category.skus.filter((sku) => dishes[sku]).map((sku, position) => ({ dishId: dishes[sku], sortOrder: (position + 1) * 10 })) },
+      },
+    });
+    ids[category.name] = saved.id;
+  }
+
+  // Realistic per-company hiding: the GIFT City fintech only takes lunch; the gems firm (largely Jain staff) hides the garlic-heavy box.
+  const companyByDomain = async (domain) => (await prisma.companyDomain.findUnique({ where: { domain } }))?.companyId;
+  const ledgerkite = await companyByDomain('ledgerkite.in');
+  if (ledgerkite && ids['Breakfast & Farsan']) await prisma.companyHiddenCategory.create({ data: { companyId: ledgerkite, categoryId: ids['Breakfast & Farsan'] } });
+  const hiranyaprabha = await companyByDomain('hiranyaprabha.com');
+  if (hiranyaprabha && dishes['GUJ-003']) await prisma.companyHiddenDish.create({ data: { companyId: hiranyaprabha, dishId: dishes['GUJ-003'] } });
+}
+
 async function createMissing(delegate, items) {
   for (const [index, item] of items.entries()) {
     await delegate.upsert({
@@ -345,10 +398,11 @@ async function main() {
   await seedCompanies(roleIds);
   await seedCatalogue();
   await seedPricing();
+  await seedMenu();
 }
 
 main()
-  .then(() => console.log('Seeded roles, staff, settings, holidays, reference data, companies, employees, catalogue and pricing.'))
+  .then(() => console.log('Seeded roles, staff, settings, holidays, reference data, companies, employees, catalogue, pricing and menu.'))
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;

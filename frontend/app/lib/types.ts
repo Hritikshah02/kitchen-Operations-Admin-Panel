@@ -59,3 +59,21 @@ export const describeRule = (tier: Pick<PriceTier, "rule" | "ruleValueBps" | "ba
   const percent = tier.ruleValueBps / 100;
   return `${tier.baseTier?.name ?? "Base"} ${percent >= 0 ? "+" : "−"} ${Math.abs(percent)}%`;
 };
+
+export type MenuCategory = {
+  id: number; name: string; description: string | null; sortOrder: number; isActive: boolean; isSecret: boolean; hiddenForCompanies: number;
+  items: { id: number; dishId: number; sortOrder: number; isActive: boolean; dish: { id: number; sku: string; name: string; isActive: boolean } }[];
+};
+
+export type MenuOptionView = { id: number; name: string; priceCents: number; surcharges: Record<string, number>; allergens: Option[]; dietaryTags: Option[]; allergyConflicts: Option[] };
+export type MenuGroupView = { id: number; name: string; required: boolean; minSelect: number; maxSelect: number; usesPortions: boolean; sizes: Option[]; options: MenuOptionView[] };
+export type MenuDishView = {
+  id: number; sku: string; name: string; description: string; imageUrl: string | null; temperature: string; minOrderQty: number;
+  priceCents: number; allergens: Option[]; dietaryTags: Option[]; allergyConflicts: Option[]; groups: MenuGroupView[];
+};
+export type EmployeeMenu = {
+  employee: { id: number; name: string; email: string; allergens: Option[]; dietaryTags: Option[] };
+  company: { id: number; name: string; isActive: boolean }; tier: Option;
+  categories: { id: number; name: string; description: string | null; items: MenuDishView[] }[];
+  searchResults: MenuDishView[]; excluded: { dishId: number; name: string; category: string; reason: string }[];
+};

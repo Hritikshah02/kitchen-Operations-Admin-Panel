@@ -62,6 +62,12 @@ textarea { width: 100%; min-height: 72px; border: 1px solid #bcc7c1; border-radi
 .form-stack { display: grid; gap: 20px; }
 .panel-fieldset { display: grid; gap: 16px; min-width: 0; border: 0; margin: 0; padding: 0; }
 fieldset.panel { margin: 0; min-width: 0; }
+.dish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.dish-card { display: grid; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.dish-card img, .dish-card-placeholder { width: 100%; height: 120px; object-fit: cover; }
+.dish-card-placeholder { display: grid; place-items: center; background: #e6f4f1; color: var(--accent-dark); font-size: 36px; font-weight: 700; }
+.dish-card-body { display: grid; gap: 8px; align-content: start; padding: 12px; }
+details.panel summary { cursor: pointer; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; }
 .tab { border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); padding: 10px 14px; font-weight: 600; white-space: nowrap; }
 .tab.active { border-bottom-color: var(--accent); color: var(--accent-dark); }

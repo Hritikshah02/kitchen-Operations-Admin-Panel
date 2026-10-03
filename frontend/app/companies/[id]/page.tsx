@@ -5,11 +5,11 @@ import { useParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { AppShell } from "../../components/app-shell";
 import { BackLink } from "../../components/back-link";
-import { formatDate, Pagination, WeekdayPicker } from "../../components/form-controls";
+import { ChipSelect, formatDate, Pagination, WeekdayPicker } from "../../components/form-controls";
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
 import { Capability } from "../../lib/capabilities";
-import type { CompanyDetail, Employee, Option, Page, PriceTier } from "../../lib/types";
+import type { CompanyDetail, Employee, MenuCategory, Option, Page, PriceTier } from "../../lib/types";
 import { useResource } from "../../lib/use-resource";
 
 type Mutate = (action: () => Promise<unknown>, success?: string) => Promise<boolean>;
@@ -183,6 +183,22 @@ function EmployeesSection({ company, version, mutate, busy }: { company: Company
   </section>;
 }
 
+function VisibilitySection({ company, mutate, busy }: { company: CompanyDetail; mutate: Mutate; busy: boolean }) {
+  const { data: visibility, reload } = useResource<{ hiddenCategoryIds: number[]; hiddenDishIds: number[] }>(`/menu/visibility/${company.id}`);
+  const { data: categories } = useResource<MenuCategory[]>("/menu/categories");
+  const [draft, setDraft] = useState<{ hiddenCategoryIds: number[]; hiddenDishIds: number[] } | null>(null);
+  const current = draft ?? visibility;
+  if (!current || !categories) return <section className="panel"><h2>Menu visibility</h2><p className="muted">Loading...</p></section>;
+  const dishes = [...new Map(categories.flatMap((category) => category.items.map((item) => [item.dish.id, item.dish] as const))).values()].sort((a, b) => a.sku.localeCompare(b.sku));
+  const save = async () => { if (await mutate(() => apiJson(`/menu/visibility/${company.id}`, sendJson("PUT", current)), "Menu visibility saved.")) { setDraft(null); reload(); } };
+  return <section className="panel">
+    <div className="panel-heading"><h2>Menu visibility</h2><div className="form-actions">{draft ? <button className="secondary-button" onClick={() => setDraft(null)} type="button">Discard</button> : null}<button className="primary-button" disabled={busy || !draft} onClick={() => void save()} type="button">Save visibility</button></div></div>
+    <p className="hint">Hidden categories and dishes never appear for this company&apos;s employees, not even through search. Preview the result from Menu → Preview.</p>
+    <ChipSelect legend="Hidden categories" onChange={(hiddenCategoryIds) => setDraft({ ...current, hiddenCategoryIds })} options={categories.map((category) => ({ id: category.id, name: category.name }))} value={current.hiddenCategoryIds} />
+    <ChipSelect legend="Hidden dishes" onChange={(hiddenDishIds) => setDraft({ ...current, hiddenDishIds })} options={dishes.map((dish) => ({ id: dish.id, name: dish.name }))} value={current.hiddenDishIds} />
+  </section>;
+}
+
 function CompanyContent() {
   const { id } = useParams<{ id: string }>();
   const { data: company, error: loadError, reload } = useResource<CompanyDetail>(`/companies/${id}`);
@@ -221,6 +237,7 @@ function CompanyContent() {
       <HolidaysSection busy={busy} company={company} mutate={mutate} />
     </div>
     <AddressesSection busy={busy} company={company} mutate={mutate} />
+    <VisibilitySection busy={busy} company={company} mutate={mutate} />
     <EmployeesSection busy={busy} company={company} mutate={mutate} version={`${key}-${company.activeEmployees}`} />
   </main></AppShell>;
 }
