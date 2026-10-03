@@ -1,85 +1,49 @@
+"use client";
 
-'use client';
+import { type FormEvent, useEffect, useState } from "react";
+import { AppShell } from "../components/app-shell";
+import { ProtectedPage } from "../components/protected-page";
+import { ApiError, apiFetch } from "../lib/api";
 
-import { useEffect, useState } from 'react';
-
-type Company = {
-  id: number;
-  name: string;
-  emailDomain: string;
-};
-
-export default function CompaniesPage() {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [name, setName] = useState('');
-  const [emailDomain, setEmailDomain] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  async function fetchCompanies() {
-    const response = await fetch(`${apiUrl}/companies`);
-    if (!response.ok) throw new Error('Failed to fetch companies');
-    setCompanies(await response.json());
-  }
-
+type Company = { id: number; name: string; emailDomain: string };
+function CompaniesContent() {
+  const [companies, setCompanies] = useState<Company[]>([]); const [name, setName] = useState(""); const [emailDomain, setEmailDomain] = useState("");
+  const [loading, setLoading] = useState(true); const [submitting, setSubmitting] = useState(false); const [error, setError] = useState("");
+  async function fetchCompanies() { const response = await apiFetch("/companies"); setCompanies((await response.json()) as Company[]); }
   useEffect(() => {
-    fetchCompanies().catch(console.error);
-  }, []);
-
-  async function addCompany(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${apiUrl}/companies`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, emailDomain }),
-      });
-
-      if (!response.ok) throw new Error('Failed to add company');
-
-      setName('');
-      setEmailDomain('');
-      await fetchCompanies();
-    } catch (error) {
-      console.error(error);
-      alert('Could not add company. Check that the backend is running.');
-    } finally {
-      setLoading(false);
+    let cancelled = false;
+    async function loadCompanies() {
+      try {
+        const response = await apiFetch("/companies");
+        const data = (await response.json()) as Company[];
+        if (!cancelled) setCompanies(data);
+      } catch (caught) {
+        if (!cancelled) setError(caught instanceof ApiError ? caught.message : "Could not load companies.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
+    void loadCompanies();
+    return () => { cancelled = true; };
+  }, []);
+  async function addCompany(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError(""); setSubmitting(true);
+    try { await apiFetch("/companies", { method: "POST", body: JSON.stringify({ name, emailDomain }) }); setName(""); setEmailDomain(""); await fetchCompanies(); }
+    catch (caught) { setError(caught instanceof ApiError ? caught.message : "Could not add company."); }
+    finally { setSubmitting(false); }
   }
-
-  return (
-    <main style={{ padding: 32, maxWidth: 700, margin: 'auto' }}>
-      <h1>Companies</h1>
-
-      <form onSubmit={addCompany} style={{ display: 'grid', gap: 12, marginTop: 24 }}>
-        <input
-          placeholder="Company name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          placeholder="Email domain (e.g. acme.com)"
-          value={emailDomain}
-          onChange={(e) => setEmailDomain(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Adding...' : 'Add Company'}
-        </button>
-      </form>
-
-      <h2 style={{ marginTop: 32 }}>Company List</h2>
-      {companies.map((company) => (
-        <div key={company.id} style={{ padding: 12, borderBottom: '1px solid #ddd' }}>
-          <strong>{company.name}</strong>
-          <div>{company.emailDomain}</div>
-        </div>
-      ))}
-    </main>
-  );
+  return <AppShell><main className="content-page">
+    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Companies</h1></div></div>
+    <section className="company-form-section" aria-labelledby="add-company-heading"><h2 id="add-company-heading">Add company</h2>
+      <form className="company-form" onSubmit={addCompany}>
+        <label>Company name<input disabled={submitting} onChange={(event) => setName(event.target.value)} required value={name} /></label>
+        <label>Email domain<input disabled={submitting} onChange={(event) => setEmailDomain(event.target.value)} placeholder="acme.com" required value={emailDomain} /></label>
+        <button className="primary-button" disabled={submitting} type="submit">{submitting ? "Adding..." : "Add company"}</button>
+      </form>{error ? <p aria-live="polite" className="form-error">{error}</p> : null}
+    </section>
+    <section aria-labelledby="company-list-heading"><h2 id="company-list-heading">Company list</h2>
+      {loading ? <p className="muted">Loading companies...</p> : <div className="company-list">{companies.map((company) => <div className="company-row" key={company.id}><strong>{company.name}</strong><span>{company.emailDomain}</span></div>)}{!companies.length ? <p className="muted">No companies yet.</p> : null}</div>}
+    </section>
+  </main></AppShell>;
 }
+export default function CompaniesPage() { return <ProtectedPage allowedRoles={["ADMIN"]}><CompaniesContent /></ProtectedPage>; }
