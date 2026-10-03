@@ -45,6 +45,7 @@ input:focus, select:focus { outline: 2px solid #73b8af; outline-offset: 1px; }
 .data-table th { background: #f3f6f4; color: #34413b; font-size: 12px; text-align: left; text-transform: uppercase; padding: 10px 12px; }
 .data-table td { border-top: 1px solid var(--border); padding: 10px 12px; vertical-align: middle; }
 .data-table tr.inactive td { color: var(--muted); }
+.data-table tr.missing td { background: #fef3f2; } .data-table tr.dirty td { background: #fffaeb; }
 .data-table input, .data-table select { padding: 6px 8px; }
 .row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
 .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }

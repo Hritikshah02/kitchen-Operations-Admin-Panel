@@ -67,6 +67,8 @@ model Company {
   orders                 Order[]
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
+  priceTier              PriceTier?       @relation(fields: [priceTierId], references: [id])
+  priceTierId            Int?
 
   @@index([isActive, name])
 }
@@ -255,6 +257,7 @@ model Dish {
   optionGroups DishOptionGroup[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+  prices       DishPrice[]
 }
 
 // A reusable choice (paneer, jeera rice, raita) with its own cost, allergens and tags.
@@ -269,6 +272,7 @@ model Option {
   surcharges  OptionPortionSurcharge[]
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
+  prices      OptionPrice[]
 }
 
 // Reusable group ("Choose your roti") attached to many dishes. required = minSelect > 0.
@@ -325,4 +329,54 @@ model DishOptionGroup {
   sortOrder Int
 
   @@id([dishId, groupId])
+}
+
+// ---------- Pricing (4.3) ----------
+
+enum PriceRule {
+  MANUAL // every price typed in
+  COST_MULTIPLIER // price = cost × ruleValueBps / 10000, rounded up to the next 5 cents
+  TIER_PERCENT // price = base tier price × (10000 + ruleValueBps) / 10000, rounded up to the next 5 cents
+}
+
+// Exactly one tier is the default (partial unique index in the migration).
+model PriceTier {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  isDefault    Boolean       @default(false)
+  rule         PriceRule     @default(MANUAL)
+  ruleValueBps Int? // basis points: 24000 = × 2.4, 1500 = +15%, -800 = −8%
+  baseTierId   Int?
+  baseTier     PriceTier?    @relation("TierDerivation", fields: [baseTierId], references: [id])
+  derivedTiers PriceTier[]   @relation("TierDerivation")
+  companies    Company[]
+  dishPrices   DishPrice[]
+  optionPrices OptionPrice[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// A typed price (MANUAL tier) or an override (derived tier); isUnavailable = deliberately not sold on this tier.
+model DishPrice {
+  tierId        Int
+  tier          PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  dishId        Int
+  dish          Dish      @relation(fields: [dishId], references: [id])
+  priceCents    Int?
+  isUnavailable Boolean   @default(false)
+  updatedAt     DateTime  @updatedAt
+
+  @@id([tierId, dishId])
+}
+
+model OptionPrice {
+  tierId        Int
+  tier          PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  optionId      Int
+  option        Option    @relation(fields: [optionId], references: [id])
+  priceCents    Int?
+  isUnavailable Boolean   @default(false)
+  updatedAt     DateTime  @updatedAt
+
+  @@id([tierId, optionId])
 }

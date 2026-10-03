@@ -244,6 +244,44 @@ async function seedCatalogue() {
   }
 }
 
+// Standard = researched list prices (typed), Enterprise = Standard − 8%, Partner = cost × 1.6 (both derived).
+// Two deliberate gaps make the "no price → not on the menu" rule visible in the demo.
+const UNPRICED_ON_STANDARD = 'BEV-005';
+const NOT_SOLD_ON_ENTERPRISE = 'GUJ-005';
+
+async function seedPricing() {
+  const firstRun = (await prisma.priceTier.count()) === 0;
+  const standard = await prisma.priceTier.upsert({ where: { name: 'Standard' }, update: {}, create: { name: 'Standard', isDefault: firstRun, rule: 'MANUAL' } });
+  const enterprise = await prisma.priceTier.upsert({ where: { name: 'Enterprise' }, update: {}, create: { name: 'Enterprise', rule: 'TIER_PERCENT', ruleValueBps: -800, baseTierId: standard.id } });
+  const partner = await prisma.priceTier.upsert({ where: { name: 'Partner' }, update: {}, create: { name: 'Partner', rule: 'COST_MULTIPLIER', ruleValueBps: 16000 } });
+
+  const dishes = Object.fromEntries((await prisma.dish.findMany()).map((dish) => [dish.sku, dish.id]));
+  const options = Object.fromEntries((await prisma.option.findMany()).map((option) => [option.name, option.id]));
+  await prisma.dishPrice.createMany({
+    data: data.menu.flatMap((category) => category.dishes)
+      .filter((dish) => dish.sku !== UNPRICED_ON_STANDARD && dishes[dish.sku])
+      .map((dish) => ({ tierId: standard.id, dishId: dishes[dish.sku], priceCents: usdCents(dish.sellingPriceINR) })),
+    skipDuplicates: true,
+  });
+  await prisma.optionPrice.createMany({
+    data: data.optionGroups.flatMap((group) => group.options)
+      .filter((option, index, all) => options[option.name] && all.findIndex((other) => other.name === option.name) === index)
+      .map((option) => ({ tierId: standard.id, optionId: options[option.name], priceCents: usdCents(option.priceAddOnINR) })),
+    skipDuplicates: true,
+  });
+  if (dishes[NOT_SOLD_ON_ENTERPRISE]) {
+    await prisma.dishPrice.createMany({ data: [{ tierId: enterprise.id, dishId: dishes[NOT_SOLD_ON_ENTERPRISE], isUnavailable: true }], skipDuplicates: true });
+  }
+
+  if (firstRun) {
+    const tierIds = { Standard: null, Enterprise: enterprise.id, Partner: partner.id }; // Standard companies use the default (null)
+    for (const company of data.companies) {
+      const domain = await prisma.companyDomain.findUnique({ where: { domain: company.emailDomains[0] } });
+      if (domain) await prisma.company.update({ where: { id: domain.companyId }, data: { priceTierId: tierIds[company.priceTier] ?? null } });
+    }
+  }
+}
+
 async function createMissing(delegate, items) {
   for (const [index, item] of items.entries()) {
     await delegate.upsert({
@@ -306,10 +344,11 @@ async function main() {
 
   await seedCompanies(roleIds);
   await seedCatalogue();
+  await seedPricing();
 }
 
 main()
-  .then(() => console.log('Seeded roles, staff, settings, holidays, reference data, companies, employees and catalogue.'))
+  .then(() => console.log('Seeded roles, staff, settings, holidays, reference data, companies, employees, catalogue and pricing.'))
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;

@@ -28,6 +28,7 @@ const listSelect = {
   defaultDeliveryTime: true,
   domains: { select: { domain: true }, orderBy: { domain: 'asc' } },
   owner: { select: { id: true, name: true } },
+  priceTier: { select: { id: true, name: true } },
   addresses: { where: { isDefault: true }, select: { label: true, area: true } },
   _count: { select: { employees: { where: { isActive: true } } } },
 } satisfies Prisma.CompanySelect;
@@ -39,6 +40,7 @@ const detailInclude = {
   owner: { select: { id: true, name: true, email: true } },
   defaultDriver: { select: { id: true, name: true, isActive: true } },
   defaultPackagingType: { select: { id: true, name: true, isActive: true } },
+  priceTier: { select: { id: true, name: true } },
   _count: { select: { employees: { where: { isActive: true } } } },
 } satisfies Prisma.CompanyInclude;
 
@@ -250,7 +252,10 @@ export class CompaniesService {
     }
   }
 
-  private async assertDefaults(db: Tx | PrismaService, values: { defaultDriverId?: number | null; defaultPackagingTypeId?: number | null }) {
+  private async assertDefaults(db: Tx | PrismaService, values: { defaultDriverId?: number | null; defaultPackagingTypeId?: number | null; priceTierId?: number | null }) {
+    if (values.priceTierId && !(await db.priceTier.findUnique({ where: { id: values.priceTierId } }))) {
+      throw new BadRequestException('Choose an existing price tier.');
+    }
     if (values.defaultDriverId) {
       const driver = await db.staff.findFirst({
         where: { id: values.defaultDriverId, isActive: true, role: { capabilities: { has: Capability.DRIVER_DROPS_UPDATE } } },

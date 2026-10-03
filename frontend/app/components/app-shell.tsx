@@ -12,6 +12,7 @@ const navigation: { href: string; label: string; requires: Capability }[] = [
   { href: "/companies", label: "Companies", requires: Capability.COMPANIES_MANAGE },
   { href: "/employees", label: "Employees", requires: Capability.COMPANIES_MANAGE },
   { href: "/catalogue", label: "Catalogue", requires: Capability.CATALOGUE_MANAGE },
+  { href: "/pricing", label: "Pricing", requires: Capability.CATALOGUE_MANAGE },
   { href: "/staff", label: "Staff", requires: Capability.STAFF_MANAGE },
   { href: "/reference-data", label: "Reference data", requires: Capability.REFERENCE_DATA_MANAGE },
   { href: "/settings", label: "Settings", requires: Capability.SETTINGS_MANAGE },

@@ -38,3 +38,12 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Minimum order quantity** applies to one order line (the dish quantity on an order).
 - **Images:** an https URL per dish. Uploads go straight from the browser to Cloudinary using a short-lived signature from the API (the secret never leaves the server); enabled when `CLOUDINARY_URL` is set, otherwise staff paste a URL.
 - **Deactivate, never delete:** dishes and options are deactivated; past orders keep referencing them.
+
+## Pricing (4.3)
+- **Tiers** are either typed (every price entered) or derived: `cost × multiplier` or `another tier ± %`. A derived tier can be based on another derived tier; loops are refused.
+- **Resolution order** for an item on a tier: marked "not sold" → no price; a typed price or override → that price as typed; otherwise the rule, rounded **up** to the next 5 cents ($2.11 → $2.15). Rounding is integer/BigInt arithmetic on the exact value, never floats.
+- **No price = not on the menu.** An item without a price (missing, or not sold) on the employee's tier is left off their menu entirely, never shown at $0. If a base tier lacks a price, tiers derived from it lack one too.
+- **Company tier** is optional; companies without one use the single default tier.
+- **Portion surcharges** are added on top of the option's tier price and are the same on every tier.
+- **Prices affect new orders only:** orders snapshot the prices they were placed with (Phase 6).
+- **Seed:** Standard (default, typed) uses the researched prices; Enterprise = Standard − 8%; Partner = cost × 1.6. The research also suggested a floor of Standard − 15% for Partner, which is not modelled. Mineral water deliberately has no Standard price, and the seasonal Undhiyu box is marked not sold on Enterprise, to show both cases.

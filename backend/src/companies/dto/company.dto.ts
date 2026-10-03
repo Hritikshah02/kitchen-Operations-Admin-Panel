@@ -85,6 +85,7 @@ class CompanyDefaultsFields {
   @IsOptional() @IsInt() defaultPackagingTypeId?: number | null;
   @IsOptional() @TrimToNull() @IsString() @MaxLength(500) driverInstructions?: string | null;
   @IsOptional() @IsInt() defaultDriverId?: number | null;
+  @IsOptional() @IsInt() priceTierId?: number | null; // null = default tier
 }
 
 export class CreateCompanyDto extends CompanyDefaultsFields {

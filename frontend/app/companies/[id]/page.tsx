@@ -9,7 +9,7 @@ import { formatDate, Pagination, WeekdayPicker } from "../../components/form-con
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
 import { Capability } from "../../lib/capabilities";
-import type { CompanyDetail, Employee, Option, Page } from "../../lib/types";
+import type { CompanyDetail, Employee, Option, Page, PriceTier } from "../../lib/types";
 import { useResource } from "../../lib/use-resource";
 
 type Mutate = (action: () => Promise<unknown>, success?: string) => Promise<boolean>;
@@ -28,16 +28,18 @@ function useMutations(onDone: () => void) {
 }
 
 function ProfileSection({ company, employees, mutate, busy }: { company: CompanyDetail; employees: Option[]; mutate: Mutate; busy: boolean }) {
-  const [form, setForm] = useState({ name: company.name, billingContactName: company.billingContactName, billingContactEmail: company.billingContactEmail, billingContactPhone: company.billingContactPhone ?? "", ownerId: String(company.owner?.id ?? "") });
+  const { data: tiers } = useResource<PriceTier[]>("/pricing/tiers");
+  const [form, setForm] = useState({ priceTierId: String(company.priceTierId ?? ""), name: company.name, billingContactName: company.billingContactName, billingContactEmail: company.billingContactEmail, billingContactPhone: company.billingContactPhone ?? "", ownerId: String(company.owner?.id ?? "") });
   const set = (key: keyof typeof form) => (event: { target: { value: string } }) => setForm({ ...form, [key]: event.target.value });
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void mutate(() => apiJson(`/companies/${company.id}`, sendJson("PATCH", { ...form, billingContactPhone: emptyToNull(form.billingContactPhone), ...(form.ownerId ? { ownerId: Number(form.ownerId) } : { ownerId: undefined }) })), "Company details saved.");
+    void mutate(() => apiJson(`/companies/${company.id}`, sendJson("PATCH", { ...form, billingContactPhone: emptyToNull(form.billingContactPhone), ...(form.ownerId ? { ownerId: Number(form.ownerId) } : { ownerId: undefined }), priceTierId: form.priceTierId ? Number(form.priceTierId) : null })), "Company details saved.");
   };
   return <form className="panel" onSubmit={save}><fieldset className="panel-fieldset" disabled={busy}>
     <h2>Profile &amp; billing</h2>
     <label>Company name<input maxLength={120} onChange={set("name")} required value={form.name} /></label>
     <label>Owner<select onChange={set("ownerId")} required value={form.ownerId}><option value="">Choose an employee</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select><span className="hint">Must be an active employee of this company</span></label>
+    <label>Price tier<select onChange={set("priceTierId")} value={form.priceTierId}><option value="">Default tier ({tiers?.find((tier) => tier.isDefault)?.name ?? "..."})</option>{tiers?.map((tier) => <option key={tier.id} value={tier.id}>{tier.name}</option>)}</select><span className="hint">Sets the prices this company&apos;s employees see; changes apply to new orders only</span></label>
     <label>Billing contact<input maxLength={80} onChange={set("billingContactName")} required value={form.billingContactName} /></label>
     <label>Billing email<input onChange={set("billingContactEmail")} required type="email" value={form.billingContactEmail} /></label>
     <label>Billing phone<input onChange={set("billingContactPhone")} value={form.billingContactPhone} /></label>

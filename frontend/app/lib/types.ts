@@ -16,7 +16,7 @@ export type CompanyDetail = {
   defaultPackagingTypeId: number | null; defaultDriverId: number | null; driverInstructions: string | null;
   domains: { id: number; domain: string }[]; addresses: Address[]; holidays: { id: number; date: string; name: string }[];
   owner: { id: number; name: string; email: string } | null; defaultDriver: (Option & { isActive: boolean }) | null;
-  defaultPackagingType: (Option & { isActive: boolean }) | null; activeEmployees: number; updatedAt: string; cancelledOrders?: number; lockedOrdersKept?: number;
+  defaultPackagingType: (Option & { isActive: boolean }) | null; priceTierId: number | null; priceTier: Option | null; activeEmployees: number; updatedAt: string; cancelledOrders?: number; lockedOrdersKept?: number;
 };
 
 export type Employee = {
@@ -40,4 +40,22 @@ export type CatalogueOption = {
 export type OptionGroup = {
   id: number; name: string; minSelect: number; maxSelect: number; required: boolean; usesPortions: boolean; isActive: boolean;
   options: { id: number; name: string; costCents: number; isActive: boolean }[]; portionSizes: Option[]; dishCount: number;
+};
+
+export type PriceRule = "MANUAL" | "COST_MULTIPLIER" | "TIER_PERCENT";
+export type PriceTier = {
+  id: number; name: string; isDefault: boolean; rule: PriceRule; ruleValueBps: number | null; baseTierId: number | null;
+  baseTier: Option | null; companyCount: number; unpricedDishes: number; unpricedOptions: number;
+};
+export type PriceSource = "manual" | "override" | "derived" | "unavailable" | "missing";
+export type GridRow = {
+  id: number; name: string; sku: string | null; costCents: number; typedCents: number | null; isUnavailable: boolean;
+  derivedCents: number | null; priceCents: number | null; source: PriceSource;
+};
+
+export const describeRule = (tier: Pick<PriceTier, "rule" | "ruleValueBps" | "baseTier">) => {
+  if (tier.rule === "MANUAL" || tier.ruleValueBps === null) return "Prices typed in";
+  if (tier.rule === "COST_MULTIPLIER") return `Cost × ${(tier.ruleValueBps / 10000).toString()}`;
+  const percent = tier.ruleValueBps / 100;
+  return `${tier.baseTier?.name ?? "Base"} ${percent >= 0 ? "+" : "−"} ${Math.abs(percent)}%`;
 };
