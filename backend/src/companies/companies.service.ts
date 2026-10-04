@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { Capability } from '../auth/capabilities.js';
 import { pageArgs, type Page } from '../common/pagination.js';
 import { definedOnly, emailDomainOf, minutesOf } from '../common/validation.js';
+import { cancelOpenOrders } from '../orders/system-cancel.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
 import { SettingsService } from '../settings/settings.service.js';
@@ -148,11 +149,7 @@ export class CompaniesService {
     const cancelledOrders = await this.prisma.$transaction(async (tx) => {
       await tx.company.update({ where: { id }, data: { isActive } });
       // Status guard: an order confirmed by cut-off processing in the meantime is left alone.
-      const { count } = await tx.order.updateMany({
-        where: { id: { in: toCancel }, status: { in: OPEN_ORDER_STATUSES } },
-        data: { status: OrderStatus.CANCELLED },
-      });
-      return count;
+      return cancelOpenOrders(tx, toCancel, 'the company was deactivated');
     });
     return { ...(await this.get(id)), cancelledOrders, lockedOrdersKept: openOrders.length - toCancel.length };
   }

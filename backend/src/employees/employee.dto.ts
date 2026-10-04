@@ -42,3 +42,11 @@ export class ListEmployeesQueryDto extends PaginationQueryDto {
   @IsOptional() @Trim() @IsString() @MaxLength(80) search?: string;
   @IsOptional() @Transform(toBool) @IsBoolean() includeInactive?: boolean;
 }
+
+export class ImportEmployeesDto {
+  @IsInt() @Min(1) companyId!: number;
+  /** The CSV file's text. */
+  @IsString() @MaxLength(90_000) csv!: string;
+  /** Validate and report only; nothing is created. */
+  @IsOptional() @IsBoolean() dryRun?: boolean;
+}

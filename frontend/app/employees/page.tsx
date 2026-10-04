@@ -19,7 +19,7 @@ function EmployeesContent() {
   const flags = (employee: Employee) => [employee.canChooseAddress && "address", employee.canChangeDeliveryTime && "time", employee.canChangePackaging && "packaging"].filter(Boolean).join(", ") || "—";
 
   return <AppShell><main className="content-page wide">
-    <div><h1>Employees</h1><p className="muted">Add employees from their company&apos;s page.</p></div>
+    <div className="page-heading"><div><h1>Employees</h1><p className="muted">Add employees from their company&apos;s page.</p></div><Link className="secondary-button" href="/employees/import">Import from CSV</Link></div>
     <section className="panel">
       <div className="toolbar">
         <label>Search<input onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Name or email" value={search} /></label>

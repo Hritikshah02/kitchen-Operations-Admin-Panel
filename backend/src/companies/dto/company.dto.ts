@@ -22,7 +22,7 @@ import {
   type ValidatorConstraintInterface,
 } from 'class-validator';
 import { PaginationQueryDto } from '../../common/pagination.js';
-import { ISO_DATE, Lowercase, TIME_HH_MM, TIME_MESSAGE, Trim, TrimToNull } from '../../common/validation.js';
+import { IsRealDate, Lowercase, TIME_HH_MM, TIME_MESSAGE, Trim, TrimToNull } from '../../common/validation.js';
 import { isPublicEmailDomain } from '../public-email-domains.js';
 
 @ValidatorConstraint({ name: 'notPublicEmailDomain' })
@@ -111,7 +111,7 @@ export class UpdateCompanyDto extends CompanyDefaultsFields {
 }
 
 export class CompanyHolidayDto {
-  @Matches(ISO_DATE, { message: 'date must be in YYYY-MM-DD format.' }) date!: string;
+  @IsRealDate({ message: 'date must be a real date in YYYY-MM-DD format.' }) date!: string;
   @Trim() @IsString() @Length(2, 80) name!: string;
 }
 

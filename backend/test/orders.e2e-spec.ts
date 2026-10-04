@@ -120,7 +120,15 @@ describe('Orders (e2e)', () => {
   });
 
   it('locks orders after cut-off for staff without the override capability', async () => {
-    const past = '2026-09-28'; // a Monday whose cut-off has passed
+    // The first day the kitchen and company deliver on, from today: its cut-off is always already behind us
+    // (the cut-off is at least one working day earlier), and it is not a past date, which orders refuse.
+    let past = '';
+    for (let offset = 0; offset < 14 && !past; offset++) {
+      const day = new Date(Date.now() + offset * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const quote = (await admin.post('/api/orders/quote').send({ employeeId, deliveryDate: day, lines: [line(thali, 1)] })).body as { errors: string[]; pastCutoff: boolean };
+      if (!quote.errors.length && quote.pastCutoff) past = day;
+    }
+    expect(past).not.toBe('');
     await desk.post('/api/orders').send({ employeeId, deliveryDate: past, lines: [line(thali, 1)], place: true }).expect(403);
     const late = await admin.post('/api/orders').send({ employeeId: allergicId, deliveryDate: past, lines: [line(thali, 1)], place: true, allergyAcknowledged: true });
     if (late.status === 201) {

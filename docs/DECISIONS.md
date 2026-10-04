@@ -109,3 +109,17 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - One dashboard per person, picked by capability (orders → kitchen → dispatch → driver, first match), never by role name. Admin, kitchen lead, dispatcher and driver each see only what their job needs; the exact figures and how they are calculated are defined in the README.
 - Kitchen and dispatch figures come from the same services as the boards, so a dashboard can never disagree with the board behind it (tested).
 - The "working day" is today, or the next kitchen working day when the kitchen is closed today, and the page says which.
+
+## Hardening after review
+
+- **Input errors are 4xx, never 500:** dates must be real calendar dates (not just `YYYY-MM-DD`-shaped), route ids and numbers beyond the database range are 404/400, NUL bytes are stripped from text, and database errors are mapped to plain messages (for example "This employee already has an order for that delivery date.").
+- **Orders can't be placed for a past date.** Today is allowed (an admin can still place after cut-off); yesterday and earlier is refused with a clear message.
+- **System cancellations leave a trail:** moving an employee, deactivating an employee, or deactivating a company cancels only draft/placed orders that are still before cut-off, and each gets a cancelled time, a reason, a version bump and a timeline event ("Cancelled automatically: ..."). Locked orders are kept and billed to the company (4.6).
+- **Deactivating an employee** now cancels their open pre-cut-off orders the same way, instead of leaving them to be confirmed and billed.
+- **Short-delivery credits are tracked per item:** the credited quantity of each combination is recorded, so the same missing box can't be credited twice.
+- **A dish priced at $0 is treated as unpriced** and never shown (4.3 rule 5). Option prices of $0 stay valid.
+- **Rate limiting:** sign-in is limited per account (5 a minute per email), so a forged `X-Forwarded-For` or many addresses don't help and a shared office IP can't lock people out; everything else is limited per client IP at 1000 a minute, because all users reach the API through the frontend's proxy and the boards poll. Only `TRUST_PROXY_HOPS` (default 1, Render's load balancer) proxy hops are trusted.
+- **Dashboard aggregates** (dispatch stages, driver load, next departures) are computed over every drop of the day, not a page of them.
+- **Employee CSV import** (4.5 [Should]): header row with `name` and `email` (plus optional phone, allergies, dietary preferences, three yes/no permission columns; several values separated by `;`). Every row is validated on its own (company domain, duplicates in the file and in the system, unknown allergy/preference, bad yes/no) and the file is never rejected as a whole: valid rows are created, bad rows come back with line number and reason. "Check file" runs the same validation without writing. Up to 500 rows per file.
+- **Delivery photos** can only be taken with the camera or uploaded from the device (no URL field), and the server only accepts links to this project's own Cloudinary account.
+- **Closed days:** the kitchen is closed on Sundays, so there are no orders or drops "today" then; this is intended.

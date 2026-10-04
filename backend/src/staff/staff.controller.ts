@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { IdPipe } from '../common/id.pipe.js';
 import { Authorize } from '../auth/authorize.decorator.js';
 import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { Capability } from '../auth/capabilities.js';
@@ -26,13 +27,13 @@ export class StaffController {
   }
 
   @Patch('staff/:id')
-  update(@Req() request: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number, @Body() body: UpdateStaffDto) {
+  update(@Req() request: AuthenticatedRequest, @Param('id', IdPipe) id: number, @Body() body: UpdateStaffDto) {
     return this.staff.update(request.user.id, id, body);
   }
 
   @Post('staff/:id/reset-password')
   @HttpCode(HttpStatus.NO_CONTENT)
-  resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: ResetPasswordDto) {
+  resetPassword(@Param('id', IdPipe) id: number, @Body() body: ResetPasswordDto) {
     return this.staff.resetPassword(id, body.password);
   }
 }

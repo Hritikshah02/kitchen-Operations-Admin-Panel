@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { apiJson, messageOf, sendJson } from "../lib/api";
-import { formatDay, formatInstant } from "../lib/format";
+import { formatDay, formatInstant, kitchenToday, shiftDay } from "../lib/format";
 import { formatCents } from "../lib/money";
 import type { CompanyDetail, Employee, EmployeeMenu, MenuDishView, MenuGroupView, Option, OrderDetail, Quote } from "../lib/types";
 import { useResource } from "../lib/use-resource";
@@ -13,7 +13,8 @@ type GroupPick = { optionIds: number[]; sizeId: number | null };
 type ComboDraft = { quantity: number; picks: Record<number, GroupPick> };
 export type LineDraft = { dish: MenuDishView; quantity: number; combinations: ComboDraft[] };
 
-const tomorrow = () => { const date = new Date(); date.setDate(date.getDate() + 1); return date.toISOString().slice(0, 10); };
+// "Tomorrow" in the kitchen's time zone, not the browser's.
+const tomorrow = () => shiftDay(kitchenToday(), 1);
 
 /** Fast default for a new combination: first option (and first size) in every required group. */
 const defaultPicks = (dish: MenuDishView): Record<number, GroupPick> =>

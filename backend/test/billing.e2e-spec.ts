@@ -163,7 +163,17 @@ describe('Billing (e2e)', () => {
     const after = await fetchInvoice(created.id);
     expect(after.totalCents).toBe(950);
     expect(after.linesTotalCents).toBe(950);
-    await admin.post(`/api/billing/orders/${order.id}/short-delivery`).send({ items: [{ combinationId, missingQuantity: 3 }], reason: 'More missing' }).expect(409); // only 950 left to credit
+    await admin.post(`/api/billing/orders/${order.id}/short-delivery`).send({ items: [{ combinationId, missingQuantity: 3 }], reason: 'More missing' }).expect(400); // only 2 can still be credited
+  });
+
+  it('the same missing item can’t be credited twice, even when the order total would allow it', async () => {
+    await freshCompany();
+    const order = await makeOrder(2000, OrderStatus.DELIVERED, [{ quantity: 1, unit: 1000 }, { quantity: 1, unit: 1000 }]);
+    const [first] = order.lines[0].combinations;
+    await invoice([order.id]);
+    await admin.post(`/api/billing/orders/${order.id}/short-delivery`).send({ items: [{ combinationId: first.id, missingQuantity: 1 }], reason: 'Missing' }).expect(201);
+    const again = await admin.post(`/api/billing/orders/${order.id}/short-delivery`).send({ items: [{ combinationId: first.id, missingQuantity: 1 }], reason: 'Missing again' }).expect(400);
+    expect(again.body.message).toMatch(/can still be credited/);
   });
 
   it('a short delivery before invoicing is netted off what will be invoiced', async () => {

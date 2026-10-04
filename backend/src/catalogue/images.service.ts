@@ -17,6 +17,11 @@ export class ImagesService {
     return match ? { apiKey: match[1], apiSecret: match[2], cloudName: match[3] } : null;
   }
 
+  /** Only photos uploaded to this project's own Cloudinary account are accepted (never an arbitrary link). */
+  isOwnUpload(url: string) {
+    return this.config !== null && url.startsWith(`https://res.cloudinary.com/${this.config.cloudName}/`);
+  }
+
   status() {
     return { uploadsEnabled: this.config !== null };
   }

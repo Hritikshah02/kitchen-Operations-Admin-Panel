@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
 import type { CreateInvoiceDto, InvoiceListQueryDto, ShortDeliveryDto, UninvoicedQueryDto } from './billing.dto.js';
 import { addCreditLine, issueCredit, nettedCredit } from './credits.js';
-import { applyCredits, billableAmount, formatInvoiceNumber, shortDeliveryCredit } from './invoice-rules.js';
+import { applyCredits, billableAmount, creditedQuantities, formatInvoiceNumber, shortDeliveryCredit } from './invoice-rules.js';
 
 const BILLABLE: OrderStatus[] = [OrderStatus.CONFIRMED, OrderStatus.DELIVERED]; // 4.9: every confirmed order is owed in full
 
@@ -151,13 +151,15 @@ export class BillingService {
     const order = await this.prisma.order.findUnique({ where: { id: orderId }, include: { lines: { include: { combinations: { include: { choices: true } } } } } });
     if (!order) throw new NotFoundException('Order not found.');
     if (order.status !== OrderStatus.DELIVERED) throw new ConflictException('Only a delivered order can be short; cancel or reject it otherwise.');
+    const taken = creditedQuantities(await this.prisma.orderCredit.findMany({ where: { orderId, kind: CreditKind.SHORT_DELIVERY, status: { not: CreditStatus.DISCARDED } }, select: { items: true } }));
     const combinations = order.lines.flatMap((line) => line.combinations.map((combination) => ({
-      id: combination.id, quantity: combination.quantity, unitPriceCents: combination.unitPriceCents,
+      id: combination.id, quantity: combination.quantity - (taken.get(combination.id) ?? 0), unitPriceCents: combination.unitPriceCents,
       label: `${line.dishName}${combination.choices.length ? ` (${combination.choices.map((choice) => choice.optionName).join(', ')})` : ''}`,
     })));
-    const credit = shortDeliveryCredit(combinations, dto.items.filter((item) => item.missingQuantity > 0));
+    const missing = dto.items.filter((item) => item.missingQuantity > 0);
+    const credit = shortDeliveryCredit(combinations, missing);
     if (credit.errors.length) throw new BadRequestException(credit.errors.join(' '));
-    await this.prisma.$transaction((tx) => issueCredit(tx, { orderId, kind: CreditKind.SHORT_DELIVERY, amountCents: credit.amountCents, reason: dto.reason, description: `${credit.description} (order #${orderId}, short delivery: ${dto.reason})`, actorId: actor.id }));
+    await this.prisma.$transaction((tx) => issueCredit(tx, { orderId, kind: CreditKind.SHORT_DELIVERY, amountCents: credit.amountCents, reason: dto.reason, description: `${credit.description} (order #${orderId}, short delivery: ${dto.reason})`, items: missing.map((item) => ({ combinationId: item.combinationId, quantity: item.missingQuantity })), actorId: actor.id }));
     return { orderId, creditedCents: credit.amountCents };
   }
 

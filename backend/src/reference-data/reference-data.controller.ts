@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { IdPipe } from '../common/id.pipe.js';
 import { Authorize } from '../auth/authorize.decorator.js';
 import { Capability } from '../auth/capabilities.js';
 import { RequireCapabilities } from '../auth/require-capabilities.decorator.js';
@@ -33,7 +34,7 @@ export class ReferenceDataController {
   @RequireCapabilities(Capability.REFERENCE_DATA_MANAGE)
   update(
     @Param('kind', ReferenceKindPipe) kind: ReferenceKind,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', IdPipe) id: number,
     @Body() body: UpdateReferenceItemDto,
   ) {
     return this.referenceData.update(kind, id, body);

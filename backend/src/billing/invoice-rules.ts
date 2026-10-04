@@ -21,7 +21,16 @@ export function applyCredits(subtotalCents: number, credits: OpenCredit[]) {
   return { applied, totalCents: total };
 }
 
+/** `quantity` is what can still be credited: ordered less anything already credited as missing. */
 export type Combination = { id: number; label: string; quantity: number; unitPriceCents: number };
+export type CreditedItem = { combinationId: number; quantity: number };
+
+/** Quantity already credited as missing, per combination. */
+export function creditedQuantities(credits: { items: unknown }[]) {
+  const taken = new Map<number, number>();
+  for (const credit of credits) for (const item of (Array.isArray(credit.items) ? credit.items : []) as CreditedItem[]) taken.set(item.combinationId, (taken.get(item.combinationId) ?? 0) + item.quantity);
+  return taken;
+}
 export type Missing = { combinationId: number; missingQuantity: number };
 
 /** Partial credit for the missing items of a short delivery: missing quantity × that combination's unit price. */
@@ -35,7 +44,7 @@ export function shortDeliveryCredit(combinations: Combination[], missing: Missin
     if (!combination) { errors.push(`Item ${entry.combinationId} is not on this order.`); continue; }
     if (seen.has(entry.combinationId)) { errors.push(`${combination.label} is listed twice.`); continue; }
     seen.add(entry.combinationId);
-    if (entry.missingQuantity > combination.quantity) { errors.push(`${combination.label}: only ${combination.quantity} were ordered.`); continue; }
+    if (entry.missingQuantity > combination.quantity) { errors.push(`${combination.label}: only ${combination.quantity} can still be credited.`); continue; }
     amountCents += combination.unitPriceCents * entry.missingQuantity;
     parts.push(`${entry.missingQuantity} × ${combination.label}`);
   }

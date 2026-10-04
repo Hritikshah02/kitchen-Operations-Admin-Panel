@@ -37,7 +37,7 @@ export function orderableDish(dish: DishInput, ctx: MenuContext): { dish: MenuDi
   if (!dish.isActive) return { reason: 'Dish is deactivated' };
   if (ctx.hiddenDishIds.has(dish.id)) return { reason: 'Dish is hidden for this company' };
   const price = ctx.dishPrices.get(dish.id)?.priceCents ?? null;
-  if (price === null) return { reason: `No price on the ${ctx.tierName} tier` };
+  if (price === null || price <= 0) return { reason: `No price on the ${ctx.tierName} tier` }; // a $0 dish is treated as unpriced, never shown
 
   const groups: MenuGroup[] = [];
   for (const group of dish.groups) {

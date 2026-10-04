@@ -8,7 +8,7 @@ import { minutesOf } from '../common/validation.js';
 import { checkDeliveryDay } from '../companies/company-calendar.js';
 import { MenuService } from '../menu/menu.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { cutoffFor, fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
+import { cutoffFor, fromDbDate, kitchenToday, toDbDate } from '../settings/kitchen-calendar.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { issueCredit } from '../billing/credits.js';
 import { planFor, timingOf } from '../kitchen/kitchen-plan.js';
@@ -68,6 +68,7 @@ export class OrdersService {
     const date = input.deliveryDate;
     if (!DateTime.fromISO(date).isValid) throw new BadRequestException(`${date} is not a real date.`);
     const calendar = await this.settings.calendar(date, date);
+    if (date < kitchenToday(calendar.timezone)) errors.push(`${DateTime.fromISO(date).toFormat('ccc d LLL yyyy')} is in the past. Choose today or a later date.`);
     const day = checkDeliveryDay(date, { workingDays: company.workingDays, holidays: new Set(company.holidays.map((holiday) => fromDbDate(holiday.date))) }, calendar);
     if (!day.ok) errors.push(`${DateTime.fromISO(date).toFormat('ccc d LLL yyyy')}: ${day.reason}`);
     const cutoffAt = cutoffFor(date, calendar, calendar);

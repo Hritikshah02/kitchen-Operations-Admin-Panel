@@ -1,7 +1,7 @@
 import { Transform, Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, ValidateNested } from 'class-validator';
 import { PaginationQueryDto } from '../common/pagination.js';
-import { ISO_DATE, Trim, TrimToNull } from '../common/validation.js';
+import { IsRealDate, Trim, TrimToNull } from '../common/validation.js';
 
 export class CreateInvoiceDto {
   @IsInt() @Min(1) companyId!: number;
@@ -10,8 +10,8 @@ export class CreateInvoiceDto {
 }
 
 export class UninvoicedQueryDto extends PaginationQueryDto {
-  @IsOptional() @Matches(ISO_DATE) from?: string;
-  @IsOptional() @Matches(ISO_DATE) to?: string;
+  @IsOptional() @IsRealDate() from?: string;
+  @IsOptional() @IsRealDate() to?: string;
 }
 
 export class InvoiceListQueryDto extends PaginationQueryDto {

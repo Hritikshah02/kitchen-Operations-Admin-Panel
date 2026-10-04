@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable 
 import { OrderEventType, OrderStatus, Prisma } from '@prisma/client';
 import type { AuthenticatedStaff } from '../auth/auth.types.js';
 import { Capability } from '../auth/capabilities.js';
+import { ImagesService } from '../catalogue/images.service.js';
 import { planFor, timingOf } from '../kitchen/kitchen-plan.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
@@ -28,6 +29,7 @@ export class DispatchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
+    private readonly images: ImagesService,
   ) {}
 
   // ---------- Reads ----------
@@ -40,13 +42,40 @@ export class DispatchService {
     const filtered = drops.filter((drop) => (query.driverId === undefined || (drop.driver?.id ?? 0) === query.driverId) && (!query.stage || drop.orders.some((order) => order.stage === query.stage)));
     const start = (query.page - 1) * query.pageSize;
     return {
-      date: query.date, now, timezone: settings.timezone,
-      totals: {
-        drops: drops.length, orders: drops.reduce((sum, drop) => sum + drop.orders.length, 0),
-        delivered: drops.filter((drop) => drop.status === 'DELIVERED').length, outForDelivery: drops.filter((drop) => drop.status === 'OUT_FOR_DELIVERY').length,
-        late: drops.filter((drop) => drop.timing === 'LATE').length, noDriver: drops.filter((drop) => !drop.driver && drop.status !== 'DELIVERED').length,
-      },
+      date: query.date, now, timezone: settings.timezone, totals: this.totalsOf(drops),
       drops: { items: filtered.slice(start, start + query.pageSize), total: filtered.length, page: query.page, pageSize: query.pageSize },
+    };
+  }
+
+  /** Day-wide summary for the dashboard, computed over every drop (never just a page of them). */
+  async overview(date: string) {
+    const settings = await this.settings.get();
+    const now = new Date();
+    const drops = (await this.dropsFor(date, settings)).map((drop) => this.view(drop, now));
+    const pending = drops.filter((drop) => drop.status !== 'DELIVERED');
+    const perDriver = new Map<string, { name: string; drops: number; delivered: number }>();
+    for (const drop of drops) {
+      const name = drop.driver?.name ?? 'No driver';
+      const entry = perDriver.get(name) ?? { name, drops: 0, delivered: 0 };
+      entry.drops++; if (drop.status === 'DELIVERED') entry.delivered++;
+      perDriver.set(name, entry);
+    }
+    const count = (stage: Stage) => drops.filter((drop) => drop.status === stage).length;
+    return {
+      totals: this.totalsOf(drops),
+      stages: { cooking: count('COOKING'), kitchenReady: count('KITCHEN_READY'), dispatchReady: count('DISPATCH_READY'), outForDelivery: count('OUT_FOR_DELIVERY'), delivered: count('DELIVERED') },
+      next: pending.filter((drop) => drop.status !== 'OUT_FOR_DELIVERY').sort((a, b) => a.plannedDispatchReadyAt.getTime() - b.plannedDispatchReadyAt.getTime()).slice(0, 6)
+        .map((drop) => ({ id: drop.id, company: drop.company, deliveryTime: drop.deliveryTime, plannedDispatchReadyAt: drop.plannedDispatchReadyAt, status: drop.status, timing: drop.timing, driver: drop.driver?.name ?? null, blockedReason: drop.blockedReason })),
+      outNow: pending.filter((drop) => drop.status === 'OUT_FOR_DELIVERY').map((drop) => ({ id: drop.id, company: drop.company, deliveryTime: drop.deliveryTime, driver: drop.driver?.name ?? null })),
+      drivers: [...perDriver.values()].sort((a, b) => b.drops - a.drops),
+    };
+  }
+
+  private totalsOf(drops: { status: Stage; timing: string; driver: unknown; orders: unknown[] }[]) {
+    return {
+      drops: drops.length, orders: drops.reduce((sum, drop) => sum + drop.orders.length, 0),
+      delivered: drops.filter((drop) => drop.status === 'DELIVERED').length, outForDelivery: drops.filter((drop) => drop.status === 'OUT_FOR_DELIVERY').length,
+      late: drops.filter((drop) => drop.timing === 'LATE').length, noDriver: drops.filter((drop) => !drop.driver && drop.status !== 'DELIVERED').length,
     };
   }
 
@@ -103,6 +132,7 @@ export class DispatchService {
 
   /** The driver marks their own drop delivered, with an optional note and photo; records whether it was on time. */
   async deliver(dto: DeliverDto, actor: AuthenticatedStaff) {
+    if (dto.photoUrl && !this.images.isOwnUpload(dto.photoUrl)) throw new BadRequestException('Attach a photo taken or uploaded in the app.');
     const settings = await this.settings.get();
     return this.act(dto, async (tx, rows, now) => {
       const eligible = rows.filter((row) => stageOf(row) === 'OUT_FOR_DELIVERY');

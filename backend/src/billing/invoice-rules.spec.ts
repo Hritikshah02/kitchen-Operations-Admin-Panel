@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyCredits, billableAmount, creditPlacement, formatInvoiceNumber, shortDeliveryCredit } from './invoice-rules.js';
+import { applyCredits, billableAmount, creditedQuantities, creditPlacement, formatInvoiceNumber, shortDeliveryCredit } from './invoice-rules.js';
 
 describe('invoice numbers and billable amounts', () => {
   it('pads the number', () => expect(formatInvoiceNumber(42)).toBe('INV-00042'));
@@ -32,7 +32,7 @@ describe('shortDeliveryCredit', () => {
     expect(credit.errors).toEqual([]);
   });
   it('rejects more than ordered, unknown and duplicate items, and empty credits', () => {
-    expect(shortDeliveryCredit(items, [{ combinationId: 1, missingQuantity: 4 }]).errors[0]).toMatch(/only 3 were ordered/);
+    expect(shortDeliveryCredit(items, [{ combinationId: 1, missingQuantity: 4 }]).errors[0]).toMatch(/only 3 can still be credited/);
     expect(shortDeliveryCredit(items, [{ combinationId: 9, missingQuantity: 1 }]).errors[0]).toMatch(/not on this order/);
     expect(shortDeliveryCredit(items, [{ combinationId: 1, missingQuantity: 1 }, { combinationId: 1, missingQuantity: 1 }]).errors[0]).toMatch(/twice/);
     expect(shortDeliveryCredit(items, [{ combinationId: 1, missingQuantity: 0 }]).errors[0]).toMatch(/at least one/);
@@ -43,5 +43,13 @@ describe('creditPlacement', () => {
   it('applies to unpaid invoices and carries forward from paid ones', () => {
     expect(creditPlacement('UNPAID')).toBe('APPLY_TO_INVOICE');
     expect(creditPlacement('PAID')).toBe('CARRY_FORWARD');
+  });
+});
+
+describe('creditedQuantities', () => {
+  it('adds up what was already credited per combination', () => {
+    const taken = creditedQuantities([{ items: [{ combinationId: 1, quantity: 1 }] }, { items: [{ combinationId: 1, quantity: 2 }, { combinationId: 2, quantity: 1 }] }, { items: null }]);
+    expect(taken.get(1)).toBe(3);
+    expect(taken.get(2)).toBe(1);
   });
 });

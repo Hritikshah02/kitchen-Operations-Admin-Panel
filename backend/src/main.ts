@@ -7,9 +7,9 @@ import { configureApp } from './app.setup.js';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Requests arrive via Vercel's rewrite proxy and Render's load balancer.
-  // Trusting X-Forwarded-For makes req.ip the real client so rate limits are per user, not per proxy.
-  app.set('trust proxy', true);
+  // Behind Render's load balancer. Only that many proxy hops are trusted, so a client can't pick its own IP by
+  // sending its own X-Forwarded-For (sign-in is limited per account anyway, see AppThrottlerGuard).
+  app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS ?? 1));
   app.use(helmet());
   configureApp(app);
   app.enableCors({

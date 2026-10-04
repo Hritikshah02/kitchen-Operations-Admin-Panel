@@ -62,6 +62,13 @@ describe('menu resolution', () => {
     });
   });
 
+  it('never shows a dish priced at $0: it counts as unpriced', () => {
+    const zero = ctx({ dishPrices: new Map([[1, priced(155)], [6, priced(0)]]) });
+    const menu = buildMenu(categories, dishes, zero);
+    expect(menu.categories.flatMap((category) => category.items).map((item) => item.name)).not.toContain('Lassi');
+    expect(menu.excluded.find((entry) => entry.name === 'Lassi' && entry.category === 'Drinks')?.reason).toBe('No price on the Standard tier');
+  });
+
   it('keeps secret categories out of the listing but reachable by search', () => {
     const menu = buildMenu(categories, dishes, ctx(), 'tray');
     expect(menu.categories.some((category) => category.name === 'Meeting specials')).toBe(false);

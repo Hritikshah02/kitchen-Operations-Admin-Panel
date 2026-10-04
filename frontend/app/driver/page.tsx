@@ -29,7 +29,19 @@ function DeliverForm({ drop, onDone }: { drop: Drop; onDone: () => void }) {
   }
   return <div className="form-stack">
     <label>Note (optional)<textarea maxLength={500} onChange={(event) => setNote(event.target.value)} placeholder="e.g. left with reception" value={note} /></label>
-    {photos?.uploadsEnabled ? <label>Photo (optional)<input accept="image/*" capture="environment" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : photoUrl ? "Photo attached." : "Take or choose a photo"}</span></label> : null}
+    {photos?.uploadsEnabled ? <div className="form-stack">
+      <span>Photo (optional)</span>
+      {/* eslint-disable-next-line @next/next/no-img-element -- the driver's own just-uploaded photo */}
+      {photoUrl ? <img alt="Delivery photo" className="photo-preview" src={photoUrl} /> : null}
+      <div className="photo-row">
+        <input accept="image/*" capture="environment" disabled={uploading} id={`camera-${drop.id}`} onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = ""; }} type="file" />
+        <input accept="image/*" disabled={uploading} id={`gallery-${drop.id}`} onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = ""; }} type="file" />
+        <label className="secondary-button" htmlFor={`camera-${drop.id}`}>{photoUrl ? "Retake photo" : "Take a photo"}</label>
+        <label className="secondary-button" htmlFor={`gallery-${drop.id}`}>Upload a photo</label>
+        {photoUrl ? <button className="link-button" onClick={() => setPhotoUrl("")} type="button">Remove</button> : null}
+        {uploading ? <span className="hint">Uploading...</span> : null}
+      </div>
+    </div> : null}
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
     <button className="primary-button big-button" disabled={busy || uploading} onClick={() => void submit()} type="button">{busy ? "Saving..." : "Mark delivered"}</button>
   </div>;

@@ -649,6 +649,7 @@ model OrderCredit {
   kind             CreditKind
   amountCents      Int // positive
   reason           String
+  items            Json? // short deliveries: [{ combinationId, quantity }] so the same missing item cannot be credited twice
   status           CreditStatus  @default(OPEN)
   sourceInvoiceId  Int? // the invoice the order was on when the credit arose
   sourceInvoice    Invoice?      @relation("CreditSource", fields: [sourceInvoiceId], references: [id])

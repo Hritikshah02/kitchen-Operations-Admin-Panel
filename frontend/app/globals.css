@@ -180,3 +180,8 @@ details.more > :not(summary) { margin-top: 8px; }
   .data-table th, .data-table td { padding: 10px 12px; }
   .toolbar label { min-width: 140px; }
 }
+
+.link-button { background: none; border: 0; padding: 0; color: var(--accent, #4f46e5); cursor: pointer; text-decoration: underline; font: inherit; }
+.photo-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.photo-row input[type=file] { display: none; }
+.photo-preview { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; }

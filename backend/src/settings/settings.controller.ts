@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
+import { IdPipe } from '../common/id.pipe.js';
 import { Authorize } from '../auth/authorize.decorator.js';
 import { Capability } from '../auth/capabilities.js';
 import { RequireCapabilities } from '../auth/require-capabilities.decorator.js';
@@ -42,7 +43,7 @@ export class SettingsController {
   @Delete('holidays/:id')
   @RequireCapabilities(Capability.SETTINGS_MANAGE)
   @HttpCode(HttpStatus.NO_CONTENT)
-  removeHoliday(@Param('id', ParseIntPipe) id: number) {
+  removeHoliday(@Param('id', IdPipe) id: number) {
     return this.settings.removeHoliday(id);
   }
 }

@@ -1,10 +1,10 @@
 import { IsInt, IsOptional, IsString, Matches, MaxLength, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PaginationQueryDto } from '../common/pagination.js';
-import { ISO_DATE, TIME_HH_MM, TIME_MESSAGE, TrimToNull } from '../common/validation.js';
+import { IsRealDate, TIME_HH_MM, TIME_MESSAGE, TrimToNull } from '../common/validation.js';
 
 export class DropKeyDto {
-  @Matches(ISO_DATE, { message: 'deliveryDate must be in YYYY-MM-DD format.' }) deliveryDate!: string;
+  @IsRealDate({ message: 'deliveryDate must be a real date in YYYY-MM-DD format.' }) deliveryDate!: string;
   @IsInt() @Min(1) companyId!: number;
   @IsInt() @Min(1) addressId!: number;
   @Matches(TIME_HH_MM, { message: `deliveryTime ${TIME_MESSAGE}` }) deliveryTime!: string;
@@ -20,7 +20,7 @@ export class DeliverDto extends DropKeyDto {
 }
 
 export class DispatchBoardQueryDto extends PaginationQueryDto {
-  @Matches(ISO_DATE, { message: 'date must be in YYYY-MM-DD format.' }) date!: string;
+  @IsRealDate({ message: 'date must be a real date in YYYY-MM-DD format.' }) date!: string;
   @IsOptional() @Transform(({ value }) => (value === 'none' ? 0 : Number(value))) @IsInt() driverId?: number; // 0 = unassigned
   @IsOptional() @Matches(/^(COOKING|KITCHEN_READY|DISPATCH_READY|OUT_FOR_DELIVERY|DELIVERED)$/) stage?: string;
 }

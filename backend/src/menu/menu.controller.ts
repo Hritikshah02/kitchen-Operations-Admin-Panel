@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { IdPipe } from '../common/id.pipe.js';
 import { Authorize } from '../auth/authorize.decorator.js';
 import { Capability } from '../auth/capabilities.js';
 import { RequireCapabilities } from '../auth/require-capabilities.decorator.js';
@@ -23,17 +24,17 @@ export class MenuController {
   reorder(@Body() body: IdsDto) { return this.menu.reorderCategories(body.ids); }
 
   @Patch('categories/:id') @RequireCapabilities(Capability.CATALOGUE_MANAGE)
-  updateCategory(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCategoryDto) { return this.menu.updateCategory(id, body); }
+  updateCategory(@Param('id', IdPipe) id: number, @Body() body: UpdateCategoryDto) { return this.menu.updateCategory(id, body); }
 
   @Put('categories/:id/items') @RequireCapabilities(Capability.CATALOGUE_MANAGE)
-  setItems(@Param('id', ParseIntPipe) id: number, @Body() body: IdsDto) { return this.menu.setItems(id, body.ids); }
+  setItems(@Param('id', IdPipe) id: number, @Body() body: IdsDto) { return this.menu.setItems(id, body.ids); }
 
   @Patch('items/:id') @RequireCapabilities(Capability.CATALOGUE_MANAGE)
-  setItemActive(@Param('id', ParseIntPipe) id: number, @Body() body: ItemDto) { return this.menu.setItemActive(id, body.isActive); }
+  setItemActive(@Param('id', IdPipe) id: number, @Body() body: ItemDto) { return this.menu.setItemActive(id, body.isActive); }
 
   @Get('visibility/:companyId') @RequireCapabilities(Capability.COMPANIES_MANAGE)
-  visibility(@Param('companyId', ParseIntPipe) companyId: number) { return this.menu.visibility(companyId); }
+  visibility(@Param('companyId', IdPipe) companyId: number) { return this.menu.visibility(companyId); }
 
   @Put('visibility/:companyId') @RequireCapabilities(Capability.COMPANIES_MANAGE)
-  setVisibility(@Param('companyId', ParseIntPipe) companyId: number, @Body() body: VisibilityDto) { return this.menu.setVisibility(companyId, body); }
+  setVisibility(@Param('companyId', IdPipe) companyId: number, @Body() body: VisibilityDto) { return this.menu.setVisibility(companyId, body); }
 }

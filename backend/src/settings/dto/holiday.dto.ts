@@ -1,8 +1,9 @@
 import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Length, Matches, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator';
+import { IsRealDate } from '../../common/validation.js';
 
 export class CreateHolidayDto {
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'date must be in YYYY-MM-DD format.' })
+  @IsRealDate({ message: 'date must be a real date in YYYY-MM-DD format.' })
   date!: string;
 
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
@@ -22,7 +23,7 @@ export class HolidayQueryDto {
 
 export class CutoffPreviewQueryDto {
   @IsOptional()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'from must be in YYYY-MM-DD format.' })
+  @IsRealDate({ message: 'from must be a real date in YYYY-MM-DD format.' })
   from?: string;
 
   @IsOptional()

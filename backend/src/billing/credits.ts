@@ -23,7 +23,7 @@ async function creditable(tx: Tx, order: { id: number; totalCents: number; invoi
  * added as its own negative line, on a paid one it stays open and is carried onto the company's next invoice,
  * and for an order not invoiced yet it is netted off the amount that will be invoiced.
  */
-export async function issueCredit(tx: Tx, input: { orderId: number; kind: CreditKind; amountCents?: number; reason: string; actorId: number; description?: string }) {
+export async function issueCredit(tx: Tx, input: { orderId: number; kind: CreditKind; amountCents?: number; reason: string; actorId: number; description?: string; items?: { combinationId: number; quantity: number }[] }) {
   await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${input.orderId} FOR UPDATE`;
   const order = await tx.order.findUniqueOrThrow({ where: { id: input.orderId }, select: { id: true, companyId: true, totalCents: true, invoiceId: true } });
   const available = await creditable(tx, order);
@@ -35,7 +35,7 @@ export async function issueCredit(tx: Tx, input: { orderId: number; kind: Credit
   const placement = invoice ? creditPlacement(invoice.status) : null;
   const credit = await tx.orderCredit.create({
     data: {
-      companyId: order.companyId, orderId: order.id, kind: input.kind, amountCents, reason: input.reason, createdById: input.actorId,
+      companyId: order.companyId, orderId: order.id, kind: input.kind, amountCents, reason: input.reason, items: input.items, createdById: input.actorId,
       sourceInvoiceId: invoice?.id ?? null,
       status: placement === 'CARRY_FORWARD' ? CreditStatus.OPEN : CreditStatus.APPLIED,
       appliedInvoiceId: placement === 'APPLY_TO_INVOICE' ? invoice!.id : null,

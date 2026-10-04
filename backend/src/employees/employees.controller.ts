@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { IdPipe } from '../common/id.pipe.js';
 import { Authorize } from '../auth/authorize.decorator.js';
 import { Capability } from '../auth/capabilities.js';
-import { CreateEmployeeDto, ListEmployeesQueryDto, MoveEmployeeDto, UpdateEmployeeDto } from './employee.dto.js';
+import { CreateEmployeeDto, ImportEmployeesDto, ListEmployeesQueryDto, MoveEmployeeDto, UpdateEmployeeDto } from './employee.dto.js';
 import { EmployeesService } from './employees.service.js';
 
 @Controller('employees')
@@ -14,8 +15,13 @@ export class EmployeesController {
     return this.employees.list(query);
   }
 
+  @Post('import')
+  import(@Body() body: ImportEmployeesDto) {
+    return this.employees.importCsv(body);
+  }
+
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number) {
+  get(@Param('id', IdPipe) id: number) {
     return this.employees.get(id);
   }
 
@@ -25,12 +31,12 @@ export class EmployeesController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateEmployeeDto) {
+  update(@Param('id', IdPipe) id: number, @Body() body: UpdateEmployeeDto) {
     return this.employees.update(id, body);
   }
 
   @Post(':id/move')
-  move(@Param('id', ParseIntPipe) id: number, @Body() body: MoveEmployeeDto) {
+  move(@Param('id', IdPipe) id: number, @Body() body: MoveEmployeeDto) {
     return this.employees.move(id, body);
   }
 }

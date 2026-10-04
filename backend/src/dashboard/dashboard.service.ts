@@ -140,28 +140,7 @@ export class DashboardService {
   // ---------- Dispatcher ----------
 
   private async dispatcher(context: Context) {
-    const { operatingDate } = context;
-    const board = await this.dispatch.board({ date: operatingDate, page: 1, pageSize: 100 });
-    const drops = board.drops.items;
-    const pending = drops.filter((drop) => drop.status !== 'DELIVERED');
-    const perDriver = new Map<string, { name: string; drops: number; delivered: number }>();
-    for (const drop of drops) {
-      const name = drop.driver?.name ?? 'No driver';
-      const entry = perDriver.get(name) ?? { name, drops: 0, delivered: 0 };
-      entry.drops++; if (drop.status === 'DELIVERED') entry.delivered++;
-      perDriver.set(name, entry);
-    }
-    const stages = { cooking: 0, kitchenReady: 0, dispatchReady: 0, outForDelivery: 0, delivered: 0 };
-    for (const drop of drops) {
-      if (drop.status === 'COOKING') stages.cooking++; else if (drop.status === 'KITCHEN_READY') stages.kitchenReady++; else if (drop.status === 'DISPATCH_READY') stages.dispatchReady++; else if (drop.status === 'OUT_FOR_DELIVERY') stages.outForDelivery++; else stages.delivered++;
-    }
-    return {
-      totals: board.totals, stages,
-      next: pending.filter((drop) => drop.status !== 'OUT_FOR_DELIVERY').sort((a, b) => new Date(a.plannedDispatchReadyAt).getTime() - new Date(b.plannedDispatchReadyAt).getTime()).slice(0, 6)
-        .map((drop) => ({ id: drop.id, company: drop.company, deliveryTime: drop.deliveryTime, plannedDispatchReadyAt: drop.plannedDispatchReadyAt, status: drop.status, timing: drop.timing, driver: drop.driver?.name ?? null, blockedReason: drop.blockedReason })),
-      outNow: pending.filter((drop) => drop.status === 'OUT_FOR_DELIVERY').map((drop) => ({ id: drop.id, company: drop.company, deliveryTime: drop.deliveryTime, driver: drop.driver?.name ?? null })),
-      drivers: [...perDriver.values()].sort((a, b) => b.drops - a.drops),
-    };
+    return this.dispatch.overview(context.operatingDate);
   }
 
   // ---------- Driver ----------

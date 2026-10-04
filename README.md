@@ -57,7 +57,7 @@ npm ci
 npm run dev
 ```
 
-Checks (all clean): `npm run lint`, `npm run typecheck`, `npm test` (unit, 74 tests) and `npm run test:e2e` (against the seeded local database, 67 tests) in `backend/`; `npx tsc --noEmit` and `npx eslint app` in `frontend/`.
+Checks (all clean): `npm run lint`, `npm run typecheck`, `npm test` (unit, 82 tests) and `npm run test:e2e` (against the seeded local database, 75 tests; it creates throwaway rows, so only point it at a disposable database) in `backend/`; `npx tsc --noEmit` and `npx eslint app` in `frontend/`.
 
 Optional environment variables for the API: `CLOUDINARY_URL` (`cloudinary://<key>:<secret>@<cloud>`) enables image uploads (dish photos and delivery photos; the browser uploads straight to Cloudinary with a short-lived signature from the API), and `DEMO_REFRESH_TOKEN` enables the daily demo refresh endpoint.
 
@@ -134,6 +134,7 @@ The complete running log is in [`docs/DECISIONS.md`](docs/DECISIONS.md). The one
 * **Capability-based access over role checks.** A little more setup than `if (role === 'ADMIN')`, but roles become data and no code knows role names. Each account has only its role's access.
 * **Derived, not stored, where it can be.** Drops (company + address + exact time) and the planned kitchen/dispatch times are computed from the orders, so an overridden delivery time or address moves things automatically and nothing can drift. The trade-off is a query per board view; at the stated scale (400 orders) the board loads in one query and stays well under a second.
 * **Cut-off processing runs inside the API** every minute, catches up on start-up and also lazily when orders are read, and it is idempotent. A free Render instance that sleeps still processes the cut-off correctly the next time it wakes. A queue or an external cron would be the next step at scale.
+* **Rate limiting is per account for sign-in and per IP otherwise.** Everyone reaches the API through the frontend's proxy, so a per-IP limit would punish a whole office; see the decisions log.
 * **Prices lock when an order is placed.** Drafts show today's prices and are re-priced on placing; afterwards unchanged items keep their placed price.
 * **Pre-tax, no delivery fee, one order type** (out of scope per the brief).
 * **Credits instead of editing invoices.** Issued invoice lines are never edited. A cancellation, rejection or short delivery after invoicing adds a credit; a paid invoice is untouched and the credit is carried forward. See [billing](docs/DECISIONS.md#billing-phase-9).
@@ -216,7 +217,7 @@ Not shown: other drivers' drops or figures, order prices and employee details be
 
 ## What was built, skipped, and what next
 
-**Built (all [Must] items):** authentication and capability-based roles; kitchen settings with working days, holidays and the cut-off rule; reference data; companies (domains, addresses, holidays, delivery defaults, default driver, price tier, menu hiding) and employees (including moving between companies); catalogue (dishes, shared option groups, portion sizes, uploads); price tiers with derived pricing and a tier grid; menu categories, secret categories found only by search, per-company hiding and an employee menu preview; orders with combinations, allergy acknowledgement, cut-off processing, overrides and a timeline; the kitchen board; the dispatch board and a phone-friendly driver view with on-time tracking; company billing with invoices, credits and void; settings; four role dashboards; seeded Ahmedabad demo data that refreshes daily.
+**Built (all [Must] items):** authentication and capability-based roles; kitchen settings with working days, holidays and the cut-off rule; reference data; companies (domains, addresses, holidays, delivery defaults, default driver, price tier, menu hiding) and employees (including moving between companies and bulk import from CSV with row-level error reports); catalogue (dishes, shared option groups, portion sizes, uploads); price tiers with derived pricing and a tier grid; menu categories, secret categories found only by search, per-company hiding and an employee menu preview; orders with combinations, allergy acknowledgement, cut-off processing, overrides and a timeline; the kitchen board; the dispatch board and a phone-friendly driver view with on-time tracking; company billing with invoices, credits and void; settings; four role dashboards; seeded Ahmedabad demo data that refreshes daily.
 
 **Skipped, and why:** everything listed as out of scope in the brief (payments, exports, tax, delivery fees, notifications, audit logs and so on). Beyond that:
 * **No automated UI tests.** The brief asks for business-rule tests, so effort went to unit tests of the pure engines and e2e tests of the API (races included); UI was checked by hand in a browser.

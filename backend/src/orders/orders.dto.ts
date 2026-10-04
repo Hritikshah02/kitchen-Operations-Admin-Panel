@@ -17,7 +17,7 @@ import {
 } from 'class-validator';
 import { OrderStatus } from '@prisma/client';
 import { PaginationQueryDto } from '../common/pagination.js';
-import { ISO_DATE, TIME_HH_MM, TIME_MESSAGE, Trim, TrimToNull } from '../common/validation.js';
+import { IsRealDate, TIME_HH_MM, TIME_MESSAGE, Trim, TrimToNull } from '../common/validation.js';
 import { MAX_QUANTITY } from './order-rules.js';
 
 export class ChoiceDto {
@@ -39,7 +39,7 @@ export class LineDto {
 
 /** Delivery details are optional: omitted ones use the company defaults (and may only differ where the employee is allowed). */
 class OrderContentFields {
-  @Matches(ISO_DATE, { message: 'deliveryDate must be in YYYY-MM-DD format.' }) deliveryDate!: string;
+  @IsRealDate({ message: 'deliveryDate must be a real date in YYYY-MM-DD format.' }) deliveryDate!: string;
   @IsOptional() @Matches(TIME_HH_MM, { message: `deliveryTime ${TIME_MESSAGE}.` }) deliveryTime?: string;
   @IsOptional() @IsInt() addressId?: number;
   @IsOptional() @IsInt() packagingTypeId?: number;
@@ -85,8 +85,8 @@ export class DeliveryOverrideDto {
 }
 
 export class ListOrdersQueryDto extends PaginationQueryDto {
-  @IsOptional() @Matches(ISO_DATE) from?: string;
-  @IsOptional() @Matches(ISO_DATE) to?: string;
+  @IsOptional() @IsRealDate() from?: string;
+  @IsOptional() @IsRealDate() to?: string;
   @IsOptional()
   @Transform(({ value }) => (typeof value === 'string' ? value.split(',').filter(Boolean) : value))
   @IsArray()
@@ -100,5 +100,5 @@ export class ListOrdersQueryDto extends PaginationQueryDto {
 }
 
 export class CutoffRunDto {
-  @Matches(ISO_DATE, { message: 'deliveryDate must be in YYYY-MM-DD format.' }) deliveryDate!: string;
+  @IsRealDate({ message: 'deliveryDate must be a real date in YYYY-MM-DD format.' }) deliveryDate!: string;
 }
