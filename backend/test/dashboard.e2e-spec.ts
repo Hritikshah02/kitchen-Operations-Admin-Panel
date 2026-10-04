@@ -76,4 +76,17 @@ describe('Demo refresh (e2e)', () => {
     const second = await request(app.getHttpServer()).post('/api/demo/refresh').set('x-demo-token', 'test-demo-token').expect(201);
     expect((second.body as { created: number }).created).toBe(0);
   });
+
+  it('keeps every status on screen for every day around today', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/api/auth/login').send({ email: 'admin@test.com', password: 'Test@1234' }).expect(200);
+    const dash = (await agent.get('/api/dashboard').expect(200)).body as { admin: { recent: { date: string; delivered: number; cancelled: number; rejected: number }[]; upcoming: { date: string; cutoffPassed: boolean; draft: number; placed: number; confirmed: number; cancelled: number; rejected: number }[] } };
+    for (const day of dash.admin.recent) expect(day, `past ${day.date}`).toMatchObject({ delivered: expect.any(Number), cancelled: expect.any(Number) });
+    for (const day of dash.admin.recent) { expect(day.delivered, day.date).toBeGreaterThan(0); expect(day.cancelled, day.date).toBeGreaterThan(0); expect(day.rejected, day.date).toBeGreaterThan(0); }
+    for (const day of dash.admin.upcoming.slice(1)) {
+      expect(day.cancelled, day.date).toBeGreaterThan(0); expect(day.rejected, day.date).toBeGreaterThan(0);
+      if (day.cutoffPassed) expect(day.confirmed, day.date).toBeGreaterThan(0);
+      else { expect(day.draft, day.date).toBeGreaterThan(0); expect(day.placed, day.date).toBeGreaterThan(0); }
+    }
+  });
 });

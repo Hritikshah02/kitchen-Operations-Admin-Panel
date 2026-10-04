@@ -10,7 +10,7 @@ async function main() {
   const app = await NestFactory.createApplicationContext(AppModule, { logger: ['error', 'warn', 'log'] });
   try {
     const result = await app.get(DemoOrdersService).ensure();
-    console.log(`Demo orders: ${result.created} created${result.dates.length ? ` for ${result.dates.join(', ')}` : ' (every date already has orders)'}.`);
+    console.log(`Demo orders: ${result.created} created${result.dates.length ? ` for ${result.dates.join(', ')}` : ' (no new dates)'}.`);
   } finally {
     await app.close();
   }

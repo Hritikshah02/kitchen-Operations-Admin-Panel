@@ -67,7 +67,7 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Concurrency:** every write carries the version it read; a stale write is refused ("someone else changed this order"), so two staff can't silently overwrite each other.
 - **Admin overrides** after confirmation: delivery time, address (any of the company's active ones) and packaging, ignoring the employee's permission flags; recorded on the timeline.
 - **Timeline:** every create, edit, place, confirmation, cancellation, rejection, delivery change and allergy acknowledgement is an order event with who did it (or "System").
-- **Demo data:** `npm run db:seed` also generates realistic orders for the past 7 and next 5 kitchen working days, including today, in every status. They are built with the same menu and pricing rules, and only dates with no orders are filled, so it is safe to re-run daily. Because the kitchen works Mon–Sat, a Sunday or holiday has no orders "today".
+- **Demo data:** `npm run db:seed` also generates realistic orders for the past 7 and next 6 kitchen working days, including today, in every status. They are built with the same menu and pricing rules, and only dates with no orders are filled, so it is safe to re-run daily. Because the kitchen works Mon–Sat, a Sunday or holiday has no orders "today".
 - **Invoiced filter** on the order list arrives with billing (Phase 9).
 
 ## Kitchen board (Phase 7)
@@ -123,3 +123,11 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Employee CSV import** (4.5 [Should]): header row with `name` and `email` (plus optional phone, allergies, dietary preferences, three yes/no permission columns; several values separated by `;`). Every row is validated on its own (company domain, duplicates in the file and in the system, unknown allergy/preference, bad yes/no) and the file is never rejected as a whole: valid rows are created, bad rows come back with line number and reason. "Check file" runs the same validation without writing. Up to 500 rows per file.
 - **Delivery photos** can only be taken with the camera or uploaded from the device (no URL field), and the server only accepts links to this project's own Cloudinary account.
 - **Closed days:** the kitchen is closed on Sundays, so there are no orders or drops "today" then; this is intended.
+
+## Demo data freshness
+
+- **Every status, every day:** a coverage pass guarantees that each day around today shows every status that can exist then. Past days have delivered, cancelled and rejected orders; today has confirmed (then delivered as the day goes on), cancelled and rejected; coming days have drafts and placed orders, or confirmed ones once their cut-off has passed (plus cancelled and rejected). A missing status is added as an extra order, so it doesn't depend on luck.
+- **Today follows the clock:** kitchen units, dispatch-ready, out-for-delivery and delivered happen at moments derived from the planned times (with per-drop jitter, so some run late). Only moments already behind "now" are recorded and progress never moves backwards, so each refresh moves the boards along. Yesterday's unfinished orders are completed when the day rolls over.
+- **Self-refreshing:** with `DEMO_AUTO_REFRESH=true` (set on both Render services) the API tops up the demo data 15 seconds after it starts, so a reviewer waking it gets today's data, and every 30 minutes while awake. The daily GitHub job is a second safety net.
+- **Closed days:** the kitchen is closed on Sundays and holidays, so there are no orders or drops that day; the dashboards show the next working day.
+- **Time of day matters:** because progress follows real time, early in the morning the boards show work still to start, and in the evening everything is delivered. That is realistic, not a bug.

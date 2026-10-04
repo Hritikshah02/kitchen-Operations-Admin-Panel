@@ -57,7 +57,7 @@ npm ci
 npm run dev
 ```
 
-Checks (all clean): `npm run lint`, `npm run typecheck`, `npm test` (unit, 82 tests) and `npm run test:e2e` (against the seeded local database, 75 tests; it creates throwaway rows, so only point it at a disposable database) in `backend/`; `npx tsc --noEmit` and `npx eslint app` in `frontend/`.
+Checks (all clean): `npm run lint`, `npm run typecheck`, `npm test` (unit, 82 tests) and `npm run test:e2e` (against the seeded local database, 76 tests; it creates throwaway rows, so only point it at a disposable database) in `backend/`; `npx tsc --noEmit` and `npx eslint app` in `frontend/`.
 
 Optional environment variables for the API: `CLOUDINARY_URL` (`cloudinary://<key>:<secret>@<cloud>`) enables image uploads (dish photos and delivery photos; the browser uploads straight to Cloudinary with a short-lived signature from the API), and `DEMO_REFRESH_TOKEN` enables the daily demo refresh endpoint.
 
@@ -266,6 +266,6 @@ Two environments from one repo, kept separate (separate databases schemas, API s
 
 ### Demo data
 
-`npm run db:seed` is idempotent and safe on any environment: it restores the four review accounts and role capabilities, fills reference data, researched Ahmedabad companies and employees, a pure-vegetarian menu with stock photos, price tiers and category visibility, then generates realistic orders for the past 7 and next 5 working days in every status, with kitchen, dispatch, delivery and billing history. It only fills dates and records that are missing, and it never touches orders staff created.
+`npm run db:seed` is idempotent and safe on any environment: it restores the four review accounts and role capabilities, fills reference data, researched Ahmedabad companies and employees, a pure-vegetarian menu with stock photos, price tiers and category visibility, then generates realistic orders for the past 7 and next 6 working days with every status on every day, with kitchen, dispatch, delivery and billing history. It only fills dates and records that are missing, and it never touches orders staff created.
 
-The daily job (`.github/workflows/demo-refresh.yml`, 01:00 IST) calls `POST /api/demo/refresh` with the `x-demo-token` header on each environment. It completes past days' work, generates orders around the new "today" (including a drop for `driver@test.com`), and invoices finished weeks. It is idempotent, and the route does not exist unless `DEMO_REFRESH_TOKEN` is set. Repository secrets needed: `DEMO_REFRESH_TOKEN`, `PROD_API_URL`, `DEV_API_URL`.
+With `DEMO_AUTO_REFRESH=true` (set on both Render services) the API also refreshes the demo data itself: 15 seconds after it starts (so when it wakes for a reviewer) and every 30 minutes while awake. Today's kitchen and dispatch progress follows the clock, so the boards look realistic at any hour. The daily job (`.github/workflows/demo-refresh.yml`, 01:00 IST) calls `POST /api/demo/refresh` with the `x-demo-token` header on each environment. It completes past days' work, generates orders around the new "today" (including a drop for `driver@test.com`), and invoices finished weeks. It is idempotent, and the route does not exist unless `DEMO_REFRESH_TOKEN` is set. Repository secrets needed: `DEMO_REFRESH_TOKEN`, `PROD_API_URL`, `DEV_API_URL`.

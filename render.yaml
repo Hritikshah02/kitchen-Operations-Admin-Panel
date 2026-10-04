@@ -33,6 +33,8 @@ services:
         sync: false # cloudinary://<api_key>:<api_secret>@<cloud_name>, for dish and delivery photo uploads
       - key: DEMO_REFRESH_TOKEN
         sync: false # shared secret for the daily demo refresh (GitHub Actions)
+      - key: DEMO_AUTO_REFRESH
+        value: "true" # the API keeps its own demo data fresh (start-up and every 30 minutes)
 
   - type: web
     name: kitchenops-api-dev
@@ -62,3 +64,5 @@ services:
         sync: false # cloudinary://<api_key>:<api_secret>@<cloud_name>, for dish and delivery photo uploads
       - key: DEMO_REFRESH_TOKEN
         sync: false # shared secret for the daily demo refresh (GitHub Actions)
+      - key: DEMO_AUTO_REFRESH
+        value: "true" # the API keeps its own demo data fresh (start-up and every 30 minutes)
