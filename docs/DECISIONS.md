@@ -80,3 +80,13 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Force-complete** (needs `kitchen-board:update` and `orders:override`) finishes every open unit, records missing starts, sets kitchen ready and writes timeline events naming the admin.
 - **Performance:** the board loads a day's confirmed orders in one query and pages the order cards (25 per page); station counts and prep totals cover the whole day. Tested with 400 orders.
 - **Demo data:** the seed also gives delivered orders their kitchen history and puts today's confirmed orders part-way through (some late), so the board looks alive on any working day.
+
+## Dispatch and driver (Phase 8)
+
+- **Drop** = confirmed orders with the same company, address, delivery date and exact delivery time. Drops are derived (nothing stored), so an admin changing one order's time or address moves it to its own drop automatically.
+- **Steps per order, driven per drop:** kitchen ready → dispatch ready → out for delivery → delivered. Each step needs the previous one and a repeat is refused (409). Two people clicking at once: the drop's order rows are locked, so one wins and the other is told it was already done.
+- **Partial drops:** kitchen-ready orders leave together. Dispatch waits for an order still cooking while it can still make its planned kitchen-ready time; an order already late is not waited for, the ready ones go, and the late one follows as a second trip within the same drop.
+- **Drivers:** each drop shows the company's default driver unless dispatch assigns another (stored per order). "Out for delivery" needs a driver. The driver can be changed until the drop is out for delivery; after that it is locked. Only staff whose role has `driver-drops:update` can be chosen.
+- **Driver view:** a driver sees only drops where they are the driver, for today in the kitchen time zone, in time order, including upcoming ones for planning; only drops that are out for delivery can be marked delivered, and only by that driver. Optional note and photo; the photo uploads straight to Cloudinary (folder `kitchen/deliveries`), and only Cloudinary links are accepted.
+- **On time:** late minutes = minutes after the delivery time (never negative), always recorded. On time while within the **on-time grace** (Settings, default 5 min); beyond it the delivery is marked late. Delivering sets the order status to DELIVERED.
+- **Demo data:** delivered orders get dispatch history and a driver (about a quarter arrive late); on a working day today's drops are spread across dispatch ready, out for delivery and delivered.

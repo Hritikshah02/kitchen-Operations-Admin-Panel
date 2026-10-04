@@ -7,6 +7,6 @@ import { OptionsService } from './options.service.js';
 @Module({
   controllers: [CatalogueController],
   providers: [DishesService, OptionsService, ImagesService],
-  exports: [DishesService, OptionsService],
+  exports: [DishesService, OptionsService, ImagesService],
 })
 export class CatalogueModule {}

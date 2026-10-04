@@ -100,7 +100,8 @@ export type OrderDetail = {
   lines: (OrderLineView & { id: number })[];
   events: { id: number; type: string; message: string; createdAt: string; actor: Option | null }[];
   permissions: { edit: boolean; place: boolean; cancel: boolean; reject: boolean; overrideDelivery: boolean };
-  kitchenStartedAt: string | null; kitchenReadyAt: string | null;
+  kitchenStartedAt: string | null; kitchenReadyAt: string | null; dispatchReadyAt: string | null; outForDeliveryAt: string | null;
+  driver: Option | null; deliveryNote: string | null; deliveryPhotoUrl: string | null; deliveryLateMinutes: number | null; deliveredOnTime: boolean | null;
   kitchen: { plannedDispatchReadyAt: string; plannedKitchenReadyAt: string; timing: KitchenTiming | null };
 };
 
@@ -126,3 +127,19 @@ export type KitchenBoard = {
   prep: { stationId: number | null; dish: string; sku: string; choices: string; total: number; remaining: number }[];
   orders: Page<KitchenCard>;
 };
+
+export type DropStage = "COOKING" | "KITCHEN_READY" | "DISPATCH_READY" | "OUT_FOR_DELIVERY" | "DELIVERED";
+export type Drop = {
+  id: string; deliveryDate: string; deliveryTime: string; companyId: number; addressId: number; company: string; address: string; instructions: string | null; packaging: string | null;
+  driver: { id: number; name: string; isDefault: boolean } | null; plannedDispatchReadyAt: string; plannedKitchenReadyAt: string;
+  status: DropStage; counts: Record<DropStage, number>; timing: "LATE" | "AT_RISK" | "ON_TRACK" | "DONE";
+  canDispatchReady: boolean; blockedReason: string | null; canAssign: boolean; canOutForDelivery: boolean; canDeliver: boolean;
+  delivery: { deliveredAt: string; by: string | null; note: string | null; photoUrl: string | null; lateMinutes: number; onTime: boolean } | null;
+  orders: { id: number; employee: string; stage: DropStage; boxes: number; items: string[]; kitchenReadyAt: string | null; timing: KitchenTiming }[];
+};
+export type DispatchBoard = {
+  date: string; now: string; timezone: string;
+  totals: { drops: number; orders: number; delivered: number; outForDelivery: number; late: number; noDriver: number };
+  drops: Page<Drop>;
+};
+export type DriverDrops = { date: string; now: string; timezone: string; drops: Drop[] };

@@ -46,6 +46,7 @@ export class DemoOrdersService {
     const todo = dates.filter((date) => !existing.has(date));
     if (!todo.length) {
       await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
+      await this.simulateDispatch(dates, settings.today, settings.timezone, settings.onTimeGraceMinutes, now);
       return { created: 0, dates: [] as string[] };
     }
 
@@ -105,6 +106,7 @@ export class DemoOrdersService {
       }
     }
     await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
+    await this.simulateDispatch(dates, settings.today, settings.timezone, settings.onTimeGraceMinutes, now);
     this.logger.log(`Demo orders: created ${created} for ${todo.join(', ')}.`);
     return { created, dates: todo };
   }
@@ -151,6 +153,57 @@ export class DemoOrdersService {
       const events: Prisma.OrderEventCreateManyInput[] = [{ orderId: order.id, type: OrderEventType.KITCHEN_STARTED, message: 'Kitchen started.', actorId: null, createdAt: startedAt! }];
       if (readyAt) events.push({ orderId: order.id, type: OrderEventType.KITCHEN_READY, message: 'Every unit is done: kitchen ready.', actorId: null, createdAt: readyAt });
       await this.prisma.orderEvent.createMany({ data: events });
+    }
+  }
+
+  /**
+   * Dispatch history: delivered orders left the kitchen with their company's driver and arrived around the
+   * delivery time (a few late); on today's confirmed orders, drops whose orders are all kitchen-ready are part-way
+   * through dispatch.
+   */
+  private async simulateDispatch(dates: IsoDate[], today: IsoDate, timezone: string, graceMinutes: number, now: Date) {
+    const orders = await this.prisma.order.findMany({
+      where: { deliveryDate: { in: dates.map(toDbDate) }, status: { in: [OrderStatus.CONFIRMED, OrderStatus.DELIVERED] }, kitchenReadyAt: { not: null }, dispatchReadyAt: null },
+      include: { company: { select: { defaultDriverId: true } } },
+      orderBy: { id: 'asc' },
+    });
+    const drivers = await this.prisma.staff.findMany({ where: { role: { capabilities: { has: 'driver-drops:update' } }, isActive: true }, orderBy: { id: 'asc' } });
+    const drops = new Map<string, typeof orders>();
+    for (const order of orders) {
+      const id = `${fromDbDate(order.deliveryDate)}|${order.companyId}|${order.addressId}|${order.deliveryTime}`;
+      drops.set(id, [...(drops.get(id) ?? []), order]);
+    }
+    for (const [id, members] of drops) {
+      const date = fromDbDate(members[0].deliveryDate);
+      const driverId = members[0].company.defaultDriverId ?? pick(drivers, `${id}:driver`)?.id ?? null;
+      if (!driverId) continue;
+      const delivery = DateTime.fromISO(`${date}T${members[0].deliveryTime}`, { zone: timezone }).toJSDate();
+      let stage: 'DISPATCH_READY' | 'OUT' | 'DELIVERED' = 'DELIVERED';
+      if (members.some((member) => member.status === OrderStatus.CONFIRMED)) {
+        if (date !== today || members.some((member) => member.status !== OrderStatus.CONFIRMED) || members.some((member) => member.kitchenReadyAt!.getTime() > now.getTime())) continue;
+        const roll = chance(`${id}:dispatch`);
+        stage = roll < 0.35 ? 'DISPATCH_READY' : roll < 0.65 ? 'OUT' : 'DELIVERED';
+        if (stage === 'DELIVERED' && delivery.getTime() > now.getTime() + 15 * 60_000) stage = 'OUT'; // can't have arrived long before it is due
+      }
+      const lastReady = Math.max(...members.map((member) => member.kitchenReadyAt!.getTime()));
+      const dispatchReadyAt = new Date(Math.min(lastReady + 3 * 60_000, now.getTime()));
+      const outAt = new Date(Math.min(dispatchReadyAt.getTime() + (5 + Math.round(chance(`${id}:out`) * 10)) * 60_000, now.getTime()));
+      for (const member of members) {
+        const data: Prisma.OrderUncheckedUpdateInput = { driverId, dispatchReadyAt };
+        const events: Prisma.OrderEventCreateManyInput[] = [{ orderId: member.id, type: OrderEventType.DISPATCH_READY, message: 'Dispatch ready: packed and waiting for the driver.', actorId: null, createdAt: dispatchReadyAt }];
+        if (stage !== 'DISPATCH_READY') {
+          data.outForDeliveryAt = outAt;
+          events.push({ orderId: member.id, type: OrderEventType.OUT_FOR_DELIVERY, message: 'Out for delivery.', actorId: null, createdAt: outAt });
+        }
+        if (stage === 'DELIVERED') {
+          const deliveredAt = new Date(Math.min(delivery.getTime() + (Math.round(chance(`${member.id}:arrive`) ** 2 * 30) - 10) * 60_000, now.getTime())); // mostly early, a fifth beyond the grace
+          const lateMinutes = Math.max(0, Math.ceil((deliveredAt.getTime() - delivery.getTime()) / 60_000));
+          events.push({ orderId: member.id, type: OrderEventType.DELIVERED, message: 'Delivered.', actorId: null, createdAt: deliveredAt });
+          Object.assign(data, { deliveredById: driverId, deliveredAt, deliveryLateMinutes: lateMinutes, deliveredOnTime: lateMinutes <= graceMinutes, status: OrderStatus.DELIVERED, deliveryNote: chance(`${member.id}:note`) < 0.25 ? 'Handed over at reception' : null });
+        }
+        await this.prisma.order.update({ where: { id: member.id }, data });
+        if (member.status === OrderStatus.CONFIRMED) await this.prisma.orderEvent.createMany({ data: events }); // delivered history keeps its original timeline
+      }
     }
   }
 

@@ -31,4 +31,10 @@ export class UpdateSettingsDto {
   @Min(0)
   @Max(480)
   defaultDispatchLeadMinutes?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(120)
+  onTimeGraceMinutes?: number;
 }

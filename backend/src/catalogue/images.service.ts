@@ -22,7 +22,7 @@ export class ImagesService {
   }
 
   signUpload(folder = 'kitchen/dishes') {
-    if (!this.config) throw new ServiceUnavailableException('Image uploads are not configured (CLOUDINARY_URL is missing). Paste an image URL instead.');
+    if (!this.config) throw new ServiceUnavailableException('Image uploads are not configured (CLOUDINARY_URL is missing).');
     const timestamp = Math.floor(Date.now() / 1000);
     const toSign = `folder=${folder}&timestamp=${timestamp}`;
     const signature = createHash('sha1').update(toSign + this.config.apiSecret).digest('hex');

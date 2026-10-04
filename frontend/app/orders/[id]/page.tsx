@@ -116,6 +116,14 @@ function OrderContent() {
       <p>Dispatch-ready by <strong>{formatTime(order.kitchen.plannedDispatchReadyAt)}</strong> · kitchen-ready by <strong>{formatTime(order.kitchen.plannedKitchenReadyAt)}</strong>
         {order.kitchen.timing ? <> <span className={`badge ${{ LATE: "red", AT_RISK: "amber", ON_TRACK: "grey", DONE: "green" }[order.kitchen.timing]}`}>{{ LATE: "Late", AT_RISK: "At risk", ON_TRACK: "On track", DONE: "Kitchen ready" }[order.kitchen.timing]}</span></> : null}</p>
       <p className="hint">Kitchen started {formatInstant(order.kitchenStartedAt)} · kitchen ready {formatInstant(order.kitchenReadyAt)}</p>
+      <p className="hint">Dispatch ready {formatInstant(order.dispatchReadyAt)} · out for delivery {formatInstant(order.outForDeliveryAt)}{order.driver ? ` · driver ${order.driver.name}` : ""}</p>
+    </section> : null}
+
+    {order.status === "DELIVERED" ? <section className="panel">
+      <h2>Delivery</h2>
+      <p>Delivered {formatInstant(order.deliveredAt)}{order.driver ? ` by ${order.driver.name}` : ""} {order.deliveredOnTime === null ? null : order.deliveredOnTime ? <span className="badge green">On time{order.deliveryLateMinutes ? ` (+${order.deliveryLateMinutes} min, within grace)` : ""}</span> : <span className="badge red">Late by {order.deliveryLateMinutes} min</span>}</p>
+      {order.deliveryNote ? <p>Driver note: {order.deliveryNote}</p> : null}
+      {order.deliveryPhotoUrl ? <p><a className="link" href={order.deliveryPhotoUrl} rel="noreferrer" target="_blank">View delivery photo</a></p> : null}
     </section> : null}
 
     <section className="panel">

@@ -30,6 +30,9 @@ enum OrderEventType {
   KITCHEN_STARTED
   KITCHEN_READY
   FORCE_COMPLETED
+  DRIVER_ASSIGNED
+  DISPATCH_READY
+  OUT_FOR_DELIVERY
 }
 
 // A role is data: its capabilities live here, so adding a role never means editing role-name checks in code.
@@ -55,6 +58,8 @@ model Staff {
   orderEvents     OrderEvent[]       @relation("OrderEventActor")
   unitsStarted    OrderCombination[] @relation("UnitStartedBy")
   unitsDone       OrderCombination[] @relation("UnitDoneBy")
+  ordersDriving   Order[]            @relation("OrderDriver")
+  ordersDelivered Order[]            @relation("OrderDeliveredBy")
 }
 
 // Never hard-deleted (orders reference it). Deactivating blocks new orders and cancels open ones.
@@ -178,6 +183,16 @@ model Order {
   confirmedAt         DateTime?
   kitchenStartedAt    DateTime? // first unit's start
   kitchenReadyAt      DateTime? // set only when every unit is done
+  driverId            Int? // set when dispatch assigns a driver; until then the company's default driver applies
+  driver              Staff?         @relation("OrderDriver", fields: [driverId], references: [id])
+  dispatchReadyAt     DateTime?
+  outForDeliveryAt    DateTime?
+  deliveredById       Int?
+  deliveredBy         Staff?         @relation("OrderDeliveredBy", fields: [deliveredById], references: [id])
+  deliveryNote        String?
+  deliveryPhotoUrl    String?
+  deliveryLateMinutes Int? // minutes after the delivery time (0 when early); stored even within the grace
+  deliveredOnTime     Boolean? // late minutes within the grace setting
   deliveredAt         DateTime?
   cancelledAt         DateTime?
   cancellationReason  String?
@@ -193,6 +208,7 @@ model Order {
   @@index([deliveryDate, status])
   @@index([companyId, deliveryDate])
   @@index([employeeId, deliveryDate])
+  @@index([driverId, deliveryDate])
 }
 
 // What was ordered and at what price; names are snapshotted so catalogue edits never change a past order.
@@ -280,6 +296,7 @@ model KitchenSettings {
   cutoffTime                 String   @default("16:00") // HH:mm in kitchen timezone
   cutoffWorkingDays          Int      @default(1)
   kitchenReadyBufferMinutes  Int      @default(30) // kitchen-ready = dispatch-ready minus this
+  onTimeGraceMinutes         Int      @default(5) // a delivery this many minutes late still counts as on time
   defaultDispatchLeadMinutes Int      @default(60) // company default: minutes before delivery the order leaves
   updatedAt                  DateTime @updatedAt
 }

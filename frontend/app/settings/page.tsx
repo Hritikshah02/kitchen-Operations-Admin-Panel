@@ -9,11 +9,11 @@ import { useResource } from "../lib/use-resource";
 
 type Settings = {
   timezone: string; currency: string; workingDays: number[]; cutoffTime: string; cutoffWorkingDays: number;
-  kitchenReadyBufferMinutes: number; defaultDispatchLeadMinutes: number; today: string; updatedAt: string;
+  kitchenReadyBufferMinutes: number; onTimeGraceMinutes: number; defaultDispatchLeadMinutes: number; today: string; updatedAt: string;
 };
 type PreviewDay = { deliveryDate: string; weekday: string; isKitchenWorkingDay: boolean; holiday: string | null; cutoffAt: string | null; isLocked: boolean | null };
 type Holiday = { id: number; date: string; name: string };
-type EditableSettings = Pick<Settings, "workingDays" | "cutoffTime" | "cutoffWorkingDays" | "kitchenReadyBufferMinutes" | "defaultDispatchLeadMinutes">;
+type EditableSettings = Pick<Settings, "workingDays" | "cutoffTime" | "cutoffWorkingDays" | "kitchenReadyBufferMinutes" | "onTimeGraceMinutes" | "defaultDispatchLeadMinutes">;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -27,7 +27,7 @@ function formatDate(date: string) {
 function CalendarRules({ settings, onSaved, justSaved }: { settings: Settings; onSaved: () => void; justSaved: boolean }) {
   const [form, setForm] = useState<EditableSettings>(() => ({
     workingDays: settings.workingDays, cutoffTime: settings.cutoffTime, cutoffWorkingDays: settings.cutoffWorkingDays,
-    kitchenReadyBufferMinutes: settings.kitchenReadyBufferMinutes, defaultDispatchLeadMinutes: settings.defaultDispatchLeadMinutes,
+    kitchenReadyBufferMinutes: settings.kitchenReadyBufferMinutes, onTimeGraceMinutes: settings.onTimeGraceMinutes, defaultDispatchLeadMinutes: settings.defaultDispatchLeadMinutes,
   }));
   const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const [saved, setSaved] = useState(justSaved);
   const set = <K extends keyof EditableSettings>(key: K, value: EditableSettings[K]) => { setForm((current) => ({ ...current, [key]: value })); setSaved(false); };
@@ -49,6 +49,7 @@ function CalendarRules({ settings, onSaved, justSaved }: { settings: Settings; o
       <label>Cut-off time<input onChange={(event) => set("cutoffTime", event.target.value)} required type="time" value={form.cutoffTime} /><span className="hint">Kitchen local time</span></label>
       <label>Cut-off working days before<input min={0} max={14} onChange={(event) => set("cutoffWorkingDays", Number(event.target.value))} required type="number" value={form.cutoffWorkingDays} /><span className="hint">Holidays and non-working days are skipped</span></label>
       <label>Kitchen-ready buffer (min)<input min={0} max={240} onChange={(event) => set("kitchenReadyBufferMinutes", Number(event.target.value))} required type="number" value={form.kitchenReadyBufferMinutes} /><span className="hint">Kitchen-ready = dispatch-ready − this</span></label>
+      <label>On-time grace (min)<input min={0} max={120} onChange={(event) => set("onTimeGraceMinutes", Number(event.target.value))} required type="number" value={form.onTimeGraceMinutes} /><span className="hint">A delivery up to this late still counts as on time (the minutes are always recorded)</span></label>
       <label>Default dispatch lead (min)<input min={0} max={480} onChange={(event) => set("defaultDispatchLeadMinutes", Number(event.target.value))} required type="number" value={form.defaultDispatchLeadMinutes} /><span className="hint">Default for new companies</span></label>
     </div>
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}

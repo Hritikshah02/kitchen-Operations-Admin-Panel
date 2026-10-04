@@ -10,22 +10,8 @@ import { apiJson, messageOf, sendJson } from "../../../lib/api";
 import { Capability } from "../../../lib/capabilities";
 import { centsToInput, parseDollars } from "../../../lib/money";
 import type { Dish, Option, OptionGroup } from "../../../lib/types";
+import { uploadImage } from "../../../lib/upload";
 import { useResource } from "../../../lib/use-resource";
-
-type Signature = { uploadUrl: string; apiKey: string; folder: string; timestamp: number; signature: string };
-
-/** Uploads straight to Cloudinary with a short-lived signature from our API; returns the hosted URL. */
-async function uploadImage(file: File): Promise<string> {
-  if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) throw new Error("Choose an image under 5 MB.");
-  const signed = await apiJson<Signature>("/catalogue/images/signature", sendJson("POST"));
-  const form = new FormData();
-  form.append("file", file); form.append("api_key", signed.apiKey); form.append("timestamp", String(signed.timestamp));
-  form.append("signature", signed.signature); form.append("folder", signed.folder);
-  const response = await fetch(signed.uploadUrl, { method: "POST", body: form });
-  const body = await response.json().catch(() => null);
-  if (!response.ok || !body?.secure_url) throw new Error(body?.error?.message ?? "Upload failed.");
-  return body.secure_url as string;
-}
 
 function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; onChanged?: (message: string) => void; initialNotice?: string }) {
   const router = useRouter();
@@ -105,7 +91,7 @@ function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; 
         <h2>Image</h2>
         {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary/stock URLs entered by staff */}
         {form.imageUrl ? <img alt={form.name} src={form.imageUrl} style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 6 }} /> : <p className="muted">No image yet.</p>}
-        {images?.uploadsEnabled ? <label>{form.imageUrl ? "Replace image" : "Upload image"}<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG/PNG/WebP under 5 MB, stored on Cloudinary. Saved with the dish."}</span></label>
+        {images?.uploadsEnabled ? <label>{form.imageUrl ? "Replace image" : "Upload image"}<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG/PNG/WebP under 10 MB, stored on Cloudinary. Saved with the dish."}</span></label>
           : <p className="hint">Uploads are off until CLOUDINARY_URL is configured on the server.</p>}
         {form.imageUrl ? <div className="form-actions"><button className="secondary-button" onClick={() => setForm({ ...form, imageUrl: "" })} type="button">Remove image</button></div> : null}
         <ChipSelect legend="Allergens" onChange={setAllergenIds} options={allergens ?? []} value={allergenIds} />

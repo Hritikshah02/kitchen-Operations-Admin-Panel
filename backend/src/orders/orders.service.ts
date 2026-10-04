@@ -26,6 +26,7 @@ const detailInclude = {
   packagingType: { select: { id: true, name: true } },
   priceTier: { select: { id: true, name: true } },
   createdBy: { select: { id: true, name: true } },
+  driver: { select: { id: true, name: true } },
   lines: { include: lineInclude, orderBy: { sortOrder: 'asc' } },
   events: { include: { actor: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
 } satisfies Prisma.OrderInclude;
