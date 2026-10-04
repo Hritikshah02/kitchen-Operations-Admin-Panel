@@ -56,7 +56,7 @@ function DriverDrop({ drop, onDone }: { drop: Drop; onDone: () => void }) {
       {drop.instructions ? <p className="notice">{drop.instructions}</p> : null}
       <p className="hint">{drop.orders.length} order{drop.orders.length === 1 ? "" : "s"}, {drop.orders.reduce((sum, order) => sum + order.boxes, 0)} boxes{drop.packaging ? ` · ${drop.packaging}` : ""}</p>
       <ul className="plain-list">{drop.orders.map((order) => <li key={order.id}><strong>{order.employee}</strong> <span className="hint">#{order.id}: {order.items.join(", ")}</span></li>)}</ul>
-      {drop.delivery ? <p className="hint">Delivered {formatTime(drop.delivery.deliveredAt)}: {drop.delivery.onTime ? "on time" : `${drop.delivery.lateMinutes} min late`}{drop.delivery.note ? ` · “${drop.delivery.note}”` : ""} <span>({formatInstant(drop.delivery.deliveredAt)})</span></p> : null}
+      {drop.delivery ? <p className="hint">Delivered {formatTime(drop.delivery.deliveredAt)}: {drop.delivery.onTime ? "on time" : `${drop.delivery.lateMinutes} min late`}{drop.delivery.note ? ` · “${drop.delivery.note}”` : ""} <span>({formatInstant(drop.delivery.deliveredAt)})</span>{drop.delivery.photoUrl ? <> · <a className="link" href={drop.delivery.photoUrl} rel="noreferrer" target="_blank">photo</a></> : null}</p> : null}
       {drop.canDeliver ? <DeliverForm drop={drop} onDone={onDone} /> : null}
   </section>;
 }
