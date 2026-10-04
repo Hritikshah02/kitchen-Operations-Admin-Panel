@@ -25,7 +25,7 @@ const roles = [
 
 // The four review accounts (exact credentials required by the brief) plus extra realistic staff.
 const reviewAccounts = [
-  { name: 'Priya Mehta', email: 'admin@test.com', role: 'ADMIN' },
+  { name: 'Hritik Shah', email: 'admin@test.com', role: 'ADMIN' },
   { name: 'Ramesh Patel', email: 'kitchen@test.com', role: 'KITCHEN' },
   { name: 'Harsh Desai', email: 'dispatch@test.com', role: 'DISPATCH' },
   { name: data.drivers[0].name, email: 'driver@test.com', role: 'DRIVER' },
