@@ -36,9 +36,11 @@ export class KitchenService {
   /** 4.7: what has to be cooked for a date, as prep units (one per distinct combination), grouped by order. */
   async board(query: BoardQueryDto) {
     const settings = await this.settings.get();
+    const day = await this.settings.operatingDay();
+    const date = query.date ?? day.date;
     const now = new Date();
     const orders = await this.prisma.order.findMany({
-      where: { deliveryDate: toDbDate(query.date), status: OrderStatus.CONFIRMED },
+      where: { deliveryDate: toDbDate(date), status: OrderStatus.CONFIRMED },
       include: orderInclude,
       orderBy: [{ deliveryTime: 'asc' }, { id: 'asc' }],
     });
@@ -48,7 +50,7 @@ export class KitchenService {
     const totals = { orders: orders.length, ready: 0, late: 0, atRisk: 0 };
 
     const cards = orders.map((order) => {
-      const plan = planFor(query.date, order.deliveryTime, order.company.dispatchLeadMinutes, settings.kitchenReadyBufferMinutes, settings.timezone);
+      const plan = planFor(date, order.deliveryTime, order.company.dispatchLeadMinutes, settings.kitchenReadyBufferMinutes, settings.timezone);
       const timing = timingOf(plan, order.kitchenReadyAt, now);
       if (timing === 'DONE') totals.ready++; else if (timing === 'LATE') totals.late++; else if (timing === 'AT_RISK') totals.atRisk++;
       const units = order.lines.flatMap((line) => line.combinations.map((combination) => {
@@ -82,7 +84,7 @@ export class KitchenService {
       .sort((a, b) => TIMING_ORDER[a.timing] - TIMING_ORDER[b.timing] || a.plannedKitchenReadyAt.getTime() - b.plannedKitchenReadyAt.getTime() || a.orderId - b.orderId);
     const start = (query.page - 1) * query.pageSize;
     return {
-      date: query.date, now, timezone: settings.timezone, atRiskMinutes: 30, totals,
+      date, today: day.today, closedToday: day.closedToday, now, timezone: settings.timezone, atRiskMinutes: 30, totals,
       stations: [...stations.values()].sort((a, b) => (a.id === null ? 1 : b.id === null ? -1 : a.name.localeCompare(b.name))),
       prep: [...prep.values()].sort((a, b) => a.dish.localeCompare(b.dish) || a.choices.localeCompare(b.choices)),
       orders: { items: shown.slice(start, start + query.pageSize), total: shown.length, page: query.page, pageSize: query.pageSize },

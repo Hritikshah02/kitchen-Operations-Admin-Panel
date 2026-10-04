@@ -29,9 +29,7 @@ export class DashboardService {
     const settings = await this.settings.get();
     const calendar = await this.settings.calendar(addDays(settings.today, -30), addDays(settings.today, 30));
     const working = (date: IsoDate) => isKitchenWorkingDay(date, calendar);
-    // The "operating day" is today when the kitchen works today, otherwise the next working day.
-    let date = settings.today;
-    while (!working(date)) date = addDays(date, 1);
+    const { date } = await this.settings.operatingDay();
     const nextDays: IsoDate[] = [];
     for (let day = addDays(date, 1); nextDays.length < 5; day = addDays(day, 1)) if (working(day)) nextDays.push(day);
     const recentDays: IsoDate[] = [];
@@ -153,11 +151,13 @@ export class DashboardService {
       this.prisma.order.count({ where: { deliveredById: actor.id, status: OrderStatus.DELIVERED, deliveredOnTime: true, deliveryDate: { gte: toDbDate(from), lt: toDbDate(context.today) } } }),
       this.prisma.order.count({ where: { deliveredById: actor.id, status: OrderStatus.DELIVERED, deliveredOnTime: false, deliveryDate: { gte: toDbDate(from), lt: toDbDate(context.today) } } }),
     ]);
-    const next = open[0];
+    // Closed today: the next stop is the first drop of the next working day.
+    const upcoming = open.length === 0 && mine.nextDay ? mine.nextDay : null;
+    const next = open[0] ?? upcoming?.drops[0];
     return {
       date: mine.date,
       totals: { drops: mine.drops.length, delivered: mine.drops.length - open.length, outForDelivery: open.filter((drop) => drop.status === 'OUT_FOR_DELIVERY').length, waiting: open.filter((drop) => drop.status !== 'OUT_FOR_DELIVERY').length },
-      next: next ? { company: next.company, address: next.address, deliveryTime: next.deliveryTime, status: next.status, instructions: next.instructions, boxes: next.orders.reduce((sum, order) => sum + order.boxes, 0), canDeliver: next.canDeliver } : null,
+      next: next ? { date: upcoming?.date ?? mine.date, company: next.company, address: next.address, deliveryTime: next.deliveryTime, status: next.status, instructions: next.instructions, boxes: next.orders.reduce((sum, order) => sum + order.boxes, 0), canDeliver: next.canDeliver } : null,
       record: { windowDays: WINDOW_DAYS, onTime, late, onTimeRate: onTime + late ? onTime / (onTime + late) : null },
     };
   }

@@ -123,7 +123,7 @@ export type KitchenCard = {
   plannedDispatchReadyAt: string; plannedKitchenReadyAt: string; timing: KitchenTiming; kitchenStartedAt: string | null; kitchenReadyAt: string | null; units: KitchenUnit[];
 };
 export type KitchenBoard = {
-  date: string; now: string; timezone: string; atRiskMinutes: number;
+  date: string; today: string; closedToday: boolean; now: string; timezone: string; atRiskMinutes: number;
   totals: { orders: number; ready: number; late: number; atRisk: number };
   stations: { id: number | null; name: string; pending: number; started: number; done: number }[];
   prep: { stationId: number | null; dish: string; sku: string; choices: string; total: number; remaining: number }[];
@@ -140,11 +140,11 @@ export type Drop = {
   orders: { id: number; employee: string; stage: DropStage; boxes: number; items: string[]; kitchenReadyAt: string | null; timing: KitchenTiming }[];
 };
 export type DispatchBoard = {
-  date: string; now: string; timezone: string;
+  date: string; today: string; closedToday: boolean; now: string; timezone: string;
   totals: { drops: number; orders: number; delivered: number; outForDelivery: number; late: number; noDriver: number };
   drops: Page<Drop>;
 };
-export type DriverDrops = { date: string; now: string; timezone: string; drops: Drop[] };
+export type DriverDrops = { date: string; now: string; timezone: string; drops: Drop[]; closedToday: boolean; nextDay: { date: string; drops: Drop[] } | null };
 
 export type InvoiceStatus = "UNPAID" | "PAID" | "VOID";
 export type BillingCompany = { id: number; name: string; isActive: boolean; uninvoicedOrders: number; uninvoicedCents: number; openCredits: number; openCreditCents: number; unpaidInvoices: number; unpaidCents: number };
@@ -187,7 +187,7 @@ export type Dashboard = {
   };
   driver?: {
     date: string; totals: { drops: number; delivered: number; outForDelivery: number; waiting: number };
-    next: { company: string; address: string; deliveryTime: string; status: DropStage; instructions: string | null; boxes: number; canDeliver: boolean } | null;
+    next: { date: string; company: string; address: string; deliveryTime: string; status: DropStage; instructions: string | null; boxes: number; canDeliver: boolean } | null;
     record: { windowDays: number; onTime: number; late: number; onTimeRate: number | null };
   };
 };

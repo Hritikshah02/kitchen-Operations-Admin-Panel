@@ -151,6 +151,13 @@ export class PricingService {
       upserts: cells.filter((cell) => cell.isUnavailable || (cell.priceCents !== null && cell.priceCents !== undefined)),
       clears: cells.filter((cell) => !cell.isUnavailable && (cell.priceCents === null || cell.priceCents === undefined)).map((cell) => cell.id),
     });
+    const [knownDishes, knownOptions] = await Promise.all([
+      this.prisma.dish.count({ where: { id: { in: dishes.map((cell) => cell.id) } } }),
+      this.prisma.option.count({ where: { id: { in: options.map((cell) => cell.id) } } }),
+    ]);
+    if (knownDishes !== new Set(dishes.map((cell) => cell.id)).size || knownOptions !== new Set(options.map((cell) => cell.id)).size) {
+      throw new BadRequestException('One or more dishes or options in the request do not exist. Reload the grid and try again.');
+    }
     const dishCells = split(dishes);
     const optionCells = split(options);
     const value = (cell: PriceCellDto) => ({ priceCents: cell.isUnavailable ? null : (cell.priceCents ?? null), isUnavailable: cell.isUnavailable ?? false });

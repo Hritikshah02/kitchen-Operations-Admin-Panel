@@ -235,7 +235,7 @@ export class CompaniesService {
       include: { company: { select: { name: true } } },
     });
     if (taken.length) {
-      throw new ConflictException(taken.map((entry) => `${entry.domain} already belongs to ${entry.company.name}.`).join(' '));
+      throw new ConflictException(taken.map((entry) => `${entry.domain} already belongs to another company (${entry.company.name}).`).join(' '));
     }
   }
 

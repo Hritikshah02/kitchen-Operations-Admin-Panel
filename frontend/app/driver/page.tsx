@@ -48,14 +48,8 @@ function DeliverForm({ drop, onDone }: { drop: Drop; onDone: () => void }) {
   </div>;
 }
 
-function DriverContent() {
-  const [tick, setTick] = useState(0);
-  const { data, error, loading, reload } = useResource<DriverDrops>("/driver/drops", tick);
-  useEffect(() => { const timer = window.setInterval(() => setTick((value) => value + 1), 30_000); return () => window.clearInterval(timer); }, []);
-  return <AppShell><main className="content-page driver-page">
-    <div className="page-heading"><div><h1>My drops today</h1>{data ? <p className="muted">{formatDay(data.date)} · {data.drops.length} drop{data.drops.length === 1 ? "" : "s"}</p> : null}</div></div>
-    {error ? <p className="form-error">{error}</p> : null}{loading && !data ? <p className="muted">Loading your drops...</p> : null}
-    {data?.drops.map((drop) => <section className="panel driver-drop" key={drop.id}>
+function DriverDrop({ drop, onDone }: { drop: Drop; onDone: () => void }) {
+  return <section className="panel driver-drop">
       <div className="panel-heading"><strong className="drop-time">{drop.deliveryTime}</strong><span className={`badge ${drop.status === "DELIVERED" ? "green" : drop.status === "OUT_FOR_DELIVERY" ? "amber" : "grey"}`}>{STATUS[drop.status]}</span></div>
       <p><strong>{drop.company}</strong></p>
       <p>{drop.address}</p>
@@ -63,9 +57,23 @@ function DriverContent() {
       <p className="hint">{drop.orders.length} order{drop.orders.length === 1 ? "" : "s"}, {drop.orders.reduce((sum, order) => sum + order.boxes, 0)} boxes{drop.packaging ? ` · ${drop.packaging}` : ""}</p>
       <ul className="plain-list">{drop.orders.map((order) => <li key={order.id}><strong>{order.employee}</strong> <span className="hint">#{order.id}: {order.items.join(", ")}</span></li>)}</ul>
       {drop.delivery ? <p className="hint">Delivered {formatTime(drop.delivery.deliveredAt)}: {drop.delivery.onTime ? "on time" : `${drop.delivery.lateMinutes} min late`}{drop.delivery.note ? ` · “${drop.delivery.note}”` : ""} <span>({formatInstant(drop.delivery.deliveredAt)})</span></p> : null}
-      {drop.canDeliver ? <DeliverForm drop={drop} onDone={reload} /> : null}
-    </section>)}
-    {data && !data.drops.length ? <p className="muted">No drops assigned to you today.</p> : null}
+      {drop.canDeliver ? <DeliverForm drop={drop} onDone={onDone} /> : null}
+  </section>;
+}
+
+function DriverContent() {
+  const [tick, setTick] = useState(0);
+  const { data, error, loading, reload } = useResource<DriverDrops>("/driver/drops", tick);
+  useEffect(() => { const timer = window.setInterval(() => setTick((value) => value + 1), 30_000); return () => window.clearInterval(timer); }, []);
+  return <AppShell><main className="content-page driver-page">
+    <div className="page-heading"><div><h1>My drops today</h1>{data ? <p className="muted">{formatDay(data.date)} · {data.drops.length} drop{data.drops.length === 1 ? "" : "s"}</p> : null}</div></div>
+    {error ? <p className="form-error">{error}</p> : null}{loading && !data ? <p className="muted">Loading your drops...</p> : null}
+    {data?.closedToday ? <p className="notice">The kitchen is closed today. Your next deliveries are below.</p> : null}
+    {data?.drops.map((drop) => <DriverDrop drop={drop} key={drop.id} onDone={reload} />)}
+    {data && !data.drops.length ? <p className="muted">{data.closedToday ? "No deliveries today." : "No drops assigned to you today."}</p> : null}
+    {data?.nextDay ? <section className="form-stack"><h2>Next delivery day: {formatDay(data.nextDay.date)}</h2>
+      {data.nextDay.drops.length ? data.nextDay.drops.map((drop) => <DriverDrop drop={drop} key={drop.id} onDone={reload} />) : <p className="muted">No drops assigned to you yet.</p>}
+    </section> : null}
   </main></AppShell>;
 }
 

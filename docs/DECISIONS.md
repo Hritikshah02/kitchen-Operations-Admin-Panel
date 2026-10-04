@@ -132,3 +132,10 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Self-refreshing:** with `DEMO_AUTO_REFRESH=true` (set on both Render services) the API tops up the demo data 15 seconds after it starts, so a reviewer waking it gets today's data, and every 30 minutes while awake. The daily GitHub job is a second safety net.
 - **Closed days:** the kitchen is closed on Sundays and holidays, so there are no orders or drops that day; the dashboards show the next working day.
 - **Time of day matters:** because progress follows real time, early in the morning the boards show work still to start, and in the evening everything is delivered. That is realistic, not a bug.
+
+## After the independent evaluation
+
+- **The demo simulator only touches sample data.** Seeded companies and the orders generated for them carry `isDemo`; the generator, the "today follows the clock" progression, past-day close-out, billing history and the driver drop for `driver@test.com` all ignore everything else. A reviewer's own company, employees and orders (including today's) are left exactly as they made them; if one of their orders clashes with a sample one (same employee and day) the sample one is skipped.
+- **Sample history is believable:** no timestamp is in the future, an order is placed before it is cancelled or rejected, and each order's timeline is derived from its own timestamps (created, placed, confirmed, kitchen started/ready, dispatch ready, out, delivered or cancelled/rejected), each at the moment it happened. Old sample orders whose events were all stamped at one instant are rebuilt this way.
+- **Closed days:** the kitchen, dispatch and driver pages open on the next working day with a note when the kitchen is closed today; the driver page still lists today's drops (none) and shows the next working day's drops below. The dashboards already did this.
+- **Small things:** order links are plain text for roles that can't open orders; page-size errors give one clear message; the rate-limit reply is readable; saving a price for a dish that doesn't exist is a 400 instead of a database error.

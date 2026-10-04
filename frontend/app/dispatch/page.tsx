@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { OrderRef } from "../components/order-ref";
 import { AppShell } from "../components/app-shell";
 import { can, useAuth } from "../components/auth-provider";
 import { Pagination } from "../components/form-controls";
@@ -30,7 +30,7 @@ function DropCard({ drop, drivers, canUpdate, busy, onAct }: { drop: Drop; drive
     {drop.instructions ? <p className="hint">Driver notes: {drop.instructions}</p> : null}
     <div className="table-wrap"><table className="data-table"><tbody>
       {drop.orders.map((order) => <tr key={order.id}>
-        <td><Link className="link" href={`/orders/${order.id}`}>#{order.id}</Link> {order.employee}</td>
+        <td><OrderRef id={order.id} /> {order.employee}</td>
         <td className="muted">{order.boxes} box{order.boxes === 1 ? "" : "es"}: {order.items.join(", ")}</td>
         <td><span className={`badge ${STAGE_BADGE[order.stage]}`}>{STAGE_LABEL[order.stage]}</span></td>
       </tr>)}
@@ -53,10 +53,11 @@ function DropCard({ drop, drivers, canUpdate, busy, onAct }: { drop: Drop; drive
 
 function DispatchContent() {
   const { staff } = useAuth();
-  const [date, setDate] = useState(kitchenToday()); const [stage, setStage] = useState(""); const [driver, setDriver] = useState(""); const [page, setPage] = useState(1);
+  const [date, setDate] = useState(""); const [stage, setStage] = useState(""); const [driver, setDriver] = useState(""); const [page, setPage] = useState(1);
   const [tick, setTick] = useState(0); const [busy, setBusy] = useState(false); const [actionError, setActionError] = useState("");
-  const query = new URLSearchParams({ date, page: String(page), pageSize: "25", ...(stage ? { stage } : {}), ...(driver ? { driverId: driver } : {}) });
+  const query = new URLSearchParams({ ...(date ? { date } : {}), page: String(page), pageSize: "25", ...(stage ? { stage } : {}), ...(driver ? { driverId: driver } : {}) });
   const { data: board, error, loading, reload } = useResource<DispatchBoard>(`/dispatch/board?${query}`, tick);
+  const shown = board?.date ?? (date || kitchenToday());
   const { data: drivers } = useResource<Option[]>("/dispatch/drivers");
   useEffect(() => { const timer = window.setInterval(() => setTick((value) => value + 1), 30_000); return () => window.clearInterval(timer); }, []);
   const reset = (fn: () => void) => { fn(); setPage(1); };
@@ -66,13 +67,14 @@ function DispatchContent() {
     finally { setBusy(false); reload(); }
   }
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><h1>Dispatch board</h1><p className="muted">{formatDay(date)}{board ? ` · updated ${formatInstant(board.now)}` : ""}</p></div>
+    <div className="page-heading"><div><h1>Dispatch board</h1><p className="muted">{formatDay(shown)}{board ? ` · updated ${formatInstant(board.now)}` : ""}</p></div>
       <div className="form-actions">
-        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, -1)))} type="button">←</button>
-        <input aria-label="Delivery date" onChange={(event) => event.target.value && reset(() => setDate(event.target.value))} type="date" value={date} />
-        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, 1)))} type="button">→</button>
-        <button className="secondary-button" onClick={() => reset(() => setDate(kitchenToday()))} type="button">Today</button>
+        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(shown, -1)))} type="button">←</button>
+        <input aria-label="Delivery date" onChange={(event) => event.target.value && reset(() => setDate(event.target.value))} type="date" value={shown} />
+        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(shown, 1)))} type="button">→</button>
+        <button className="secondary-button" onClick={() => reset(() => setDate(""))} type="button">Today</button>
       </div></div>
+    {board?.closedToday && board.date !== board.today ? <p className="notice">The kitchen is closed today ({formatDay(board.today)}). Showing the next working day.</p> : null}
     {board ? <div className="stat-row">
       <div className="stat"><span>Drops</span><strong>{board.totals.drops}</strong></div>
       <div className="stat"><span>Out for delivery</span><strong>{board.totals.outForDelivery}</strong></div>

@@ -25,6 +25,15 @@ export class SettingsService {
     return { ...settings, workingDays: [...settings.workingDays].sort((a, b) => a - b), today: kitchenToday(settings.timezone) };
   }
 
+  /** Today when the kitchen works today, otherwise the next working day: the day boards and dashboards open on. */
+  async operatingDay() {
+    const settings = await this.get();
+    const calendar = await this.calendar(settings.today, addDays(settings.today, 60));
+    let date = settings.today;
+    for (let guard = 0; !isKitchenWorkingDay(date, calendar) && guard < 60; guard++) date = addDays(date, 1);
+    return { today: settings.today, date, closedToday: date !== settings.today, timezone: settings.timezone };
+  }
+
   async update(data: UpdateSettingsDto) {
     await this.prisma.kitchenSettings.update({ where: { id: SETTINGS_ID }, data });
     return this.get();

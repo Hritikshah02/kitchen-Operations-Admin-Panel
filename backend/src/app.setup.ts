@@ -7,6 +7,6 @@ import { PrismaExceptionFilter } from './common/prisma-exception.filter.js';
 export function configureApp(app: INestApplication) {
   app.setGlobalPrefix('api');
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true, stopAtFirstError: true }));
   app.useGlobalFilters(new PrismaExceptionFilter(app.get(HttpAdapterHost).httpAdapter));
 }

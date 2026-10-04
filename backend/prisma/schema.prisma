@@ -73,6 +73,7 @@ model Company {
   id                     Int                     @id @default(autoincrement())
   name                   String
   isActive               Boolean                 @default(true)
+  isDemo                 Boolean                 @default(false) // seeded sample company: the demo-data simulator only ever touches these
   billingContactName     String
   billingContactEmail    String
   billingContactPhone    String?
@@ -212,6 +213,7 @@ model Order {
   events              OrderEvent[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  isDemo              Boolean        @default(false) // generated sample order (never set for orders staff create)
   invoiceId           Int? // an order is on at most one invoice (voiding an invoice releases its orders)
   invoice             Invoice?       @relation(fields: [invoiceId], references: [id])
   credits             OrderCredit[]

@@ -37,12 +37,14 @@ export class DispatchService {
   /** 4.8: the day's drops (company + address + exact delivery time) with each one's status at a glance. */
   async board(query: DispatchBoardQueryDto) {
     const settings = await this.settings.get();
+    const day = await this.settings.operatingDay();
+    const date = query.date ?? day.date;
     const now = new Date();
-    const drops = (await this.dropsFor(query.date, settings)).map((drop) => this.view(drop, now));
+    const drops = (await this.dropsFor(date, settings)).map((drop) => this.view(drop, now));
     const filtered = drops.filter((drop) => (query.driverId === undefined || (drop.driver?.id ?? 0) === query.driverId) && (!query.stage || drop.orders.some((order) => order.stage === query.stage)));
     const start = (query.page - 1) * query.pageSize;
     return {
-      date: query.date, now, timezone: settings.timezone, totals: this.totalsOf(drops),
+      date, today: day.today, closedToday: day.closedToday, now, timezone: settings.timezone, totals: this.totalsOf(drops),
       drops: { items: filtered.slice(start, start + query.pageSize), total: filtered.length, page: query.page, pageSize: query.pageSize },
     };
   }
@@ -90,8 +92,10 @@ export class DispatchService {
   async driverDrops(actor: AuthenticatedStaff) {
     const settings = await this.settings.get();
     const now = new Date();
-    const mine = (await this.dropsFor(settings.today, settings)).filter((drop) => drop.rows.some((row) => this.effectiveDriver(row)?.id === actor.id));
-    return { date: settings.today, now, timezone: settings.timezone, drops: mine.map((drop) => this.view(drop, now)).sort((a, b) => a.deliveryTime.localeCompare(b.deliveryTime)) };
+    const own = async (date: string) => (await this.dropsFor(date, settings)).filter((drop) => drop.rows.some((row) => this.effectiveDriver(row)?.id === actor.id)).map((drop) => this.view(drop, now)).sort((a, b) => a.deliveryTime.localeCompare(b.deliveryTime));
+    const day = await this.settings.operatingDay();
+    // Today's drops only (the brief), but on a closed day also show what is coming on the next working day.
+    return { date: settings.today, now, timezone: settings.timezone, drops: await own(settings.today), closedToday: day.closedToday, nextDay: day.closedToday ? { date: day.date, drops: await own(day.date) } : null };
   }
 
   // ---------- Actions ----------

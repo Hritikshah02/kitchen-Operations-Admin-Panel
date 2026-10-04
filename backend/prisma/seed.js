@@ -108,6 +108,7 @@ async function seedCompanies(roleIds) {
       const company = await tx.company.create({
         data: {
           name: research.name,
+          isDemo: true,
           billingContactName: research.billingContact.name,
           billingContactEmail: research.billingContact.email,
           billingContactPhone: research.billingContact.phone,

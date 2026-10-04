@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerException, ThrottlerGuard } from '@nestjs/throttler';
 
 /**
  * Sign-in attempts are limited per account (the email), so spreading them over many addresses or forging
@@ -8,6 +8,10 @@ import { ThrottlerGuard } from '@nestjs/throttler';
  */
 @Injectable()
 export class AppThrottlerGuard extends ThrottlerGuard {
+  protected throwThrottlingException(): Promise<void> {
+    throw new ThrottlerException('Too many attempts. Please wait a minute and try again.');
+  }
+
   protected async getTracker(req: Record<string, unknown>): Promise<string> {
     const body = req.body as { email?: unknown } | undefined;
     const path = typeof req.path === 'string' ? req.path : '';

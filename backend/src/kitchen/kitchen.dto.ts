@@ -4,7 +4,8 @@ import { PaginationQueryDto } from '../common/pagination.js';
 import { IsRealDate } from '../common/validation.js';
 
 export class BoardQueryDto extends PaginationQueryDto {
-  @IsRealDate({ message: 'date must be a real date in YYYY-MM-DD format.' }) date!: string;
+  /** Defaults to today, or the next working day when the kitchen is closed today. */
+  @IsOptional() @IsRealDate({ message: 'date must be a real date in YYYY-MM-DD format.' }) date?: string;
   /** A station id, or "unassigned" for dishes with no station. */
   @IsOptional() @Matches(/^(unassigned|\d+)$/, { message: 'station must be a station id or "unassigned".' }) station?: string;
   @IsOptional() @IsIn(['PENDING', 'STARTED', 'DONE']) state?: 'PENDING' | 'STARTED' | 'DONE';

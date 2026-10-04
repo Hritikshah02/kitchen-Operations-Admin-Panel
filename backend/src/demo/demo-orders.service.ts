@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreditKind, InvoiceLineType, InvoiceStatus, OrderEventType, OrderStatus, type Prisma } from '@prisma/client';
+import { CreditKind, InvoiceLineType, InvoiceStatus, OrderEventType, OrderStatus, Prisma } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { issueCredit } from '../billing/credits.js';
 import { formatInvoiceNumber } from '../billing/invoice-rules.js';
@@ -44,10 +44,10 @@ export class DemoOrdersService {
     const settings = await this.settings.get();
     const calendar = await this.settings.calendar(addDays(settings.today, -30), addDays(settings.today, 30));
     const dates = this.workingDays(settings.today, calendar);
-    await this.closeOutPastDays(settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, settings.onTimeGraceMinutes, now);
+    await this.closeOutPastDays(settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, settings.onTimeGraceMinutes);
 
     const ctx = await this.context(settings.timezone, calendar, settings.today, now);
-    const existing = new Set((await this.prisma.order.groupBy({ by: ['deliveryDate'], where: { deliveryDate: { in: dates.map(toDbDate) } } })).map((row) => fromDbDate(row.deliveryDate)));
+    const existing = new Set((await this.prisma.order.groupBy({ by: ['deliveryDate'], where: { isDemo: true, deliveryDate: { in: dates.map(toDbDate) } } })).map((row) => fromDbDate(row.deliveryDate)));
     const todo = dates.filter((date) => !existing.has(date));
     let created = 0;
 
@@ -68,6 +68,7 @@ export class DemoOrdersService {
     await this.advanceToday(settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, settings.onTimeGraceMinutes, now);
     await this.simulateBilling(settings.today, now);
     await this.ensureDriverHasDrops(settings.today);
+    await this.syncHistory(now);
     if (created) this.logger.log(`Demo orders: created ${created}${todo.length ? ` (new dates: ${todo.join(', ')})` : ''}.`);
     return { created, dates: todo };
   }
@@ -77,7 +78,7 @@ export class DemoOrdersService {
   private async context(timezone: string, calendar: Awaited<ReturnType<SettingsService['calendar']>>, today: IsoDate, now: Date) {
     const admin = await this.prisma.staff.findUniqueOrThrow({ where: { email: 'admin@test.com' } });
     const companies = await this.prisma.company.findMany({
-      where: { isActive: true, addresses: { some: { isDefault: true, isActive: true } } },
+      where: { isDemo: true, isActive: true, addresses: { some: { isDefault: true, isActive: true } } },
       include: { addresses: true, holidays: true, employees: { where: { isActive: true }, include: { allergens: true }, orderBy: { id: 'asc' } } },
       orderBy: { id: 'asc' },
     });
@@ -104,30 +105,39 @@ export class DemoOrdersService {
     const address = company.addresses.find((entry) => entry.isDefault)!;
     const cutoff = this.cutoffOf(ctx, date);
     const deliveredAt = DateTime.fromISO(`${date}T${company.defaultDeliveryTime}`, { zone: ctx.timezone }).minus({ minutes: Math.round(chance(`${key}:late`) * 20) - 5 }).toJSDate();
-    const placedAt = DateTime.fromJSDate(cutoff).minus({ hours: 2 + Math.round(chance(`${key}:placed`) * 40) }).toJSDate();
+    const hours = 3_600_000;
+    // Never in the future, and always in the order cancel/reject/confirm happen in: placed, then the rest.
+    const placedAt = new Date(Math.min(cutoff.getTime() - (2 + Math.round(chance(`${key}:placed`) * 40)) * hours, ctx.now.getTime() - (1 + chance(`${key}:placedAgo`) * 20) * hours));
+    const afterPlaced = (key2: string, cap: number) => new Date(Math.min(placedAt.getTime() + (30 + chance(`${key}:${key2}`) * 120) * 60_000, cap));
     const rejectionReason = status === OrderStatus.REJECTED ? pick(REJECTION_REASONS, `${key}:reason`) : null;
     const confirmed = ([OrderStatus.CONFIRMED, OrderStatus.DELIVERED] as OrderStatus[]).includes(status);
-    await this.prisma.order.create({
-      data: {
-        employeeId: employee.id, companyId: company.id, status, deliveryDate: toDbDate(date), deliveryTime: company.defaultDeliveryTime,
-        addressId: address.id, packagingTypeId: company.defaultPackagingTypeId, priceTierId: tierId, totalCents: priced.totalCents,
-        allergyAcknowledged: priced.allergyConflicts.length > 0, createdById: ctx.admin.id,
-        placedAt: status === OrderStatus.DRAFT ? null : placedAt,
-        confirmedAt: confirmed || (status === OrderStatus.REJECTED && cutoff <= ctx.now) ? cutoff : null,
-        deliveredAt: status === OrderStatus.DELIVERED ? deliveredAt : null,
-        cancelledAt: status === OrderStatus.CANCELLED ? DateTime.fromJSDate(cutoff).minus({ hours: 3 }).toJSDate() : null,
-        cancellationReason: status === OrderStatus.CANCELLED ? 'Employee on leave' : null,
-        rejectedAt: status === OrderStatus.REJECTED ? (cutoff <= ctx.now ? cutoff : ctx.now) : null,
-        rejectionReason,
-        lines: {
-          create: priced.lines.map((line, index) => ({
-            dishId: line.dishId, dishName: line.dishName, dishSku: line.dishSku, quantity: line.quantity, unitPriceCents: line.unitPriceCents, totalCents: line.totalCents, sortOrder: (index + 1) * 10,
-            combinations: { create: line.combinations.map((combination) => ({ signature: combination.signature, quantity: combination.quantity, unitPriceCents: combination.unitPriceCents, totalCents: combination.totalCents, choices: { create: combination.choices } })) },
-          })),
+    const cutoffPassed = cutoff <= ctx.now;
+    try {
+      await this.prisma.order.create({
+        data: {
+          employeeId: employee.id, companyId: company.id, status, isDemo: true, deliveryDate: toDbDate(date), deliveryTime: company.defaultDeliveryTime,
+          addressId: address.id, packagingTypeId: company.defaultPackagingTypeId, priceTierId: tierId, totalCents: priced.totalCents,
+          allergyAcknowledged: priced.allergyConflicts.length > 0, createdById: ctx.admin.id,
+          placedAt: status === OrderStatus.DRAFT ? null : placedAt,
+          confirmedAt: confirmed || (status === OrderStatus.REJECTED && cutoffPassed) ? cutoff : null,
+          deliveredAt: status === OrderStatus.DELIVERED ? deliveredAt : null,
+          cancelledAt: status === OrderStatus.CANCELLED ? afterPlaced('cancel', ctx.now.getTime() - 5 * 60_000) : null,
+          cancellationReason: status === OrderStatus.CANCELLED ? 'Employee on leave' : null,
+          rejectedAt: status === OrderStatus.REJECTED ? (cutoffPassed ? cutoff : afterPlaced('reject', ctx.now.getTime() - 5 * 60_000)) : null,
+          rejectionReason,
+          lines: {
+            create: priced.lines.map((line, index) => ({
+              dishId: line.dishId, dishName: line.dishName, dishSku: line.dishSku, quantity: line.quantity, unitPriceCents: line.unitPriceCents, totalCents: line.totalCents, sortOrder: (index + 1) * 10,
+              combinations: { create: line.combinations.map((combination) => ({ signature: combination.signature, quantity: combination.quantity, unitPriceCents: combination.unitPriceCents, totalCents: combination.totalCents, choices: { create: combination.choices } })) },
+            })),
+          },
         },
-        events: { create: this.events(status, ctx.admin.id, priced.totalCents, rejectionReason, cutoff <= ctx.now) },
-      },
-    });
+      });
+    } catch (error) {
+      // Someone (a reviewer) already has an order for this employee on this day: leave it alone.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return false;
+      throw error;
+    }
     return true;
   }
 
@@ -139,10 +149,10 @@ export class DemoOrdersService {
    */
   private async ensureCoverage(ctx: Ctx, dates: IsoDate[]) {
     let created = 0;
-    const rows = await this.prisma.order.findMany({ where: { deliveryDate: { in: dates.map(toDbDate) } }, select: { deliveryDate: true, status: true, employeeId: true } });
+    const rows = await this.prisma.order.findMany({ where: { deliveryDate: { in: dates.map(toDbDate) } }, select: { deliveryDate: true, status: true, employeeId: true, isDemo: true } });
     for (const date of dates) {
       const here = rows.filter((row) => fromDbDate(row.deliveryDate) === date);
-      const have = new Set(here.map((row) => row.status));
+      const have = new Set(here.filter((row) => row.isDemo).map((row) => row.status)); // staff-made orders don't count as sample coverage
       if (date === ctx.today && have.has('DELIVERED')) have.add('CONFIRMED'); // today's orders get delivered as the day goes on
       const cutoffPassed = this.cutoffOf(ctx, date) <= ctx.now;
       const needed: OrderStatus[] = date < ctx.today ? ['DELIVERED', 'CANCELLED', 'REJECTED']
@@ -168,7 +178,7 @@ export class DemoOrdersService {
   /** Kitchen history for delivered orders that have none yet: cooked in time, a little before the planned kitchen-ready time. */
   private async simulateKitchen(dates: IsoDate[], timezone: string, bufferMinutes: number) {
     const orders = await this.prisma.order.findMany({
-      where: { deliveryDate: { in: dates.map(toDbDate) }, status: OrderStatus.DELIVERED, kitchenStartedAt: null },
+      where: { isDemo: true, deliveryDate: { in: dates.map(toDbDate) }, status: OrderStatus.DELIVERED, kitchenStartedAt: null },
       include: { company: { select: { dispatchLeadMinutes: true } }, lines: { include: { combinations: true } } },
     });
     for (const order of orders) {
@@ -187,7 +197,7 @@ export class DemoOrdersService {
   /** Dispatch history for delivered orders that have none yet: left with the company's driver and arrived around the delivery time (a few late). */
   private async simulateDispatch(dates: IsoDate[], timezone: string, graceMinutes: number) {
     const orders = await this.prisma.order.findMany({
-      where: { deliveryDate: { in: dates.map(toDbDate) }, status: OrderStatus.DELIVERED, kitchenReadyAt: { not: null }, dispatchReadyAt: null },
+      where: { isDemo: true, deliveryDate: { in: dates.map(toDbDate) }, status: OrderStatus.DELIVERED, kitchenReadyAt: { not: null }, dispatchReadyAt: null },
       include: { company: { select: { defaultDriverId: true } } },
       orderBy: { id: 'asc' },
     });
@@ -216,7 +226,7 @@ export class DemoOrdersService {
    */
   private async advanceToday(today: IsoDate, timezone: string, bufferMinutes: number, graceMinutes: number, now: Date) {
     const orders = await this.prisma.order.findMany({
-      where: { deliveryDate: toDbDate(today), status: OrderStatus.CONFIRMED },
+      where: { isDemo: true, deliveryDate: toDbDate(today), status: OrderStatus.CONFIRMED },
       include: { company: { select: { dispatchLeadMinutes: true, defaultDriverId: true } }, lines: { include: { combinations: true } } },
       orderBy: { id: 'asc' },
     });
@@ -242,8 +252,6 @@ export class DemoOrdersService {
         const ready = readyAt(order);
         const startedAt = ready - (35 + chance(`${order.id}:len`) * 25) * minute;
         const data: Prisma.OrderUncheckedUpdateInput = {};
-        const events: Prisma.OrderEventCreateManyInput[] = [];
-        const note = (type: OrderEventType, message: string, at: number) => events.push({ orderId: order.id, type, message, actorId: null, createdAt: new Date(at) });
 
         for (const [index, unit] of units.entries()) {
           const doneAt = startedAt + ((index + 1) / units.length) * (ready - startedAt);
@@ -251,23 +259,19 @@ export class DemoOrdersService {
           if (!unit.doneAt && nowMs >= doneAt) await this.prisma.orderCombination.update({ where: { id: unit.id }, data: { startedAt: unit.startedAt ?? new Date(unitStart), doneAt: new Date(doneAt) } });
           else if (!unit.startedAt && nowMs >= unitStart) await this.prisma.orderCombination.update({ where: { id: unit.id }, data: { startedAt: new Date(unitStart) } });
         }
-        if (!order.kitchenStartedAt && nowMs >= startedAt) { data.kitchenStartedAt = new Date(startedAt); note(OrderEventType.KITCHEN_STARTED, 'Kitchen started.', startedAt); }
-        if (!order.kitchenReadyAt && nowMs >= ready) { data.kitchenReadyAt = new Date(ready); note(OrderEventType.KITCHEN_READY, 'Every unit is done: kitchen ready.', ready); }
+        if (!order.kitchenStartedAt && nowMs >= startedAt) { data.kitchenStartedAt = new Date(startedAt); }
+        if (!order.kitchenReadyAt && nowMs >= ready) { data.kitchenReadyAt = new Date(ready); }
         const kitchenReady = Boolean(order.kitchenReadyAt) || nowMs >= ready;
-        if (kitchenReady && driverId && !order.dispatchReadyAt && nowMs >= dispatchAt) { data.dispatchReadyAt = new Date(dispatchAt); data.driverId = driverId; note(OrderEventType.DISPATCH_READY, 'Dispatch ready: packed and waiting for the driver.', dispatchAt); }
-        if (kitchenReady && driverId && !order.outForDeliveryAt && nowMs >= outAt) { data.outForDeliveryAt = new Date(outAt); data.driverId = order.driverId ?? driverId; note(OrderEventType.OUT_FOR_DELIVERY, 'Out for delivery.', outAt); }
+        if (kitchenReady && driverId && !order.dispatchReadyAt && nowMs >= dispatchAt) { data.dispatchReadyAt = new Date(dispatchAt); data.driverId = driverId; }
+        if (kitchenReady && driverId && !order.outForDeliveryAt && nowMs >= outAt) { data.outForDeliveryAt = new Date(outAt); data.driverId = order.driverId ?? driverId; }
         const arrival = delivery + (Math.round(chance(`${order.id}:arrive`) ** 2 * 30) - 10) * minute;
         if (kitchenReady && driverId && nowMs >= Math.max(arrival, outAt + 10 * minute)) {
           const deliveredAt = Math.max(arrival, outAt + 10 * minute);
           const lateMinutes = Math.max(0, Math.ceil((deliveredAt - delivery) / minute));
           Object.assign(data, { status: OrderStatus.DELIVERED, deliveredAt: new Date(deliveredAt), deliveredById: order.driverId ?? driverId, deliveryLateMinutes: lateMinutes, deliveredOnTime: lateMinutes <= graceMinutes, deliveryNote: chance(`${order.id}:note`) < 0.25 ? 'Handed over at reception' : null,
             dispatchReadyAt: order.dispatchReadyAt ?? new Date(dispatchAt), outForDeliveryAt: order.outForDeliveryAt ?? new Date(outAt), driverId: order.driverId ?? driverId });
-          note(OrderEventType.DELIVERED, lateMinutes > graceMinutes ? `Delivered ${lateMinutes} min late.` : 'Delivered on time.', deliveredAt);
-        }
-        if (Object.keys(data).length) {
-          await this.prisma.order.update({ where: { id: order.id }, data });
-          await this.prisma.orderEvent.createMany({ data: events });
-        }
+          }
+        if (Object.keys(data).length) await this.prisma.order.update({ where: { id: order.id }, data });
       }
     }
   }
@@ -280,7 +284,7 @@ export class DemoOrdersService {
   private async simulateBilling(today: IsoDate, now: Date) {
     const weekEnd = (date: IsoDate) => { const day = DateTime.fromISO(date, { zone: 'utc' }); return day.plus({ days: 7 - day.weekday }).toISODate()!; }; // the Sunday
     const orders = await this.prisma.order.findMany({
-      where: { status: OrderStatus.DELIVERED, invoiceId: null, deliveryDate: { lt: toDbDate(today) } },
+      where: { isDemo: true, status: OrderStatus.DELIVERED, invoiceId: null, deliveryDate: { lt: toDbDate(today) } },
       select: { id: true, companyId: true, totalCents: true, deliveryDate: true, employee: { select: { name: true } } }, orderBy: { id: 'asc' },
     });
     const groups = new Map<string, typeof orders>();
@@ -317,9 +321,9 @@ export class DemoOrdersService {
    * Yesterday's work is finished by the time anyone looks: confirmed orders from past days are completed through
    * the kitchen, dispatch and delivery (mostly on time), so the daily refresh moves "today" into history.
    */
-  private async closeOutPastDays(today: IsoDate, timezone: string, bufferMinutes: number, graceMinutes: number, now: Date) {
+  private async closeOutPastDays(today: IsoDate, timezone: string, bufferMinutes: number, graceMinutes: number) {
     const orders = await this.prisma.order.findMany({
-      where: { status: OrderStatus.CONFIRMED, deliveryDate: { lt: toDbDate(today) } },
+      where: { isDemo: true, status: OrderStatus.CONFIRMED, deliveryDate: { lt: toDbDate(today) } },
       include: { company: { select: { dispatchLeadMinutes: true, defaultDriverId: true } }, lines: { include: { combinations: true } } },
     });
     if (!orders.length) return;
@@ -342,7 +346,6 @@ export class DemoOrdersService {
           await tx.orderCombination.update({ where: { id: unit.id }, data: { startedAt: unit.startedAt ?? kitchenStartedAt, doneAt: kitchenReadyAt } });
         }
         await tx.order.update({ where: { id: order.id }, data: { status: OrderStatus.DELIVERED, kitchenStartedAt, kitchenReadyAt, dispatchReadyAt, outForDeliveryAt, driverId, deliveredById: driverId, deliveredAt, deliveryLateMinutes: lateMinutes, deliveredOnTime: lateMinutes <= graceMinutes } });
-        await tx.orderEvent.create({ data: { orderId: order.id, type: OrderEventType.DELIVERED, message: lateMinutes > graceMinutes ? `Delivered ${lateMinutes} min late.` : 'Delivered on time.', actorId: null, createdAt: now } });
       });
     }
     this.logger.log(`Demo orders: closed out ${orders.length} order(s) from past days.`);
@@ -354,9 +357,9 @@ export class DemoOrdersService {
     if (!driver) return;
     const mine = await this.prisma.order.count({ where: { deliveryDate: toDbDate(today), status: { in: [OrderStatus.CONFIRMED, OrderStatus.DELIVERED] }, OR: [{ driverId: driver.id }, { driverId: null, company: { defaultDriverId: driver.id } }] } });
     if (mine) return;
-    const first = await this.prisma.order.findFirst({ where: { deliveryDate: toDbDate(today), status: OrderStatus.CONFIRMED, outForDeliveryAt: null }, orderBy: [{ deliveryTime: 'asc' }, { id: 'asc' }] });
+    const first = await this.prisma.order.findFirst({ where: { isDemo: true, deliveryDate: toDbDate(today), status: OrderStatus.CONFIRMED, outForDeliveryAt: null }, orderBy: [{ deliveryTime: 'asc' }, { id: 'asc' }] });
     if (!first) return;
-    await this.prisma.order.updateMany({ where: { deliveryDate: toDbDate(today), companyId: first.companyId, addressId: first.addressId, deliveryTime: first.deliveryTime, status: OrderStatus.CONFIRMED, outForDeliveryAt: null }, data: { driverId: driver.id } });
+    await this.prisma.order.updateMany({ where: { isDemo: true, deliveryDate: toDbDate(today), companyId: first.companyId, addressId: first.addressId, deliveryTime: first.deliveryTime, status: OrderStatus.CONFIRMED, outForDeliveryAt: null }, data: { driverId: driver.id } });
   }
 
   private workingDays(today: IsoDate, calendar: Parameters<typeof isKitchenWorkingDay>[1]) {
@@ -394,16 +397,52 @@ export class DemoOrdersService {
     return lines;
   }
 
-  private events(status: OrderStatus, actorId: number, totalCents: number, rejectionReason: string | null, cutoffPassed = true) {
-    const events: { type: OrderEventType; message: string; actorId: number | null }[] = [
-      { type: OrderEventType.CREATED, message: `Created, total $${(totalCents / 100).toFixed(2)}.`, actorId },
-    ];
-    if (status !== OrderStatus.DRAFT) events.push({ type: OrderEventType.PLACED, message: 'Placed.', actorId });
-    if (([OrderStatus.CONFIRMED, OrderStatus.DELIVERED] as OrderStatus[]).includes(status) || (status === OrderStatus.REJECTED && cutoffPassed)) events.push({ type: OrderEventType.CONFIRMED, message: 'Cut-off passed: confirmed and billable to the company.', actorId: null });
-    if (status === OrderStatus.DELIVERED) events.push({ type: OrderEventType.DELIVERED, message: 'Delivered.', actorId: null });
-    if (status === OrderStatus.CANCELLED) events.push({ type: OrderEventType.CANCELLED, message: 'Cancelled: Employee on leave', actorId });
-    if (status === OrderStatus.REJECTED) events.push({ type: OrderEventType.REJECTED, message: `Rejected: ${rejectionReason}`, actorId });
-    return events;
+  /**
+   * Gives every sample order a believable history. Timestamps are kept sensible (nothing in the future, placed before
+   * cancelled/rejected), and the timeline is derived from them: each stage an order has reached gets an event at
+   * the moment it happened. Orders whose events are all stamped within seconds of each other (the old seed wrote
+   * everything at once) are rebuilt; events that already have their own time are never touched, and orders staff
+   * created are never looked at.
+   */
+  private async syncHistory(now: Date) {
+    const admin = await this.prisma.staff.findUnique({ where: { email: 'admin@test.com' }, select: { id: true } });
+    const orders = await this.prisma.order.findMany({ where: { isDemo: true }, include: { events: { select: { id: true, type: true, createdAt: true } } } });
+    const hour = 3_600_000; const minute = 60_000; const nowMs = now.getTime();
+    for (const order of orders) {
+      const id = order.id;
+      const fix: Prisma.OrderUncheckedUpdateInput = {};
+      let placedAt = order.placedAt;
+      if (placedAt && placedAt.getTime() > nowMs) { placedAt = new Date(nowMs - (1 + chance(`${id}:pl`) * 20) * hour); fix.placedAt = placedAt; }
+      const after = (key: string) => new Date(Math.min((placedAt ?? now).getTime() + (30 + chance(`${id}:${key}`) * 120) * minute, nowMs - 5 * minute));
+      let cancelledAt = order.cancelledAt;
+      if (cancelledAt && (cancelledAt.getTime() > nowMs || (placedAt && cancelledAt < placedAt))) { cancelledAt = after('cx'); fix.cancelledAt = cancelledAt; }
+      let rejectedAt = order.rejectedAt;
+      if (rejectedAt && (rejectedAt.getTime() > nowMs || (placedAt && rejectedAt < placedAt))) { rejectedAt = after('rj'); fix.rejectedAt = rejectedAt; }
+      let confirmedAt = order.confirmedAt;
+      if (confirmedAt && confirmedAt.getTime() > nowMs) { confirmedAt = null; fix.confirmedAt = null; } // rejected before its cut-off: never confirmed
+      if (Object.keys(fix).length) await this.prisma.order.update({ where: { id }, data: fix });
+
+      const times = order.events.map((event) => event.createdAt.getTime());
+      const flat = order.events.length >= 2 && Math.max(...times) - Math.min(...times) < 2 * minute;
+      const have = new Set(flat ? [] : order.events.map((event) => event.type));
+      if (flat) await this.prisma.orderEvent.deleteMany({ where: { orderId: id } });
+      const late = order.deliveryLateMinutes ?? 0; const grace = order.deliveredOnTime === false ? 0 : late;
+      const created = placedAt ? new Date(placedAt.getTime() - (15 + chance(`${id}:cr`) * 45) * minute) : new Date(nowMs - (3 + chance(`${id}:cr`) * 40) * hour);
+      const stages: [OrderEventType, Date | null, string, boolean][] = [
+        [OrderEventType.CREATED, created, `Created, total $${(order.totalCents / 100).toFixed(2)}.`, true],
+        [OrderEventType.PLACED, placedAt, 'Placed.', true],
+        [OrderEventType.CONFIRMED, confirmedAt, 'Cut-off passed: confirmed and billable to the company.', false],
+        [OrderEventType.KITCHEN_STARTED, order.kitchenStartedAt, 'Kitchen started.', false],
+        [OrderEventType.KITCHEN_READY, order.kitchenReadyAt, 'Every unit is done: kitchen ready.', false],
+        [OrderEventType.DISPATCH_READY, order.dispatchReadyAt, 'Dispatch ready: packed and waiting for the driver.', false],
+        [OrderEventType.OUT_FOR_DELIVERY, order.outForDeliveryAt, 'Out for delivery.', false],
+        [OrderEventType.DELIVERED, order.deliveredAt, order.deliveredOnTime === false ? `Delivered ${late} min late.` : grace > 0 ? `Delivered ${grace} min after the delivery time, within the grace period.` : 'Delivered on time.', false],
+        [OrderEventType.CANCELLED, cancelledAt, `Cancelled: ${order.cancellationReason ?? 'no reason given'}`, true],
+        [OrderEventType.REJECTED, rejectedAt, `Rejected: ${order.rejectionReason ?? 'no reason given'}`, true],
+      ];
+      const missing = stages.filter(([type, at]) => at && !have.has(type)).map(([type, at, message, byStaff]) => ({ orderId: id, type, message, actorId: byStaff ? (admin?.id ?? null) : null, createdAt: at! }));
+      if (missing.length) await this.prisma.orderEvent.createMany({ data: missing });
+    }
   }
 }
 

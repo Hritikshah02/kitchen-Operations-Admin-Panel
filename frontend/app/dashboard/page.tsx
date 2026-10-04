@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { OrderRef } from "../components/order-ref";
 import { AppShell } from "../components/app-shell";
 import { ProtectedPage } from "../components/protected-page";
 import { Capability } from "../lib/capabilities";
@@ -78,7 +79,7 @@ function Kitchen({ data, date }: { data: NonNullable<Dashboard["kitchen"]>; date
     </section>
     <section className="panel"><h2>Most urgent orders</h2>
       <div className="table-wrap"><table className="data-table"><tbody>
-        {data.mostUrgent.map((order) => <tr key={order.orderId}><td><Link className="link" href={`/orders/${order.orderId}`}>#{order.orderId}</Link> {order.employee} · {order.company}</td><td>ready by {formatTime(order.plannedKitchenReadyAt)}</td><td>{order.unitsLeft} unit{order.unitsLeft === 1 ? "" : "s"} left</td><td><span className={`badge ${TIMING[order.timing].tone}`}>{TIMING[order.timing].label}</span></td></tr>)}
+        {data.mostUrgent.map((order) => <tr key={order.orderId}><td><OrderRef id={order.orderId} /> {order.employee} · {order.company}</td><td>ready by {formatTime(order.plannedKitchenReadyAt)}</td><td>{order.unitsLeft} unit{order.unitsLeft === 1 ? "" : "s"} left</td><td><span className={`badge ${TIMING[order.timing].tone}`}>{TIMING[order.timing].label}</span></td></tr>)}
         {!data.mostUrgent.length ? <tr><td className="muted">No unfinished orders.</td></tr> : null}
       </tbody></table></div>
     </section>
@@ -115,7 +116,7 @@ function Driver({ data }: { data: NonNullable<Dashboard["driver"]> }) {
     </div>
     <section className="panel"><h2>Next drop</h2>
       {data.next ? <>
-        <p className="drop-time">{data.next.deliveryTime}</p><p><strong>{data.next.company}</strong></p><p>{data.next.address}</p>
+        <p className="drop-time">{data.next.deliveryTime}</p>{data.next.date !== data.date ? <p className="hint">{formatDay(data.next.date)}</p> : null}<p><strong>{data.next.company}</strong></p><p>{data.next.address}</p>
         {data.next.instructions ? <p className="notice">{data.next.instructions}</p> : null}
         <p className="muted">{data.next.boxes} boxes · {data.next.status.replace(/_/g, " ").toLowerCase()}</p>
         <Link className="primary-button" href="/driver">{data.next.canDeliver ? "Open and mark delivered" : "Open my drops"}</Link>

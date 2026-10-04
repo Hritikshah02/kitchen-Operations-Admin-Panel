@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OrderRef } from "../components/order-ref";
 import { AppShell } from "../components/app-shell";
 import { can, useAuth } from "../components/auth-provider";
 import { Pagination } from "../components/form-controls";
@@ -10,7 +11,6 @@ import { Capability } from "../lib/capabilities";
 import { formatDay, formatInstant, formatTime, kitchenToday, shiftDay } from "../lib/format";
 import type { KitchenBoard, KitchenCard, KitchenTiming, KitchenUnit } from "../lib/types";
 import { useResource } from "../lib/use-resource";
-import Link from "next/link";
 
 const TIMING_LABEL: Record<KitchenTiming, string> = { LATE: "Late", AT_RISK: "At risk", ON_TRACK: "On track", DONE: "Kitchen ready" };
 const TIMING_BADGE: Record<KitchenTiming, string> = { LATE: "red", AT_RISK: "amber", ON_TRACK: "grey", DONE: "green" };
@@ -21,7 +21,7 @@ function OrderCard({ card, canUpdate, canForce, busy, onAct }: { card: KitchenCa
   return <section className={`panel kitchen-card ${card.timing === "LATE" ? "late" : card.timing === "AT_RISK" ? "risk" : ""}`}>
     <div className="panel-heading">
       <div>
-        <strong><Link className="link" href={`/orders/${card.orderId}`}>#{card.orderId}</Link> · {card.employee}</strong>
+        <strong><OrderRef id={card.orderId} /> · {card.employee}</strong>
         <p className="hint">{card.company} · {card.address}{card.packaging ? ` · ${card.packaging}` : ""}</p>
       </div>
       <div className="row-actions">
@@ -50,11 +50,12 @@ function OrderCard({ card, canUpdate, canForce, busy, onAct }: { card: KitchenCa
 
 function KitchenContent() {
   const { staff } = useAuth();
-  const [date, setDate] = useState(kitchenToday());
+  const [date, setDate] = useState("");
   const [station, setStation] = useState(""); const [state, setState] = useState(""); const [timing, setTiming] = useState(""); const [page, setPage] = useState(1);
   const [tick, setTick] = useState(0); const [busy, setBusy] = useState(false); const [actionError, setActionError] = useState("");
-  const query = new URLSearchParams({ date, page: String(page), pageSize: "25", ...(station ? { station } : {}), ...(state ? { state } : {}), ...(timing ? { timing } : {}) });
+  const query = new URLSearchParams({ ...(date ? { date } : {}), page: String(page), pageSize: "25", ...(station ? { station } : {}), ...(state ? { state } : {}), ...(timing ? { timing } : {}) });
   const { data: board, error, loading, reload } = useResource<KitchenBoard>(`/kitchen/board?${query}`, tick);
+  const shown = board?.date ?? (date || kitchenToday());
   useEffect(() => { const timer = window.setInterval(() => setTick((value) => value + 1), 30_000); return () => window.clearInterval(timer); }, []); // keeps the board and late warnings fresh
   const reset = (fn: () => void) => { fn(); setPage(1); };
 
@@ -67,13 +68,14 @@ function KitchenContent() {
   const canUpdate = can(staff, Capability.KITCHEN_BOARD_UPDATE); const canForce = canUpdate && can(staff, Capability.ORDERS_OVERRIDE);
   const stationLabel = (id: number | null) => (id === null ? "unassigned" : String(id));
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><h1>Kitchen board</h1><p className="muted">{formatDay(date)}{board ? ` · updated ${formatInstant(board.now)}` : ""}</p></div>
+    <div className="page-heading"><div><h1>Kitchen board</h1><p className="muted">{formatDay(shown)}{board ? ` · updated ${formatInstant(board.now)}` : ""}</p></div>
       <div className="form-actions">
-        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, -1)))} type="button">←</button>
-        <input aria-label="Delivery date" onChange={(event) => event.target.value && reset(() => setDate(event.target.value))} type="date" value={date} />
-        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, 1)))} type="button">→</button>
-        <button className="secondary-button" onClick={() => reset(() => setDate(kitchenToday()))} type="button">Today</button>
+        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(shown, -1)))} type="button">←</button>
+        <input aria-label="Delivery date" onChange={(event) => event.target.value && reset(() => setDate(event.target.value))} type="date" value={shown} />
+        <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(shown, 1)))} type="button">→</button>
+        <button className="secondary-button" onClick={() => reset(() => setDate(""))} type="button">Today</button>
       </div></div>
+    {board?.closedToday && board.date !== board.today ? <p className="notice">The kitchen is closed today ({formatDay(board.today)}). Showing the next working day.</p> : null}
     {board ? <div className="stat-row">
       <div className="stat"><span>Orders</span><strong>{board.totals.orders}</strong></div>
       <div className="stat"><span>Kitchen ready</span><strong>{board.totals.ready}</strong></div>
