@@ -289,10 +289,13 @@ const meetingTrays = [
   { sku: 'MTG-002', name: 'Kesar Shrikhand Tray (serves 12)', description: 'Saffron-cardamom shrikhand with pistachio, chilled tray.', station: 'SWEETS', costINR: 520, priceINR: 1100, allergens: ['MILK', 'TREENUT'], tags: ['VEG', 'EGGLESS', 'GF'], temperature: 'COLD' },
 ];
 
-// Stock photos (Wikimedia Commons) for dishes that have no image yet; images staff uploaded are never touched.
+// Stock photos for the sample dishes (see seed-data/dish-images.json; upload-dish-images.mjs moves them to Cloudinary).
+// A dish gets one if it has none, or still has an old hotlinked Wikimedia stock photo; images staff uploaded are never touched.
 async function seedDishImages() {
   const images = JSON.parse(readFileSync(new URL('./seed-data/dish-images.json', import.meta.url), 'utf8'));
-  for (const [sku, imageUrl] of Object.entries(images)) await prisma.dish.updateMany({ where: { sku, imageUrl: null }, data: { imageUrl } });
+  for (const [sku, imageUrl] of Object.entries(images)) {
+    await prisma.dish.updateMany({ where: { sku, OR: [{ imageUrl: null }, { imageUrl: { startsWith: 'https://upload.wikimedia.org' } }] }, data: { imageUrl } });
+  }
 }
 
 async function seedMenu() {

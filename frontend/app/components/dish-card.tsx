@@ -1,12 +1,13 @@
 "use client";
 
+import { cardImage } from "../lib/image";
 import { formatCents } from "../lib/money";
 import type { MenuDishView } from "../lib/types";
 
 export function DishCard({ dish, onSelect }: { dish: MenuDishView; onSelect?: (dish: MenuDishView) => void }) {
   return <div className={`dish-card${dish.allergyConflicts.length ? " conflict" : ""}`}>
     {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary/stock URLs entered by staff */}
-    {dish.imageUrl ? <img alt="" src={dish.imageUrl} /> : <div className="dish-card-placeholder">{dish.name.slice(0, 1)}</div>}
+    {dish.imageUrl ? <img alt="" decoding="async" height={384} loading="lazy" src={cardImage(dish.imageUrl)} width={640} /> : <div className="dish-card-placeholder">{dish.name.slice(0, 1)}</div>}
     <div className="dish-card-body">
       <div className="panel-heading"><strong>{dish.name}</strong><strong>{formatCents(dish.priceCents)}</strong></div>
       {dish.allergyConflicts.length ? <p className="form-error">Contains {dish.allergyConflicts.map((entry) => entry.name).join(", ")}: the employee must acknowledge before ordering.</p> : null}

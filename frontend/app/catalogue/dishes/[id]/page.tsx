@@ -8,6 +8,7 @@ import { ChipSelect } from "../../../components/form-controls";
 import { ProtectedPage } from "../../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../../lib/api";
 import { Capability } from "../../../lib/capabilities";
+import { cardImage } from "../../../lib/image";
 import { centsToInput, parseDollars } from "../../../lib/money";
 import type { Dish, Option, OptionGroup } from "../../../lib/types";
 import { uploadImage } from "../../../lib/upload";
@@ -90,7 +91,7 @@ function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; 
       <fieldset className="panel" disabled={busy}>
         <h2>Image</h2>
         {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary/stock URLs entered by staff */}
-        {form.imageUrl ? <img alt={form.name} src={form.imageUrl} style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 6 }} /> : <p className="muted">No image yet.</p>}
+        {form.imageUrl ? <img alt={form.name} decoding="async" src={cardImage(form.imageUrl, 800)} style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 6 }} /> : <p className="muted">No image yet.</p>}
         {images?.uploadsEnabled ? <label>{form.imageUrl ? "Replace image" : "Upload image"}<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG, PNG or WebP under 10 MB."}</span></label>
           : <p className="hint">Image uploads are not configured.</p>}
         {form.imageUrl ? <div className="form-actions"><button className="secondary-button" onClick={() => setForm({ ...form, imageUrl: "" })} type="button">Remove image</button></div> : null}
