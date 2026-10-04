@@ -14,5 +14,6 @@ export const Capability = {
   DISPATCH_BOARD_UPDATE: "dispatch-board:update",
   DRIVER_DROPS_VIEW: "driver-drops:view",
   DRIVER_DROPS_UPDATE: "driver-drops:update",
+  BILLING_MANAGE: "billing:manage",
 } as const;
 export type Capability = (typeof Capability)[keyof typeof Capability];

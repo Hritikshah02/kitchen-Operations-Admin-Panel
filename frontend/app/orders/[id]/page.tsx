@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { AppShell } from "../../components/app-shell";
 import { BackLink } from "../../components/back-link";
+import { can, useAuth } from "../../components/auth-provider";
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
 import { Capability } from "../../lib/capabilities";
@@ -37,6 +38,33 @@ function DeliveryOverride({ order, onDone }: { order: OrderDetail; onDone: (mess
     {error ? <p className="form-error">{error}</p> : null}
     <div className="form-actions"><button className="primary-button" type="submit">Save override</button></div>
   </fieldset></form>;
+}
+
+function InvoicingPanel({ order, onChanged }: { order: OrderDetail; onChanged: () => void }) {
+  const { staff } = useAuth();
+  const canBill = can(staff, Capability.BILLING_MANAGE);
+  const [open, setOpen] = useState(false); const [missing, setMissing] = useState<Record<number, string>>({}); const [reason, setReason] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const combinations = order.lines.flatMap((line) => line.combinations.map((combination) => ({ ...combination, dish: line.dishName })));
+  async function submit() {
+    setBusy(true); setError("");
+    try {
+      await apiJson(`/billing/orders/${order.id}/short-delivery`, sendJson("POST", { reason, items: combinations.filter((combination) => Number(missing[combination.id!]) > 0).map((combination) => ({ combinationId: combination.id, missingQuantity: Number(missing[combination.id!]) })) }));
+      setOpen(false); setMissing({}); setReason(""); onChanged();
+    } catch (caught) { setError(messageOf(caught, "Could not record the credit.")); } finally { setBusy(false); }
+  }
+  return <section className="panel">
+    <h2>Invoicing</h2>
+    <p>{order.invoice ? <>On invoice {canBill ? <Link className="link" href={`/billing/invoices/${order.invoice.id}`}>{order.invoice.number}</Link> : order.invoice.number} <span className={`badge ${{ UNPAID: "amber", PAID: "green", VOID: "grey" }[order.invoice.status]}`}>{titleCase(order.invoice.status)}</span></> : <span className="muted">Not invoiced yet.</span>}</p>
+    {order.credits.length ? <ul className="plain-list">{order.credits.map((credit) => <li key={credit.id}>Credit {formatCents(credit.amountCents)} · {titleCase(credit.kind.replace(/_/g, " "))}: {credit.reason} <span className="badge grey">{titleCase(credit.status)}</span></li>)}</ul> : null}
+    {canBill && order.status === "DELIVERED" ? (open ? <div className="form-stack">
+      <p className="hint">Enter how many of each item did not arrive; the credit is that quantity × the unit price.</p>
+      {combinations.map((combination) => <label key={combination.id}>{combination.dish}{combination.choices.length ? ` (${combination.choices.map((choice) => choice.optionName).join(", ")})` : ""}: ordered {combination.quantity} at {formatCents(combination.unitPriceCents)}
+        <input max={combination.quantity} min={0} onChange={(event) => setMissing({ ...missing, [combination.id!]: event.target.value })} placeholder="Missing" type="number" value={missing[combination.id!] ?? ""} /></label>)}
+      <label>Reason<input maxLength={300} onChange={(event) => setReason(event.target.value)} placeholder="e.g. one box missing at delivery" value={reason} /></label>
+      {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
+      <div className="form-actions"><button className="primary-button" disabled={busy || reason.trim().length < 3} onClick={() => void submit()} type="button">Issue credit</button><button className="secondary-button" onClick={() => setOpen(false)} type="button">Cancel</button></div>
+    </div> : <div className="form-actions"><button className="secondary-button" onClick={() => setOpen(true)} type="button">Record a short delivery</button></div>) : null}
+  </section>;
 }
 
 function OrderContent() {
@@ -118,6 +146,8 @@ function OrderContent() {
       <p className="hint">Kitchen started {formatInstant(order.kitchenStartedAt)} · kitchen ready {formatInstant(order.kitchenReadyAt)}</p>
       <p className="hint">Dispatch ready {formatInstant(order.dispatchReadyAt)} · out for delivery {formatInstant(order.outForDeliveryAt)}{order.driver ? ` · driver ${order.driver.name}` : ""}</p>
     </section> : null}
+
+    {order.invoice || order.credits.length || order.status === "DELIVERED" ? <InvoicingPanel order={order} onChanged={reload} /> : null}
 
     {order.status === "DELIVERED" ? <section className="panel">
       <h2>Delivery</h2>

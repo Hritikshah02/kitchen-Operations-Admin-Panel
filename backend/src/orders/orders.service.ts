@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { OrderEventType, OrderStatus, Prisma } from '@prisma/client';
+import { CreditKind, OrderEventType, OrderStatus, Prisma } from '@prisma/client';
 import { DateTime } from 'luxon';
 import type { AuthenticatedStaff } from '../auth/auth.types.js';
 import { Capability } from '../auth/capabilities.js';
@@ -10,6 +10,7 @@ import { MenuService } from '../menu/menu.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { cutoffFor, fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { issueCredit } from '../billing/credits.js';
 import { planFor, timingOf } from '../kitchen/kitchen-plan.js';
 import { CutoffService } from './cutoff.service.js';
 import type { CreateOrderDto, DeliveryOverrideDto, ListOrdersQueryDto, QuoteOrderDto, ReasonDto, RejectDto, UpdateOrderDto, VersionDto } from './orders.dto.js';
@@ -27,6 +28,8 @@ const detailInclude = {
   priceTier: { select: { id: true, name: true } },
   createdBy: { select: { id: true, name: true } },
   driver: { select: { id: true, name: true } },
+  invoice: { select: { id: true, number: true, status: true } },
+  credits: { select: { id: true, kind: true, amountCents: true, reason: true, status: true }, orderBy: { id: 'asc' } },
   lines: { include: lineInclude, orderBy: { sortOrder: 'asc' } },
   events: { include: { actor: { select: { id: true, name: true } } }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
 } satisfies Prisma.OrderInclude;
@@ -256,6 +259,7 @@ export class OrdersService {
     await this.prisma.$transaction(async (tx) => {
       await this.bump(tx, id, dto.version, { status: OrderStatus.CANCELLED, cancelledAt: new Date(), cancellationReason: dto.reason ?? null });
       await this.addEvents(tx, id, actor.id, [[OrderEventType.CANCELLED, `Cancelled${locked ? ' by an admin after the cut-off' : ''}${dto.reason ? `: ${dto.reason}` : '.'}`]]);
+      if (order.invoiceId) await issueCredit(tx, { orderId: id, kind: CreditKind.CANCELLED, reason: dto.reason ?? 'Order cancelled', actorId: actor.id }); // already invoiced: a full credit, the invoice lines stay as issued
     });
     return this.get(id, actor);
   }
@@ -268,6 +272,7 @@ export class OrdersService {
     await this.prisma.$transaction(async (tx) => {
       await this.bump(tx, id, dto.version, { status: OrderStatus.REJECTED, rejectedAt: new Date(), rejectionReason: dto.reason });
       await this.addEvents(tx, id, actor.id, [[OrderEventType.REJECTED, `Rejected: ${dto.reason}`]]);
+      if (order.invoiceId) await issueCredit(tx, { orderId: id, kind: CreditKind.REJECTED, reason: dto.reason, actorId: actor.id });
     });
     return this.get(id, actor);
   }
@@ -312,6 +317,7 @@ export class OrdersService {
       ...(query.from || query.to ? { deliveryDate: { ...(query.from ? { gte: toDbDate(query.from) } : {}), ...(query.to ? { lte: toDbDate(query.to) } : {}) } } : {}),
       ...(query.status?.length ? { status: { in: query.status } } : {}),
       ...(query.companyId ? { companyId: query.companyId } : {}),
+      ...(query.invoiced === undefined ? {} : { invoiceId: query.invoiced === 'true' ? { not: null } : null }),
       ...(query.employeeId ? { employeeId: query.employeeId } : {}),
       ...(search
         ? {

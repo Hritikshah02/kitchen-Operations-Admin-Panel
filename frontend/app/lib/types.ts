@@ -88,7 +88,7 @@ export type OrderSummary = {
 };
 
 export type OrderChoiceView = { groupId: number; groupName: string; optionId: number; optionName: string; portionSizeId: number | null; portionName: string | null; unitPriceCents: number };
-export type OrderCombinationView = { signature: string; quantity: number; unitPriceCents: number; totalCents: number; choices: OrderChoiceView[] };
+export type OrderCombinationView = { id?: number; signature: string; quantity: number; unitPriceCents: number; totalCents: number; choices: OrderChoiceView[] };
 export type OrderLineView = { dishId: number; dishName: string; dishSku: string; quantity: number; unitPriceCents: number; totalCents: number; combinations: OrderCombinationView[] };
 
 export type OrderDetail = {
@@ -103,6 +103,8 @@ export type OrderDetail = {
   kitchenStartedAt: string | null; kitchenReadyAt: string | null; dispatchReadyAt: string | null; outForDeliveryAt: string | null;
   driver: Option | null; deliveryNote: string | null; deliveryPhotoUrl: string | null; deliveryLateMinutes: number | null; deliveredOnTime: boolean | null;
   kitchen: { plannedDispatchReadyAt: string; plannedKitchenReadyAt: string; timing: KitchenTiming | null };
+  invoice: { id: number; number: string; status: InvoiceStatus } | null;
+  credits: { id: number; kind: string; amountCents: number; reason: string; status: string }[];
 };
 
 export type Quote = {
@@ -143,3 +145,17 @@ export type DispatchBoard = {
   drops: Page<Drop>;
 };
 export type DriverDrops = { date: string; now: string; timezone: string; drops: Drop[] };
+
+export type InvoiceStatus = "UNPAID" | "PAID" | "VOID";
+export type BillingCompany = { id: number; name: string; isActive: boolean; uninvoicedOrders: number; uninvoicedCents: number; openCredits: number; openCreditCents: number; unpaidInvoices: number; unpaidCents: number };
+export type InvoiceSummary = { id: number; number: string; status: InvoiceStatus; totalCents: number; issuedAt: string; paidAt: string | null; lineCount: number; company: Option };
+export type InvoiceDetail = {
+  id: number; number: string; status: InvoiceStatus; totalCents: number; linesTotalCents: number; notes: string | null; issuedAt: string; paidAt: string | null; voidedAt: string | null; voidReason: string | null;
+  company: Option & { billingContactName: string; billingContactEmail: string }; createdBy: { name: string }; paidBy: { name: string } | null; voidedBy: { name: string } | null;
+  lines: { id: number; type: "ORDER" | "CREDIT"; orderId: number | null; description: string; amountCents: number }[];
+};
+export type Uninvoiced = {
+  items: { id: number; deliveryDate: string; employee: string; status: OrderStatus; totalCents: number; creditedCents: number; amountCents: number }[];
+  total: number; page: number; pageSize: number; allMatchingCents: number;
+  openCredits: { id: number; orderId: number; amountCents: number; kind: string; reason: string }[];
+};

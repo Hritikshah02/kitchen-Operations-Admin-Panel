@@ -13,6 +13,7 @@ const navigation: { href: string; label: string; requires: Capability }[] = [
   { href: "/kitchen", label: "Kitchen", requires: Capability.KITCHEN_BOARD_VIEW },
   { href: "/dispatch", label: "Dispatch", requires: Capability.DISPATCH_BOARD_VIEW },
   { href: "/driver", label: "My drops", requires: Capability.DRIVER_DROPS_VIEW },
+  { href: "/billing", label: "Billing", requires: Capability.BILLING_MANAGE },
   { href: "/companies", label: "Companies", requires: Capability.COMPANIES_MANAGE },
   { href: "/employees", label: "Employees", requires: Capability.COMPANIES_MANAGE },
   { href: "/catalogue", label: "Catalogue", requires: Capability.CATALOGUE_MANAGE },

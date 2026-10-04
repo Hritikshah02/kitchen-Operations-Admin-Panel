@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderEventType, OrderStatus, type Prisma } from '@prisma/client';
+import { CreditKind, InvoiceLineType, InvoiceStatus, OrderEventType, OrderStatus, type Prisma } from '@prisma/client';
 import { DateTime } from 'luxon';
+import { issueCredit } from '../billing/credits.js';
+import { formatInvoiceNumber } from '../billing/invoice-rules.js';
 import { checkDeliveryDay } from '../companies/company-calendar.js';
 import type { MenuDish } from '../menu/menu-engine.js';
 import { planFor } from '../kitchen/kitchen-plan.js';
@@ -47,6 +49,7 @@ export class DemoOrdersService {
     if (!todo.length) {
       await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
       await this.simulateDispatch(dates, settings.today, settings.timezone, settings.onTimeGraceMinutes, now);
+      await this.simulateBilling(settings.today, now);
       return { created: 0, dates: [] as string[] };
     }
 
@@ -107,6 +110,7 @@ export class DemoOrdersService {
     }
     await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
     await this.simulateDispatch(dates, settings.today, settings.timezone, settings.onTimeGraceMinutes, now);
+    await this.simulateBilling(settings.today, now);
     this.logger.log(`Demo orders: created ${created} for ${todo.join(', ')}.`);
     return { created, dates: todo };
   }
@@ -204,6 +208,47 @@ export class DemoOrdersService {
         await this.prisma.order.update({ where: { id: member.id }, data });
         if (member.status === OrderStatus.CONFIRMED) await this.prisma.orderEvent.createMany({ data: events }); // delivered history keeps its original timeline
       }
+    }
+  }
+
+  /**
+   * Billing history: delivered orders of a finished week are invoiced per company (older weeks paid, the latest
+   * unpaid), and one unpaid invoice gets a short-delivery credit so the credit flow is visible. Orders of the
+   * current week stay uninvoiced, so there is always something to invoice.
+   */
+  private async simulateBilling(today: IsoDate, now: Date) {
+    const weekEnd = (date: IsoDate) => { const day = DateTime.fromISO(date, { zone: 'utc' }); return day.plus({ days: 7 - day.weekday }).toISODate()!; }; // the Sunday
+    const orders = await this.prisma.order.findMany({
+      where: { status: OrderStatus.DELIVERED, invoiceId: null, deliveryDate: { lt: toDbDate(today) } },
+      select: { id: true, companyId: true, totalCents: true, deliveryDate: true, employee: { select: { name: true } } }, orderBy: { id: 'asc' },
+    });
+    const groups = new Map<string, typeof orders>();
+    for (const order of orders) {
+      const end = weekEnd(fromDbDate(order.deliveryDate));
+      if (end >= today) continue; // the week isn't over yet
+      groups.set(`${order.companyId}|${end}`, [...(groups.get(`${order.companyId}|${end}`) ?? []), order]);
+    }
+    const admin = await this.prisma.staff.findUniqueOrThrow({ where: { email: 'admin@test.com' } });
+    const latest = [...groups.keys()].map((key) => key.split('|')[1]).sort().at(-1);
+    let credited = false;
+    for (const [key, members] of groups) {
+      const [companyId, end] = key.split('|');
+      const paid = end !== latest;
+      const subtotal = members.reduce((sum, order) => sum + order.totalCents, 0);
+      await this.prisma.$transaction(async (tx) => {
+        const invoice = await tx.invoice.create({ data: { number: `PENDING-${key}`, companyId: Number(companyId), totalCents: subtotal, createdById: admin.id, issuedAt: DateTime.fromISO(end, { zone: 'utc' }).plus({ days: 1, hours: 10 }).toJSDate(), notes: 'Weekly invoice' } });
+        await tx.invoice.update({ where: { id: invoice.id }, data: { number: formatInvoiceNumber(invoice.id), ...(paid ? { status: InvoiceStatus.PAID, paidAt: new Date(Math.min(now.getTime(), DateTime.fromISO(end, { zone: 'utc' }).plus({ days: 4 }).toMillis())), paidById: admin.id } : {}) } });
+        await tx.invoiceLine.createMany({ data: members.map((order, index) => ({ invoiceId: invoice.id, type: InvoiceLineType.ORDER, orderId: order.id, description: `Order #${order.id} · ${order.employee.name} · ${fromDbDate(order.deliveryDate)}`, amountCents: order.totalCents, sortOrder: (index + 1) * 10 })) });
+        await tx.order.updateMany({ where: { id: { in: members.map((order) => order.id) } }, data: { invoiceId: invoice.id } });
+        if (!paid && !credited && members.length > 3) {
+          const target = await tx.order.findFirst({ where: { id: members[2].id }, include: { lines: { include: { combinations: true } } } });
+          const combination = target?.lines[0]?.combinations[0];
+          if (target && combination) {
+            await issueCredit(tx, { orderId: target.id, kind: CreditKind.SHORT_DELIVERY, amountCents: combination.unitPriceCents, reason: 'One box missing at delivery', description: `1 × ${target.lines[0].dishName} (order #${target.id}, short delivery)`, actorId: admin.id });
+            credited = true;
+          }
+        }
+      });
     }
   }
 

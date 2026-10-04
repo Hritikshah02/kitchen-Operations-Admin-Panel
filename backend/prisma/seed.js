@@ -12,7 +12,7 @@ const data = JSON.parse(readFileSync(new URL('./seed-data/ahmedabad.json', impor
 const ALL = [
   'dashboard:view', 'staff:manage', 'settings:manage', 'reference-data:manage', 'companies:manage',
   'catalogue:manage', 'orders:manage', 'orders:override', 'kitchen-board:view', 'kitchen-board:update',
-  'dispatch-board:view', 'dispatch-board:update', 'driver-drops:view', 'driver-drops:update',
+  'dispatch-board:view', 'dispatch-board:update', 'driver-drops:view', 'driver-drops:update', 'billing:manage',
 ];
 
 // Adding a role = adding a row here (or via the database). No code checks role names.

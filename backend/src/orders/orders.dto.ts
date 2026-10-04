@@ -94,6 +94,8 @@ export class ListOrdersQueryDto extends PaginationQueryDto {
   status?: OrderStatus[];
   @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() companyId?: number;
   @IsOptional() @Transform(({ value }) => Number(value)) @IsInt() employeeId?: number;
+  /** Whether the order is on an invoice (4.7 filter). */
+  @IsOptional() @IsIn(['true', 'false']) invoiced?: 'true' | 'false';
   @IsOptional() @Trim() @IsString() @MaxLength(80) search?: string;
 }
 

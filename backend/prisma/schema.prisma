@@ -33,6 +33,8 @@ enum OrderEventType {
   DRIVER_ASSIGNED
   DISPATCH_READY
   OUT_FOR_DELIVERY
+  INVOICED
+  CREDITED
 }
 
 // A role is data: its capabilities live here, so adding a role never means editing role-name checks in code.
@@ -59,6 +61,10 @@ model Staff {
   unitsStarted    OrderCombination[] @relation("UnitStartedBy")
   unitsDone       OrderCombination[] @relation("UnitDoneBy")
   ordersDriving   Order[]            @relation("OrderDriver")
+  invoicesCreated Invoice[]          @relation("InvoiceCreatedBy")
+  invoicesPaid    Invoice[]          @relation("InvoicePaidBy")
+  invoicesVoided  Invoice[]          @relation("InvoiceVoidedBy")
+  creditsCreated  OrderCredit[]      @relation("CreditCreatedBy")
   ordersDelivered Order[]            @relation("OrderDeliveredBy")
 }
 
@@ -89,6 +95,8 @@ model Company {
   holidays               CompanyHoliday[]
   employees              Employee[]              @relation("CompanyEmployees")
   orders                 Order[]
+  invoices               Invoice[]
+  credits                OrderCredit[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   priceTier              PriceTier?              @relation(fields: [priceTierId], references: [id])
@@ -204,11 +212,15 @@ model Order {
   events              OrderEvent[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  invoiceId           Int? // an order is on at most one invoice (voiding an invoice releases its orders)
+  invoice             Invoice?       @relation(fields: [invoiceId], references: [id])
+  credits             OrderCredit[]
 
   @@index([deliveryDate, status])
   @@index([companyId, deliveryDate])
   @@index([employeeId, deliveryDate])
   @@index([driverId, deliveryDate])
+  @@index([invoiceId])
 }
 
 // What was ordered and at what price; names are snapshotted so catalogue edits never change a past order.
@@ -559,4 +571,94 @@ model CompanyHiddenDish {
   dish      Dish    @relation(fields: [dishId], references: [id])
 
   @@id([companyId, dishId])
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  VOID
+}
+
+enum InvoiceLineType {
+  ORDER
+  CREDIT
+}
+
+enum CreditKind {
+  CANCELLED
+  REJECTED
+  SHORT_DELIVERY
+}
+
+enum CreditStatus {
+  OPEN // owed to the company; applied to its next invoice
+  APPLIED // taken off an invoice (appliedInvoiceId), or netted off an order not yet invoiced
+  DISCARDED // the invoice was voided and the order is no longer billable
+}
+
+// An internal record, no accounting integration. Total = sum of its lines (order lines plus credit lines).
+model Invoice {
+  id             Int           @id @default(autoincrement())
+  number         String        @unique // INV-00001
+  companyId      Int
+  company        Company       @relation(fields: [companyId], references: [id])
+  status         InvoiceStatus @default(UNPAID)
+  totalCents     Int
+  notes          String?
+  issuedAt       DateTime      @default(now())
+  paidAt         DateTime?
+  paidById       Int?
+  paidBy         Staff?        @relation("InvoicePaidBy", fields: [paidById], references: [id])
+  voidedAt       DateTime?
+  voidReason     String?
+  voidedById     Int?
+  voidedBy       Staff?        @relation("InvoiceVoidedBy", fields: [voidedById], references: [id])
+  createdById    Int
+  createdBy      Staff         @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  lines          InvoiceLine[]
+  orders         Order[] // orders currently on it (empty once voided)
+  creditsApplied OrderCredit[] @relation("CreditAppliedTo")
+  creditsSourced OrderCredit[] @relation("CreditSource")
+
+  @@index([companyId, status])
+}
+
+model InvoiceLine {
+  id          Int             @id @default(autoincrement())
+  invoiceId   Int
+  invoice     Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  type        InvoiceLineType
+  orderId     Int?
+  creditId    Int?
+  credit      OrderCredit?    @relation(fields: [creditId], references: [id])
+  description String
+  amountCents Int // negative for credits
+  sortOrder   Int
+
+  @@index([invoiceId])
+  @@index([orderId])
+}
+
+// Money owed back to a company because an invoiced order was cancelled, rejected or came up short.
+model OrderCredit {
+  id               Int           @id @default(autoincrement())
+  companyId        Int
+  company          Company       @relation(fields: [companyId], references: [id])
+  orderId          Int
+  order            Order         @relation(fields: [orderId], references: [id])
+  kind             CreditKind
+  amountCents      Int // positive
+  reason           String
+  status           CreditStatus  @default(OPEN)
+  sourceInvoiceId  Int? // the invoice the order was on when the credit arose
+  sourceInvoice    Invoice?      @relation("CreditSource", fields: [sourceInvoiceId], references: [id])
+  appliedInvoiceId Int?
+  appliedInvoice   Invoice?      @relation("CreditAppliedTo", fields: [appliedInvoiceId], references: [id])
+  lines            InvoiceLine[]
+  createdById      Int
+  createdBy        Staff         @relation("CreditCreatedBy", fields: [createdById], references: [id])
+  createdAt        DateTime      @default(now())
+
+  @@index([companyId, status])
+  @@index([orderId])
 }

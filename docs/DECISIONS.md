@@ -90,3 +90,16 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Driver view:** a driver sees only drops where they are the driver, for today in the kitchen time zone, in time order, including upcoming ones for planning; only drops that are out for delivery can be marked delivered, and only by that driver. Optional note and photo; the photo uploads straight to Cloudinary (folder `kitchen/deliveries`), and only Cloudinary links are accepted.
 - **On time:** late minutes = minutes after the delivery time (never negative), always recorded. On time while within the **on-time grace** (Settings, default 5 min); beyond it the delivery is marked late. Delivering sets the order status to DELIVERED.
 - **Demo data:** delivered orders get dispatch history and a driver (about a quarter arrive late); on a working day today's drops are spread across dispatch ready, out for delivery and delivered.
+
+## Billing (Phase 9)
+
+- **What is owed:** every confirmed order (confirmed or delivered) is owed in full by its company. Cancelled, rejected, draft and placed orders are never invoiced. Totals are pre-tax integer cents.
+- **Invoices** are internal records: `INV-00001`, UNPAID → PAID, or VOID. Staff pick a company's uninvoiced orders and group them; an order sits on at most one invoice (`Order.invoiceId`), and creating an invoice locks the chosen order rows, so two people can't both invoice the same order.
+- **Reconciliation:** an invoice total always equals the sum of its lines (order lines plus negative credit lines), checked in tests and shown on the invoice.
+- **Cancelled or rejected before invoicing:** the order is simply excluded.
+- **Cancelled or rejected after invoicing:** the invoice's order lines are never edited. A full credit is issued. On an *unpaid* invoice it is added as its own credit line (the total drops); on a *paid* invoice nothing changes and the credit is carried forward to the company's next invoice.
+- **Short delivery** (delivered orders only): staff enter the missing quantity per item and the credit is that quantity × the unit price, never more than is left to credit on the order. Same placement rules: credit line on an unpaid invoice, carried forward from a paid one, or netted off the order if it hasn't been invoiced yet.
+- **Carried-forward credits** are applied to the company's next invoice oldest first, without ever taking an invoice below zero; one that doesn't fit stays open for the following invoice.
+- **Void:** unpaid invoices only, with a reason; its orders are released and can be invoiced again, credits carried from earlier invoices go back to open, and a credit raised on one of its own orders is netted off that order (or dropped if the order is no longer billable). **Paid invoices are final**: no void, no edits, only credits.
+- **Capability:** `billing:manage` (admin). The orders list has an "invoiced" filter, and the order detail shows its invoice and credits.
+- **Demo data:** delivered orders of finished weeks are invoiced per company (older weeks paid, the latest unpaid, one with a short-delivery credit); the current week stays uninvoiced.

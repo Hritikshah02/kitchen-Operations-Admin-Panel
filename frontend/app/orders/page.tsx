@@ -52,11 +52,11 @@ function CutoffPanel({ onProcessed }: { onProcessed: () => void }) {
 function OrdersContent() {
   const { data: companies } = useResource<Page<CompanySummary>>("/companies?pageSize=100&includeInactive=true");
   const [from, setFrom] = useState(""); const [to, setTo] = useState(""); const [statuses, setStatuses] = useState<OrderStatus[]>([]);
-  const [companyId, setCompanyId] = useState(""); const [search, setSearch] = useState(""); const [page, setPage] = useState(1); const [refresh, setRefresh] = useState(0);
+  const [companyId, setCompanyId] = useState(""); const [invoiced, setInvoiced] = useState(""); const [search, setSearch] = useState(""); const [page, setPage] = useState(1); const [refresh, setRefresh] = useState(0);
   const query = new URLSearchParams({
     page: String(page), pageSize: "25",
     ...(from ? { from } : {}), ...(to ? { to } : {}), ...(statuses.length ? { status: statuses.join(",") } : {}),
-    ...(companyId ? { companyId } : {}), ...(search.trim() ? { search: search.trim() } : {}),
+    ...(companyId ? { companyId } : {}), ...(invoiced ? { invoiced } : {}), ...(search.trim() ? { search: search.trim() } : {}),
   });
   const { data, error, loading } = useResource<Page<OrderSummary>>(`/orders?${query}`, refresh);
   const reset = (fn: () => void) => { fn(); setPage(1); };
@@ -70,10 +70,10 @@ function OrdersContent() {
         <label>Delivery from<input onChange={(event) => reset(() => setFrom(event.target.value))} type="date" value={from} /></label>
         <label>to<input onChange={(event) => reset(() => setTo(event.target.value))} type="date" value={to} /></label>
         <label>Company<select onChange={(event) => reset(() => setCompanyId(event.target.value))} value={companyId}><option value="">All companies</option>{companies?.items.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
+        <label>Invoiced<select onChange={(event) => reset(() => setInvoiced(event.target.value))} value={invoiced}><option value="">Any</option><option value="true">On an invoice</option><option value="false">Not invoiced</option></select></label>
         <label>Search<input onChange={(event) => reset(() => setSearch(event.target.value))} placeholder="Employee or #order" value={search} /></label>
       </div>
       <div className="chip-group">{ORDER_STATUSES.map((status) => <label className="chip" key={status}><input checked={statuses.includes(status)} onChange={() => toggleStatus(status)} type="checkbox" />{titleCase(status)}</label>)}</div>
-      <p className="hint">The “invoiced” filter arrives with billing.</p>
       {error ? <p className="form-error">{error}</p> : null}
       {loading && !data ? <p className="muted">Loading orders...</p> : <div className="table-wrap"><table className="data-table"><thead><tr><th>Order</th><th>Delivery</th><th>Employee</th><th>Company</th><th>Boxes</th><th>Total</th><th>Status</th></tr></thead><tbody>
         {data?.items.map((order) => <tr key={order.id}>
