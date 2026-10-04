@@ -263,7 +263,7 @@ model KitchenSettings {
   id                         Int      @id @default(1)
   timezone                   String   @default("Asia/Kolkata")
   currency                   String   @default("USD")
-  workingDays                Int[]    @default([1, 2, 3, 4, 5]) // ISO weekday: 1 = Monday ... 7 = Sunday
+  workingDays                Int[]    @default([1, 2, 3, 4, 5, 6]) // ISO weekday: 1 = Monday ... 7 = Sunday
   cutoffTime                 String   @default("16:00") // HH:mm in kitchen timezone
   cutoffWorkingDays          Int      @default(1)
   kitchenReadyBufferMinutes  Int      @default(30) // kitchen-ready = dispatch-ready minus this

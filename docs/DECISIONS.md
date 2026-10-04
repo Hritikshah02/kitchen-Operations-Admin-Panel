@@ -5,7 +5,7 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 ## Platform
 - **Kitchen timezone:** Asia/Kolkata (kitchen in Ahmedabad). Cut-offs, delivery dates and "today" are computed in it, independent of server or browser timezone. The timezone is fixed at setup, not editable, because changing it would reinterpret every stored time.
 - **Currency:** USD (prices entered in dollars; derived prices round up to the next 5 cents as the brief states).
-- **Kitchen working days:** Mon–Fri by default; editable in Settings. Kitchen holidays are seeded from the 2026 Gujarat government list (verified) and 2027 estimates (marked "tentative").
+- **Kitchen working days:** Mon–Sat by default; editable in Settings. Kitchen holidays are seeded from the 2026 Gujarat government list (verified) and 2027 estimates (marked "tentative").
 - **Roles are data:** each role row holds a list of capabilities; the server only ever checks capabilities. A new role is a new row, not a code change.
 
 ## Companies (4.4)
@@ -67,5 +67,5 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Concurrency:** every write carries the version it read; a stale write is refused ("someone else changed this order"), so two staff can't silently overwrite each other.
 - **Admin overrides** after confirmation: delivery time, address (any of the company's active ones) and packaging, ignoring the employee's permission flags; recorded on the timeline.
 - **Timeline:** every create, edit, place, confirmation, cancellation, rejection, delivery change and allergy acknowledgement is an order event with who did it (or "System").
-- **Demo data:** `npm run db:seed` also generates realistic orders for the past 7 and next 5 kitchen working days, including today, in every status. They are built with the same menu and pricing rules, and only dates with no orders are filled, so it is safe to re-run daily. Because the kitchen works Mon–Fri, a weekend or holiday has no orders "today".
+- **Demo data:** `npm run db:seed` also generates realistic orders for the past 7 and next 5 kitchen working days, including today, in every status. They are built with the same menu and pricing rules, and only dates with no orders are filled, so it is safe to re-run daily. Because the kitchen works Mon–Sat, a Sunday or holiday has no orders "today".
 - **Invoiced filter** on the order list arrives with billing (Phase 9).

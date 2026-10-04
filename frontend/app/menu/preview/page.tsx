@@ -16,7 +16,7 @@ function PreviewContent() {
   const { data: menu, error } = useResource<EmployeeMenu>(query);
   return <AppShell><main className="content-page wide">
     <BackLink href="/menu" label="Back to menu" />
-    <div className="page-heading"><div><p className="eyebrow">Menu</p><h1>Preview as an employee</h1></div></div>
+    <div className="page-heading"><div><p className="eyebrow">Menu</p><h1>Preview as an employee</h1><p className="hint">Exactly what this employee sees when ordering: their company&apos;s categories, hidden items removed, {" "}their tier&apos;s prices and their allergy warnings.</p></div></div>
     <section className="panel"><EmployeePicker onChange={(employee) => setEmployeeId(employee?.id ?? null)} value={employeeId} /></section>
     {error ? <p className="form-error">{error}</p> : null}
     {menu ? <>
@@ -28,7 +28,8 @@ function PreviewContent() {
       </div>
       <label>Search the menu (also finds secret categories)<input onChange={(event) => setSearch(event.target.value)} placeholder="e.g. tray, paneer, GUJ-001" value={search} /></label>
       {search.trim() ? <section className="panel"><h2>Search results ({menu.searchResults.length})</h2><div className="dish-grid">{menu.searchResults.map((dish) => <DishCard dish={dish} key={dish.id} />)}</div></section> : null}
-      {menu.categories.map((category) => <section className="panel" key={category.id}><h2>{category.name}</h2>{category.description ? <p className="hint">{category.description}</p> : null}<div className="dish-grid">{category.items.map((dish) => <DishCard dish={dish} key={dish.id} />)}</div></section>)}
+      {!search.trim() && menu.categories.length ? <nav aria-label="Categories" className="chip-group menu-nav">{menu.categories.map((category) => <a className="chip" href={`#category-${category.id}`} key={category.id}>{category.name} <span className="hint">{category.items.length}</span></a>)}</nav> : null}
+      {menu.categories.map((category) => <section className="panel" id={`category-${category.id}`} key={category.id}><h2>{category.name}</h2>{category.description ? <p className="hint">{category.description}</p> : null}<div className="dish-grid">{category.items.map((dish) => <DishCard dish={dish} key={dish.id} />)}</div></section>)}
       {!menu.categories.length ? <p className="muted">Nothing on this employee&apos;s menu.</p> : null}
       <details className="panel"><summary><strong>Not shown to this employee ({menu.excluded.length})</strong></summary>
         <div className="table-wrap" style={{ marginTop: 12 }}><table className="data-table"><thead><tr><th>Dish</th><th>Category</th><th>Why</th></tr></thead><tbody>

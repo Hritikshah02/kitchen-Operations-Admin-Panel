@@ -64,7 +64,9 @@ textarea { width: 100%; min-height: 72px; border: 1px solid #bcc7c1; border-radi
 fieldset.panel { margin: 0; min-width: 0; }
 .dish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .dish-card { display: grid; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
-.dish-card img, .dish-card-placeholder { width: 100%; height: 120px; object-fit: cover; }
+.dish-card.conflict { border-color: #e0a3a3; }
+.menu-nav { position: sticky; top: 0; z-index: 5; background: var(--background, #fff); padding: 8px 0; }
+.dish-card img, .dish-card-placeholder { width: 100%; height: 150px; object-fit: cover; }
 .dish-card-placeholder { display: grid; place-items: center; background: #e6f4f1; color: var(--accent-dark); font-size: 36px; font-weight: 700; }
 .dish-card-body { display: grid; gap: 8px; align-content: start; padding: 12px; }
 details.panel summary { cursor: pointer; }

@@ -288,6 +288,12 @@ const meetingTrays = [
   { sku: 'MTG-002', name: 'Kesar Shrikhand Tray (serves 12)', description: 'Saffron-cardamom shrikhand with pistachio, chilled tray.', station: 'SWEETS', costINR: 520, priceINR: 1100, allergens: ['MILK', 'TREENUT'], tags: ['VEG', 'EGGLESS', 'GF'], temperature: 'COLD' },
 ];
 
+// Stock photos (Wikimedia Commons) for dishes that have no image yet; images staff uploaded are never touched.
+async function seedDishImages() {
+  const images = JSON.parse(readFileSync(new URL('./seed-data/dish-images.json', import.meta.url), 'utf8'));
+  for (const [sku, imageUrl] of Object.entries(images)) await prisma.dish.updateMany({ where: { sku, imageUrl: null }, data: { imageUrl } });
+}
+
 async function seedMenu() {
   if ((await prisma.menuCategory.count()) > 0) return; // menu is curated in the admin panel after the first seed
   const stationName = Object.fromEntries(data.stations.map((station) => [station.code, station.name]));
@@ -368,7 +374,7 @@ async function main() {
     });
   }
 
-  // Defaults come from the migration (Mon-Fri, 16:00, 1 working day, 30 min buffer, 60 min lead).
+  // Defaults come from the migration (Mon-Sat, 16:00, 1 working day, 30 min buffer, 60 min lead).
   await prisma.kitchenSettings.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
 
   for (const holiday of data.holidays.filter((entry) => entry.closesKitchen)) {
@@ -399,6 +405,7 @@ async function main() {
   await seedCatalogue();
   await seedPricing();
   await seedMenu();
+  await seedDishImages();
 }
 
 main()

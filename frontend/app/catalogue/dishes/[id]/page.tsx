@@ -105,9 +105,9 @@ function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; 
         <h2>Image</h2>
         {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary/stock URLs entered by staff */}
         {form.imageUrl ? <img alt={form.name} src={form.imageUrl} style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 6 }} /> : <p className="muted">No image yet.</p>}
-        <label>Image URL<input onChange={set("imageUrl")} placeholder="https://..." type="url" value={form.imageUrl} /></label>
-        {images?.uploadsEnabled ? <label>Upload<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG/PNG/WebP under 5 MB, stored on Cloudinary"}</span></label>
-          : <p className="hint">Uploads are off until CLOUDINARY_URL is configured on the server; paste a URL meanwhile.</p>}
+        {images?.uploadsEnabled ? <label>{form.imageUrl ? "Replace image" : "Upload image"}<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG/PNG/WebP under 5 MB, stored on Cloudinary. Saved with the dish."}</span></label>
+          : <p className="hint">Uploads are off until CLOUDINARY_URL is configured on the server.</p>}
+        {form.imageUrl ? <div className="form-actions"><button className="secondary-button" onClick={() => setForm({ ...form, imageUrl: "" })} type="button">Remove image</button></div> : null}
         <ChipSelect legend="Allergens" onChange={setAllergenIds} options={allergens ?? []} value={allergenIds} />
         <ChipSelect legend="Dietary tags" onChange={setTagIds} options={tags ?? []} value={tagIds} />
       </fieldset>
