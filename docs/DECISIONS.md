@@ -69,3 +69,14 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Timeline:** every create, edit, place, confirmation, cancellation, rejection, delivery change and allergy acknowledgement is an order event with who did it (or "System").
 - **Demo data:** `npm run db:seed` also generates realistic orders for the past 7 and next 5 kitchen working days, including today, in every status. They are built with the same menu and pricing rules, and only dates with no orders are filled, so it is safe to re-run daily. Because the kitchen works Mon–Sat, a Sunday or holiday has no orders "today".
 - **Invoiced filter** on the order list arrives with billing (Phase 9).
+
+## Kitchen board (Phase 7)
+
+- **Prep unit** = one distinct combination on an order line, started and finished as a whole (a combination of quantity 12 is one click). Routed to its dish's station, or "Unassigned".
+- **Only confirmed orders** appear on the board and can be worked on. Starting or finishing a unit twice is refused with who did it; finishing an unstarted unit also records the start.
+- **Order times:** "kitchen started" is the first unit's start; "kitchen ready" is set only when every unit is done. Both are derived inside one transaction that locks the order row, so two people finishing the last two units at once still produce exactly one "kitchen ready".
+- **Plan:** dispatch-ready = delivery time minus the company's delivery minutes; kitchen-ready = dispatch-ready minus the kitchen buffer (Settings, 30 min). It is computed on read from the delivery time, so an override moves it automatically, in the kitchen time zone.
+- **Late / at risk:** late once the planned kitchen-ready time passes with the order unfinished; at risk in the 30 minutes before it. The board sorts late first, then at risk, then by planned time, and refreshes every 30 seconds.
+- **Force-complete** (needs `kitchen-board:update` and `orders:override`) finishes every open unit, records missing starts, sets kitchen ready and writes timeline events naming the admin.
+- **Performance:** the board loads a day's confirmed orders in one query and pages the order cards (25 per page); station counts and prep totals cover the whole day. Tested with 400 orders.
+- **Demo data:** the seed also gives delivered orders their kitchen history and puts today's confirmed orders part-way through (some late), so the board looks alive on any working day.

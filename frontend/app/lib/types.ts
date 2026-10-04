@@ -100,10 +100,29 @@ export type OrderDetail = {
   lines: (OrderLineView & { id: number })[];
   events: { id: number; type: string; message: string; createdAt: string; actor: Option | null }[];
   permissions: { edit: boolean; place: boolean; cancel: boolean; reject: boolean; overrideDelivery: boolean };
+  kitchenStartedAt: string | null; kitchenReadyAt: string | null;
+  kitchen: { plannedDispatchReadyAt: string; plannedKitchenReadyAt: string; timing: KitchenTiming | null };
 };
 
 export type Quote = {
   lines: OrderLineView[]; totalCents: number; allergyConflicts: Option[]; errors: string[]; tier: Option;
   delivery: { deliveryDate: string; deliveryTime: string; addressId: number | null; packagingTypeId: number | null };
   cutoffAt: string; pastCutoff: boolean;
+};
+
+export type KitchenTiming = "LATE" | "AT_RISK" | "ON_TRACK" | "DONE";
+export type KitchenUnit = {
+  id: number; dish: string; sku: string; quantity: number; choices: string; station: string; stationId: number | null;
+  state: "PENDING" | "STARTED" | "DONE"; startedAt: string | null; startedBy: string | null; doneAt: string | null; doneBy: string | null;
+};
+export type KitchenCard = {
+  orderId: number; employee: string; company: string; address: string; packaging: string | null; deliveryTime: string;
+  plannedDispatchReadyAt: string; plannedKitchenReadyAt: string; timing: KitchenTiming; kitchenStartedAt: string | null; kitchenReadyAt: string | null; units: KitchenUnit[];
+};
+export type KitchenBoard = {
+  date: string; now: string; timezone: string; atRiskMinutes: number;
+  totals: { orders: number; ready: number; late: number; atRisk: number };
+  stations: { id: number | null; name: string; pending: number; started: number; done: number }[];
+  prep: { stationId: number | null; dish: string; sku: string; choices: string; total: number; remaining: number }[];
+  orders: Page<KitchenCard>;
 };

@@ -8,7 +8,7 @@ import { BackLink } from "../../components/back-link";
 import { ProtectedPage } from "../../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../../lib/api";
 import { Capability } from "../../lib/capabilities";
-import { formatDay, formatInstant, titleCase } from "../../lib/format";
+import { formatDay, formatInstant, formatTime, titleCase } from "../../lib/format";
 import { formatCents } from "../../lib/money";
 import { STATUS_TONE, type CompanyDetail, type Option, type OrderDetail } from "../../lib/types";
 import { useResource } from "../../lib/use-resource";
@@ -109,6 +109,14 @@ function OrderContent() {
         <tr><td colSpan={4}><strong>Order total</strong></td><td><strong>{formatCents(order.totalCents)}</strong></td></tr>
       </tbody></table></div>
     </section>
+
+    {order.status === "CONFIRMED" || order.kitchenStartedAt ? <section className="panel">
+      <h2>Kitchen plan</h2>
+      <p className="hint">Worked back from the delivery time ({order.deliveryTime}); it moves if the time is overridden.</p>
+      <p>Dispatch-ready by <strong>{formatTime(order.kitchen.plannedDispatchReadyAt)}</strong> · kitchen-ready by <strong>{formatTime(order.kitchen.plannedKitchenReadyAt)}</strong>
+        {order.kitchen.timing ? <> <span className={`badge ${{ LATE: "red", AT_RISK: "amber", ON_TRACK: "grey", DONE: "green" }[order.kitchen.timing]}`}>{{ LATE: "Late", AT_RISK: "At risk", ON_TRACK: "On track", DONE: "Kitchen ready" }[order.kitchen.timing]}</span></> : null}</p>
+      <p className="hint">Kitchen started {formatInstant(order.kitchenStartedAt)} · kitchen ready {formatInstant(order.kitchenReadyAt)}</p>
+    </section> : null}
 
     <section className="panel">
       <h2>Timeline</h2>

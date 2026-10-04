@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderEventType, OrderStatus } from '@prisma/client';
+import { OrderEventType, OrderStatus, type Prisma } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { checkDeliveryDay } from '../companies/company-calendar.js';
 import type { MenuDish } from '../menu/menu-engine.js';
+import { planFor } from '../kitchen/kitchen-plan.js';
 import { MenuService } from '../menu/menu.service.js';
 import { priceLines, type LineInput } from '../orders/order-rules.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -43,7 +44,10 @@ export class DemoOrdersService {
     const dates = this.workingDays(settings.today, calendar);
     const existing = new Set((await this.prisma.order.groupBy({ by: ['deliveryDate'], where: { deliveryDate: { in: dates.map(toDbDate) } } })).map((row) => fromDbDate(row.deliveryDate)));
     const todo = dates.filter((date) => !existing.has(date));
-    if (!todo.length) return { created: 0, dates: [] as string[] };
+    if (!todo.length) {
+      await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
+      return { created: 0, dates: [] as string[] };
+    }
 
     const admin = await this.prisma.staff.findUniqueOrThrow({ where: { email: 'admin@test.com' } });
     const companies = await this.prisma.company.findMany({
@@ -100,8 +104,54 @@ export class DemoOrdersService {
         }
       }
     }
+    await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
     this.logger.log(`Demo orders: created ${created} for ${todo.join(', ')}.`);
     return { created, dates: todo };
+  }
+
+  /**
+   * Kitchen history for orders that have none yet (so it also backfills older demo data, and re-running moves today's work along): delivered ones were cooked on time; today's confirmed ones are part-way
+   * through (more done the closer it is to their planned kitchen-ready time, a few running late).
+   */
+  private async simulateKitchen(dates: IsoDate[], today: IsoDate, timezone: string, bufferMinutes: number, now: Date) {
+    const orders = await this.prisma.order.findMany({
+      where: { deliveryDate: { in: dates.map(toDbDate) }, status: { in: [OrderStatus.CONFIRMED, OrderStatus.DELIVERED] }, kitchenStartedAt: null },
+      include: { company: { select: { dispatchLeadMinutes: true } }, lines: { include: { combinations: true } } },
+    });
+    for (const order of orders) {
+      const date = fromDbDate(order.deliveryDate);
+      const plan = planFor(date, order.deliveryTime, order.company.dispatchLeadMinutes, bufferMinutes, timezone);
+      const key = `${order.id}:kitchen`;
+      const units = order.lines.flatMap((line) => line.combinations);
+      const begin = (minutes: number) => new Date(plan.kitchenReadyAt.getTime() - minutes * 60_000);
+      let startedAt: Date | null = null; let readyAt: Date | null = null;
+      const unitTimes = new Map<number, { startedAt: Date; doneAt: Date | null }>();
+      if (order.status === OrderStatus.DELIVERED) {
+        startedAt = begin(40 + Math.round(chance(`${key}:s`) * 30));
+        readyAt = begin(Math.round(chance(`${key}:r`) * 12) - 2);
+        units.forEach((unit, index) => unitTimes.set(unit.id, { startedAt: startedAt!, doneAt: new Date(startedAt!.getTime() + ((index + 1) / units.length) * (readyAt!.getTime() - startedAt!.getTime())) }));
+      } else if (date === today) {
+        const progress = chance(`${key}:p`); // how far along this order is
+        const behind = now.getTime() > plan.kitchenReadyAt.getTime() - 20 * 60_000; // due soon or overdue
+        const target = behind ? progress * 1.15 : Math.max(0, progress - 0.55) * 1.5; // far-off orders are mostly untouched
+        units.forEach((unit, index) => {
+          const unitProgress = (index + 1) / units.length;
+          if (target >= unitProgress) unitTimes.set(unit.id, { startedAt: new Date(now.getTime() - (20 + chance(`${key}:${unit.id}:a`) * 20) * 60_000), doneAt: new Date(now.getTime() - chance(`${key}:${unit.id}:b`) * 15 * 60_000) });
+          else if (target >= unitProgress - 0.5 || (behind && chance(`${key}:${unit.id}:c`) < 0.4)) unitTimes.set(unit.id, { startedAt: new Date(now.getTime() - chance(`${key}:${unit.id}:d`) * 12 * 60_000), doneAt: null });
+        });
+        const all = units.length > 0 && units.every((unit) => unitTimes.get(unit.id)?.doneAt);
+        const first = [...unitTimes.values()].map((entry) => entry.startedAt.getTime());
+        startedAt = first.length ? new Date(Math.min(...first)) : null;
+        readyAt = all ? new Date(Math.max(...[...unitTimes.values()].map((entry) => entry.doneAt!.getTime()))) : null;
+      }
+      if (!unitTimes.size) continue;
+      for (const [id, times] of unitTimes) await this.prisma.orderCombination.update({ where: { id }, data: { startedAt: times.startedAt, doneAt: times.doneAt } });
+      await this.prisma.order.update({ where: { id: order.id }, data: { kitchenStartedAt: startedAt, kitchenReadyAt: readyAt } });
+      if (order.status !== OrderStatus.CONFIRMED) continue; // delivered orders keep their original timeline
+      const events: Prisma.OrderEventCreateManyInput[] = [{ orderId: order.id, type: OrderEventType.KITCHEN_STARTED, message: 'Kitchen started.', actorId: null, createdAt: startedAt! }];
+      if (readyAt) events.push({ orderId: order.id, type: OrderEventType.KITCHEN_READY, message: 'Every unit is done: kitchen ready.', actorId: null, createdAt: readyAt });
+      await this.prisma.orderEvent.createMany({ data: events });
+    }
   }
 
   private workingDays(today: IsoDate, calendar: Parameters<typeof isKitchenWorkingDay>[1]) {

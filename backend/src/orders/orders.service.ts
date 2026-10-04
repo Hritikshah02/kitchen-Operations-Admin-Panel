@@ -10,6 +10,7 @@ import { MenuService } from '../menu/menu.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { cutoffFor, fromDbDate, toDbDate } from '../settings/kitchen-calendar.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { planFor, timingOf } from '../kitchen/kitchen-plan.js';
 import { CutoffService } from './cutoff.service.js';
 import type { CreateOrderDto, DeliveryOverrideDto, ListOrdersQueryDto, QuoteOrderDto, ReasonDto, RejectDto, UpdateOrderDto, VersionDto } from './orders.dto.js';
 import { priceLines, snapshotOf, type LineInput, type PricedLine } from './order-rules.js';
@@ -20,7 +21,7 @@ type Content = { deliveryDate: string; deliveryTime?: string; addressId?: number
 const lineInclude = { combinations: { include: { choices: true }, orderBy: { id: 'asc' } } } satisfies Prisma.OrderLineInclude;
 const detailInclude = {
   employee: { select: { id: true, name: true, email: true, canChooseAddress: true, canChangeDeliveryTime: true, canChangePackaging: true, allergens: { select: { id: true, name: true } } } },
-  company: { select: { id: true, name: true, isActive: true } },
+  company: { select: { id: true, name: true, isActive: true, dispatchLeadMinutes: true } },
   address: true,
   packagingType: { select: { id: true, name: true } },
   priceTier: { select: { id: true, name: true } },
@@ -348,8 +349,11 @@ export class OrdersService {
     const pastCutoff = cutoffAt.toJSDate() <= new Date();
     const override = canOverride(actor);
     const open = order.status === OrderStatus.DRAFT || order.status === OrderStatus.PLACED;
+    const settings = await this.settings.get();
+    const plan = planFor(date, order.deliveryTime, order.company.dispatchLeadMinutes, settings.kitchenReadyBufferMinutes, settings.timezone);
     return {
       ...order,
+      kitchen: { plannedDispatchReadyAt: plan.dispatchReadyAt, plannedKitchenReadyAt: plan.kitchenReadyAt, timing: order.status === OrderStatus.CONFIRMED ? timingOf(plan, order.kitchenReadyAt, new Date()) : null },
       deliveryDate: date,
       cutoffAt: cutoffAt.toISO(),
       pastCutoff,

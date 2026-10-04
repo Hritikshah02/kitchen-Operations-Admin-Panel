@@ -27,6 +27,9 @@ enum OrderEventType {
   DELIVERY_CHANGED
   ALLERGY_ACKNOWLEDGED
   DELIVERED
+  KITCHEN_STARTED
+  KITCHEN_READY
+  FORCE_COMPLETED
 }
 
 // A role is data: its capabilities live here, so adding a role never means editing role-name checks in code.
@@ -39,17 +42,19 @@ model Role {
 }
 
 model Staff {
-  id              Int          @id @default(autoincrement())
+  id              Int                @id @default(autoincrement())
   name            String
-  email           String       @unique
+  email           String             @unique
   passwordHash    String
   roleId          Int
-  role            Role         @relation(fields: [roleId], references: [id])
-  isActive        Boolean      @default(true)
-  createdAt       DateTime     @default(now())
-  defaultDriverOf Company[]    @relation("CompanyDefaultDriver")
-  ordersCreated   Order[]      @relation("OrderCreatedBy")
-  orderEvents     OrderEvent[] @relation("OrderEventActor")
+  role            Role               @relation(fields: [roleId], references: [id])
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  defaultDriverOf Company[]          @relation("CompanyDefaultDriver")
+  ordersCreated   Order[]            @relation("OrderCreatedBy")
+  orderEvents     OrderEvent[]       @relation("OrderEventActor")
+  unitsStarted    OrderCombination[] @relation("UnitStartedBy")
+  unitsDone       OrderCombination[] @relation("UnitDoneBy")
 }
 
 // Never hard-deleted (orders reference it). Deactivating blocks new orders and cancels open ones.
@@ -171,6 +176,8 @@ model Order {
   version             Int            @default(1) // optimistic concurrency: every write must send the version it read
   placedAt            DateTime?
   confirmedAt         DateTime?
+  kitchenStartedAt    DateTime? // first unit's start
+  kitchenReadyAt      DateTime? // set only when every unit is done
   deliveredAt         DateTime?
   cancelledAt         DateTime?
   cancellationReason  String?
@@ -214,6 +221,12 @@ model OrderCombination {
   unitPriceCents Int // dish price + chosen option prices (+ size surcharges)
   totalCents     Int // unitPriceCents × quantity
   choices        OrderChoice[]
+  startedAt      DateTime?
+  startedById    Int?
+  startedBy      Staff?        @relation("UnitStartedBy", fields: [startedById], references: [id])
+  doneAt         DateTime?
+  doneById       Int?
+  doneBy         Staff?        @relation("UnitDoneBy", fields: [doneById], references: [id])
 
   @@unique([lineId, signature])
 }

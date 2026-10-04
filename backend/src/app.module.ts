@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { CatalogueModule } from './catalogue/catalogue.module.js';
 import { MenuModule } from './menu/menu.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { KitchenModule } from './kitchen/kitchen.module.js';
 import { PricingModule } from './pricing/pricing.module.js';
 import { ReferenceDataModule } from './reference-data/reference-data.module.js';
 import { SettingsModule } from './settings/settings.module.js';
@@ -16,7 +17,7 @@ import { AppService } from './app.service.js';
 import { HealthController } from './health.controller.js';
 
 @Module({
-  imports: [PrismaModule, AuthModule, SettingsModule, ReferenceDataModule, StaffModule, CompaniesModule, EmployeesModule, CatalogueModule, PricingModule, MenuModule, OrdersModule, DemoModule],
+  imports: [PrismaModule, AuthModule, SettingsModule, ReferenceDataModule, StaffModule, CompaniesModule, EmployeesModule, CatalogueModule, PricingModule, MenuModule, OrdersModule, KitchenModule, DemoModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
