@@ -28,13 +28,13 @@ function CutoffPanel({ onProcessed }: { onProcessed: () => void }) {
     setBusy(date); setMessage(""); setError("");
     try {
       const result = await apiJson<{ confirmed: number; cancelled: number }>("/orders/cutoff/run", sendJson("POST", { deliveryDate: date }));
-      setMessage(`${formatDay(date)}: ${result.confirmed} confirmed, ${result.cancelled} draft(s) cancelled.${result.confirmed + result.cancelled === 0 ? " (Already processed: running it again changes nothing.)" : ""}`);
+      setMessage(`${formatDay(date)}: ${result.confirmed} confirmed, ${result.cancelled} draft(s) cancelled.${result.confirmed + result.cancelled === 0 ? " (Already processed.)" : ""}`);
       reload(); onProcessed();
     } catch (caught) { setError(messageOf(caught, "Could not process the cut-off.")); }
     finally { setBusy(""); }
   }
   return <details className="panel">
-    <summary><strong>Cut-off processing</strong> <span className="hint">— drafts are cancelled and placed orders confirmed when a date&apos;s cut-off passes (automatic every minute)</span></summary>
+    <summary>Cut-off processing <span className="hint" title="Drafts are cancelled and placed orders confirmed when a date's cut-off passes (automatic every minute)">· runs automatically</span></summary>
     {message ? <p className="success-text" style={{ marginTop: 12 }}>{message}</p> : null}{error ? <p className="form-error" style={{ marginTop: 12 }}>{error}</p> : null}
     <div className="table-wrap" style={{ marginTop: 12 }}><table className="data-table"><thead><tr><th>Delivery</th><th>Cut-off</th><th>Draft</th><th>Placed</th><th>Confirmed</th><th>Delivered</th><th>Cancelled / rejected</th><th>Last run</th><th /></tr></thead><tbody>
       {data?.map((day) => <tr key={day.deliveryDate}>
@@ -63,12 +63,12 @@ function OrdersContent() {
   const toggleStatus = (status: OrderStatus) => reset(() => setStatuses(statuses.includes(status) ? statuses.filter((entry) => entry !== status) : [...statuses, status]));
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Operations</p><h1>Orders</h1></div><Link className="primary-button" href="/orders/new">New order</Link></div>
+    <div className="page-heading"><h1>Orders</h1><Link className="primary-button" href="/orders/new">New order</Link></div>
     <CutoffPanel onProcessed={() => setRefresh((value) => value + 1)} />
     <section className="panel">
       <div className="toolbar">
-        <label>Delivery from<input onChange={(event) => reset(() => setFrom(event.target.value))} type="date" value={from} /></label>
-        <label>to<input onChange={(event) => reset(() => setTo(event.target.value))} type="date" value={to} /></label>
+        <label>From<input onChange={(event) => reset(() => setFrom(event.target.value))} type="date" value={from} /></label>
+        <label>To<input onChange={(event) => reset(() => setTo(event.target.value))} type="date" value={to} /></label>
         <label>Company<select onChange={(event) => reset(() => setCompanyId(event.target.value))} value={companyId}><option value="">All companies</option>{companies?.items.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
         <label>Invoiced<select onChange={(event) => reset(() => setInvoiced(event.target.value))} value={invoiced}><option value="">Any</option><option value="true">On an invoice</option><option value="false">Not invoiced</option></select></label>
         <label>Search<input onChange={(event) => reset(() => setSearch(event.target.value))} placeholder="Employee or #order" value={search} /></label>

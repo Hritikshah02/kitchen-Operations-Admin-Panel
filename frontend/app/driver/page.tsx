@@ -40,7 +40,7 @@ function DriverContent() {
   const { data, error, loading, reload } = useResource<DriverDrops>("/driver/drops", tick);
   useEffect(() => { const timer = window.setInterval(() => setTick((value) => value + 1), 30_000); return () => window.clearInterval(timer); }, []);
   return <AppShell><main className="content-page driver-page">
-    <div className="page-heading"><div><p className="eyebrow">Driver</p><h1>My drops today</h1>{data ? <p className="hint">{formatDay(data.date)} · {data.drops.length} drop{data.drops.length === 1 ? "" : "s"}</p> : null}</div></div>
+    <div className="page-heading"><div><h1>My drops today</h1>{data ? <p className="muted">{formatDay(data.date)} · {data.drops.length} drop{data.drops.length === 1 ? "" : "s"}</p> : null}</div></div>
     {error ? <p className="form-error">{error}</p> : null}{loading && !data ? <p className="muted">Loading your drops...</p> : null}
     {data?.drops.map((drop) => <section className="panel driver-drop" key={drop.id}>
       <div className="panel-heading"><strong className="drop-time">{drop.deliveryTime}</strong><span className={`badge ${drop.status === "DELIVERED" ? "green" : drop.status === "OUT_FOR_DELIVERY" ? "amber" : "grey"}`}>{STATUS[drop.status]}</span></div>

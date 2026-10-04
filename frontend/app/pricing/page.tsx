@@ -42,7 +42,7 @@ function TierForm({ tier, tiers, onDone }: { tier: PriceTier | null; tiers: Pric
         <label>Adjust by (%)<input inputMode="decimal" onChange={(event) => setValue(event.target.value)} placeholder="15 or -8" required value={value} /></label>
       </> : null}
     </div>
-    <p className="hint">Derived prices round up to the next 5 cents ($2.11 → $2.15). Individual prices can still be overridden or marked not sold on the tier grid. Price changes only affect orders placed afterwards.</p>
+    <p className="hint">Derived prices round up to the next 5 cents. Changes only affect later orders.</p>
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
     <div className="form-actions"><button className="primary-button" type="submit">Save tier</button><button className="secondary-button" onClick={() => onDone("")} type="button">Cancel</button></div>
   </fieldset></form>;
@@ -58,8 +58,8 @@ function PricingContent() {
     catch (caught) { setActionError(messageOf(caught, "Could not change the default tier.")); }
   }
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Pricing</h1></div><button className="primary-button" onClick={() => setEditing("new")} type="button">New tier</button></div>
-    <p className="hint">Each company is on a tier (or the default tier). A dish with no price on an employee&apos;s tier does not appear on their menu at all.</p>
+    <div className="page-heading"><h1>Pricing</h1><button className="primary-button" onClick={() => setEditing("new")} type="button">New tier</button></div>
+    <p className="muted">A dish with no price on a tier is hidden from that menu.</p>
     {editing && tiers ? <TierForm key={editing === "new" ? "new" : editing.id} onDone={done} tier={editing === "new" ? null : editing} tiers={tiers} /> : null}
     {error || actionError ? <p className="form-error">{error || actionError}</p> : null}{notice ? <p className="success-text">{notice}</p> : null}
     <div className="table-wrap"><table className="data-table"><thead><tr><th>Tier</th><th>Pricing</th><th>Companies</th><th>Dishes without a price</th><th>Options without a price</th><th /></tr></thead><tbody>

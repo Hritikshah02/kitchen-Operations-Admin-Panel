@@ -41,7 +41,7 @@ function StaffContent() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Staff &amp; roles</h1></div></div>
+    <h1>Staff &amp; roles</h1>
 
     <form className="panel" onSubmit={create}>
       <div className="panel-heading"><h2>Add staff account</h2><span className="hint">Each staff member has exactly one role</span></div>
@@ -88,7 +88,7 @@ function StaffContent() {
     </section>
 
     <section className="panel">
-      <div className="panel-heading"><h2>Roles</h2><span className="hint">A role is a named set of capabilities; the server checks capabilities, never role names.</span></div>
+      <div className="panel-heading"><h2>Roles</h2><span className="hint">A role is a named set of capabilities.</span></div>
       <div className="table-wrap"><table className="data-table"><thead><tr><th>Role</th><th>Active staff</th><th>Capabilities</th></tr></thead><tbody>
         {roles?.map((role) => <tr key={role.id}><td><strong>{role.label}</strong></td><td>{role.activeStaff}</td><td className="muted">{role.capabilities.join(", ")}</td></tr>)}
       </tbody></table></div>

@@ -129,13 +129,13 @@ export function OrderBuilder({ order, initialLines = [] }: { order?: OrderDetail
   return <div className="builder">
     <div className="builder-main">
       <section className="panel">
-        <h2>Who and when</h2>
+        <h2>Employee and date</h2>
         {order ? <p><strong>{order.employee.name}</strong> · {order.company.name}</p> : <EmployeePicker onChange={(picked) => { setEmployee(picked ? { ...picked, companyId: picked.company.id } : null); setLines([]); setQuote(null); setAddressId(undefined); setDeliveryTime(undefined); setPackagingTypeId(undefined); }} value={employee?.id ?? null} />}
         <div className="form-grid">
           <label>Delivery date<input onChange={(event) => setDeliveryDate(event.target.value)} required type="date" value={deliveryDate} /><span className="hint">{formatDay(deliveryDate)}</span></label>
           {quote ? <p className={quote.pastCutoff ? "notice" : "hint"}>{quote.pastCutoff ? "Cut-off passed " : "Orders for this date lock "}{formatInstant(quote.cutoffAt)}{quote.pastCutoff ? ": only an admin can add or change orders; placing confirms immediately." : "."}</p> : null}
         </div>
-        {menu?.employee.allergens.length ? <p className="notice">{menu.employee.name} is allergic to <strong>{menu.employee.allergens.map((allergen) => allergen.name).join(", ")}</strong>. Items containing these are marked ⚠.</p> : null}
+        {menu?.employee.allergens.length ? <p className="notice">{menu.employee.name} is allergic to <strong>{menu.employee.allergens.map((allergen) => allergen.name).join(", ")}</strong>. Affected items are marked ⚠.</p> : null}
       </section>
 
       {employee && company ? <section className="panel">
@@ -143,18 +143,18 @@ export function OrderBuilder({ order, initialLines = [] }: { order?: OrderDetail
         <div className="form-grid">
           <label>Address<select disabled={!employee.canChooseAddress} onChange={(event) => setAddressId(Number(event.target.value))} value={addressId ?? company.addresses.find((address) => address.isDefault)?.id ?? ""}>
             {company.addresses.filter((address) => address.isActive).map((address) => <option key={address.id} value={address.id}>{address.label}{address.isDefault ? " (default)" : ""}</option>)}
-          </select>{!employee.canChooseAddress ? <span className="hint">Company default: this employee can&apos;t choose</span> : null}</label>
-          <label>Time<input disabled={!employee.canChangeDeliveryTime} max={company.deliveryWindowEnd} min={company.deliveryWindowStart} onChange={(event) => setDeliveryTime(event.target.value)} type="time" value={deliveryTime ?? company.defaultDeliveryTime} /><span className="hint">{employee.canChangeDeliveryTime ? `Within ${company.deliveryWindowStart}–${company.deliveryWindowEnd}` : "Company default: this employee can't change it"}</span></label>
+          </select>{!employee.canChooseAddress ? <span className="hint">Fixed to company default</span> : null}</label>
+          <label>Time<input disabled={!employee.canChangeDeliveryTime} max={company.deliveryWindowEnd} min={company.deliveryWindowStart} onChange={(event) => setDeliveryTime(event.target.value)} type="time" value={deliveryTime ?? company.defaultDeliveryTime} /><span className="hint">{employee.canChangeDeliveryTime ? `Within ${company.deliveryWindowStart}–${company.deliveryWindowEnd}` : "Fixed to company default"}</span></label>
           <label>Packaging<select disabled={!employee.canChangePackaging} onChange={(event) => setPackagingTypeId(Number(event.target.value))} value={packagingTypeId ?? company.defaultPackagingTypeId ?? ""}>
             <option disabled value="">None</option>{packaging?.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
-          </select>{!employee.canChangePackaging ? <span className="hint">Company default: this employee can&apos;t change it</span> : null}</label>
+          </select>{!employee.canChangePackaging ? <span className="hint">Fixed to company default</span> : null}</label>
         </div>
         <label>Notes for the kitchen<input maxLength={500} onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
       </section> : null}
 
       {employee ? <section className="panel">
         <div className="panel-heading"><h2>{menu ? `${menu.employee.name}'s menu` : "Menu"}</h2>{menu ? <span className="hint">{menu.tier.name} prices</span> : null}</div>
-        <input aria-label="Search the menu" onChange={(event) => setSearch(event.target.value)} placeholder="Search by name or SKU (also finds secret items)" value={search} />
+        <input aria-label="Search the menu" onChange={(event) => setSearch(event.target.value)} placeholder="Search by name or SKU" value={search} />
         {browse.map((category) => <div key={category.id}><p className="eyebrow" style={{ margin: "10px 0 6px" }}>{category.name}</p>
           <div className="table-wrap"><table className="data-table"><tbody>{category.items.map((dish) => <tr key={dish.id}>
             <td><strong>{dish.name}</strong> <span className="hint">{dish.sku}</span>{dish.allergyConflicts.length ? <span className="badge red" style={{ marginLeft: 6 }}>⚠ {dish.allergyConflicts.map((allergen) => allergen.name).join(", ")}</span> : null}{dish.minOrderQty > 1 ? <span className="hint"> · min {dish.minOrderQty}</span> : null}</td>

@@ -39,15 +39,15 @@ function CompanyBilling() {
 
   return <AppShell><main className="content-page wide">
     <BackLink href="/billing" label="Back to billing" />
-    <div className="page-heading"><div><p className="eyebrow">Billing</p><h1>{company?.name ?? "Company"}</h1></div></div>
+    <h1>{company?.name ?? "Company"}</h1>
     {error ? <p className="form-error">{error}</p> : null}{message ? <p aria-live="polite" className="form-error">{message}</p> : null}
     <section className="panel">
-      <h2>Confirmed orders not yet invoiced</h2>
+      <h2>Not yet invoiced</h2>
       <div className="toolbar">
-        <label>Delivery from<input onChange={(event) => { setFrom(event.target.value); setPage(1); }} type="date" value={from} /></label>
-        <label>to<input onChange={(event) => { setTo(event.target.value); setPage(1); }} type="date" value={to} /></label>
+        <label>From<input onChange={(event) => { setFrom(event.target.value); setPage(1); }} type="date" value={from} /></label>
+        <label>To<input onChange={(event) => { setTo(event.target.value); setPage(1); }} type="date" value={to} /></label>
       </div>
-      {data?.openCredits.length ? <p className="notice">Credits owed to this company ({formatCents(data.openCredits.reduce((sum, credit) => sum + credit.amountCents, 0))}) will be taken off the next invoice automatically, without taking it below zero.</p> : null}
+      {data?.openCredits.length ? <p className="notice">Credits owed to this company ({formatCents(data.openCredits.reduce((sum, credit) => sum + credit.amountCents, 0))}) will be taken off the next invoice.</p> : null}
       <div className="table-wrap"><table className="data-table"><thead><tr>
         <th><input aria-label="Select all" checked={allSelected} onChange={() => setSelected(allSelected ? selected.filter((orderId) => !pageIds.includes(orderId)) : [...new Set([...selected, ...pageIds])])} type="checkbox" /></th>
         <th>Order</th><th>Delivery</th><th>Employee</th><th>Status</th><th>Total</th><th>Credited</th><th>To invoice</th></tr></thead><tbody>

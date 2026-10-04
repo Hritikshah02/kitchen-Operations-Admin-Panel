@@ -67,14 +67,13 @@ function KitchenContent() {
   const canUpdate = can(staff, Capability.KITCHEN_BOARD_UPDATE); const canForce = canUpdate && can(staff, Capability.ORDERS_OVERRIDE);
   const stationLabel = (id: number | null) => (id === null ? "unassigned" : String(id));
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Operations</p><h1>Kitchen board</h1><p className="hint">Confirmed orders for the day, as prep units. Times are {board?.timezone ?? "Asia/Kolkata"}.</p></div>
+    <div className="page-heading"><div><h1>Kitchen board</h1><p className="muted">{formatDay(date)}{board ? ` · updated ${formatInstant(board.now)}` : ""}</p></div>
       <div className="form-actions">
         <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, -1)))} type="button">←</button>
         <input aria-label="Delivery date" onChange={(event) => event.target.value && reset(() => setDate(event.target.value))} type="date" value={date} />
         <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, 1)))} type="button">→</button>
         <button className="secondary-button" onClick={() => reset(() => setDate(kitchenToday()))} type="button">Today</button>
       </div></div>
-    <p className="hint">{formatDay(date)}{board ? ` · updated ${formatInstant(board.now)}` : ""} · refreshes every 30 seconds</p>
     {board ? <div className="stat-row">
       <div className="stat"><span>Orders</span><strong>{board.totals.orders}</strong></div>
       <div className="stat"><span>Kitchen ready</span><strong>{board.totals.ready}</strong></div>
@@ -91,14 +90,14 @@ function KitchenContent() {
         <label>Order timing<select onChange={(event) => reset(() => setTiming(event.target.value))} value={timing}><option value="">Any</option><option value="LATE">Late</option><option value="AT_RISK">At risk</option><option value="ON_TRACK">On track</option><option value="DONE">Kitchen ready</option></select></label>
       </div>
     </section>
-    {board?.prep.length ? <details className="panel"><summary><strong>Prep totals</strong> <span className="hint">— what to cook in total for this view ({board.prep.reduce((sum, entry) => sum + entry.remaining, 0)} portions still to do)</span></summary>
+    {board?.prep.length ? <details className="panel"><summary>Prep totals <span className="hint">· {board.prep.reduce((sum, entry) => sum + entry.remaining, 0)} portions still to do</span></summary>
       <div className="table-wrap" style={{ marginTop: 12 }}><table className="data-table"><thead><tr><th>Dish</th><th>Choices</th><th>Total</th><th>Still to do</th></tr></thead><tbody>
         {board.prep.map((entry) => <tr key={`${entry.stationId}-${entry.sku}-${entry.choices}`}><td>{entry.dish}</td><td className="muted">{entry.choices || "—"}</td><td>{entry.total}</td><td><strong>{entry.remaining}</strong></td></tr>)}
       </tbody></table></div></details> : null}
     {error ? <p className="form-error">{error}</p> : null}{actionError ? <p aria-live="polite" className="form-error">{actionError}</p> : null}
     {loading && !board ? <p className="muted">Loading the board...</p> : null}
     {board?.orders.items.map((card) => <OrderCard busy={busy} canForce={canForce} canUpdate={canUpdate} card={card} key={card.orderId} onAct={(path) => void act(path)} />)}
-    {board && !board.orders.items.length ? <p className="muted">{board.totals.orders ? "Nothing matches these filters." : "No confirmed orders for this date. Orders are confirmed when their cut-off passes."}</p> : null}
+    {board && !board.orders.items.length ? <p className="muted">{board.totals.orders ? "Nothing matches these filters." : "No confirmed orders for this date."}</p> : null}
     {board ? <Pagination noun="orders" onPage={setPage} page={board.orders.page} pageSize={board.orders.pageSize} total={board.orders.total} /> : null}
   </main></AppShell>;
 }

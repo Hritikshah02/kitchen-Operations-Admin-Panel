@@ -43,7 +43,7 @@ function ReferenceList({ kind, hint }: { kind: string; hint: string }) {
   const setActive = (item: Item, isActive: boolean) => run(() => apiJson(`/reference-data/${kind}/${item.id}`, sendJson("PATCH", { isActive })), "Could not update item.");
 
   return <section className="panel">
-    <p className="hint">{hint} Items are never deleted, only deactivated, so past orders keep their meaning.</p>
+    <p className="hint">{hint} Items are deactivated, never deleted.</p>
     <form className="form-grid" onSubmit={create}>
       <label>Name<input disabled={busy} maxLength={60} onChange={(event) => setDraft({ ...draft, name: event.target.value })} required value={draft.name} /></label>
       <label>Description<input disabled={busy} maxLength={240} onChange={(event) => setDraft({ ...draft, description: event.target.value })} value={draft.description} /></label>
@@ -73,7 +73,7 @@ function ReferenceList({ kind, hint }: { kind: string; hint: string }) {
 function ReferenceDataContent() {
   const [active, setActive] = useState<(typeof KINDS)[number]>(KINDS[0]);
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Reference data</h1></div></div>
+    <h1>Reference data</h1>
     <div className="tabs" role="tablist">{KINDS.map((entry) => <button aria-selected={entry.kind === active.kind} className={entry.kind === active.kind ? "tab active" : "tab"} key={entry.kind} onClick={() => setActive(entry)} role="tab" type="button">{entry.label}</button>)}</div>
     <ReferenceList hint={active.hint} key={active.kind} kind={active.kind} />
   </main></AppShell>;

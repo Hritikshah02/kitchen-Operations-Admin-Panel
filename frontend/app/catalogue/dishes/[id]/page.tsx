@@ -68,7 +68,7 @@ function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; 
 
   return <form className="form-stack" onSubmit={save}>
     <div className="page-heading">
-      <div><p className="eyebrow">Catalogue</p><h1>{dish ? dish.name : "New dish"}</h1></div>
+      <div><h1>{dish ? dish.name : "New dish"}</h1></div>
       {dish ? <div className="form-actions">{dish.isActive ? <span className="badge green">Active</span> : <span className="badge grey">Deactivated</span>}<button className={dish.isActive ? "danger-button" : "secondary-button"} disabled={busy} onClick={() => void toggleActive()} type="button">{dish.isActive ? "Deactivate" : "Reactivate"}</button></div> : null}
     </div>
     {dish && !dish.isActive ? <p className="notice">Deactivated dishes stay on past orders but can&apos;t be ordered.</p> : null}
@@ -91,8 +91,8 @@ function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; 
         <h2>Image</h2>
         {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary/stock URLs entered by staff */}
         {form.imageUrl ? <img alt={form.name} src={form.imageUrl} style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 6 }} /> : <p className="muted">No image yet.</p>}
-        {images?.uploadsEnabled ? <label>{form.imageUrl ? "Replace image" : "Upload image"}<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG/PNG/WebP under 10 MB, stored on Cloudinary. Saved with the dish."}</span></label>
-          : <p className="hint">Uploads are off until CLOUDINARY_URL is configured on the server.</p>}
+        {images?.uploadsEnabled ? <label>{form.imageUrl ? "Replace image" : "Upload image"}<input accept="image/*" disabled={uploading} onChange={(event) => void onFile(event.target.files?.[0])} type="file" /><span className="hint">{uploading ? "Uploading..." : "JPG, PNG or WebP under 10 MB."}</span></label>
+          : <p className="hint">Image uploads are not configured.</p>}
         {form.imageUrl ? <div className="form-actions"><button className="secondary-button" onClick={() => setForm({ ...form, imageUrl: "" })} type="button">Remove image</button></div> : null}
         <ChipSelect legend="Allergens" onChange={setAllergenIds} options={allergens ?? []} value={allergenIds} />
         <ChipSelect legend="Dietary tags" onChange={setTagIds} options={tags ?? []} value={tagIds} />
@@ -100,7 +100,7 @@ function DishForm({ dish, onChanged, initialNotice = "" }: { dish: Dish | null; 
     </div>
     <fieldset className="panel" disabled={busy}>
       <h2>Option groups</h2>
-      <p className="hint">Shown to the customer in this order. Groups are shared: edit their options on the Catalogue → Option groups tab.</p>
+      <p className="hint">Groups are shared: edit their options under Catalogue → Option groups.</p>
       <div className="table-wrap"><table className="data-table"><tbody>
         {groupIds.map((id, index) => { const group = groups?.find((entry) => entry.id === id); return <tr key={id}>
           <td>{index + 1}. <strong>{groupName(id)}</strong> {group ? (group.required ? <span className="badge amber">Required</span> : <span className="badge grey">Optional</span>) : null}</td>

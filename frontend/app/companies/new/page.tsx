@@ -47,18 +47,18 @@ function NewCompanyContent() {
 
   return <AppShell><main className="content-page wide">
     <BackLink href="/companies" label="Back to companies" />
-    <div className="page-heading"><div><p className="eyebrow">Companies</p><h1>New company</h1></div></div>
+    <h1>New company</h1>
     <form className="form-stack" onSubmit={submit}><div className="section-grid">
       <fieldset className="panel" disabled={busy}>
         <h2>Company</h2>
         <label>Name<input maxLength={120} onChange={set("name")} required value={form.name} /></label>
-        <label>Email domains<input onChange={set("domains")} placeholder="acme.in, acme.com" required value={form.domains} /><span className="hint">Comma-separated. Must be unique to this company; public providers like gmail.com are not allowed.</span></label>
+        <label>Email domains<input onChange={set("domains")} placeholder="acme.in, acme.com" required value={form.domains} /><span className="hint">Comma-separated; unique to this company, no public providers.</span></label>
         <h2>Billing contact</h2>
         <label>Name<input maxLength={80} onChange={set("billingContactName")} required value={form.billingContactName} /></label>
         <label>Email<input onChange={set("billingContactEmail")} required type="email" value={form.billingContactEmail} /></label>
         <label>Phone<input onChange={set("billingContactPhone")} placeholder="+91 90000 01101" value={form.billingContactPhone} /></label>
         <h2>Owner</h2>
-        <p className="hint">The owner is created as the company&apos;s first employee, so their email must use one of the domains above.</p>
+        <p className="hint">Created as the first employee; email must use a domain above.</p>
         <label>Name<input maxLength={80} onChange={set("ownerName")} required value={form.ownerName} /></label>
         <label>Email<input onChange={set("ownerEmail")} required type="email" value={form.ownerEmail} /></label>
       </fieldset>

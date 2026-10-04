@@ -19,9 +19,16 @@ export function ChipSelect({ legend, options, value, onChange, disabled }: { leg
   </fieldset>;
 }
 
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "?";
+
+/** Initials in a circle; decorative, the name is always shown next to it. */
+export function Avatar({ name, small }: { name: string; small?: boolean }) {
+  return <span aria-hidden="true" className={small ? "avatar sm" : "avatar"}>{initials(name)}</span>;
+}
+
 export function Pagination({ page, pageSize, total, noun, onPage }: { page: number; pageSize: number; total: number; noun: string; onPage: (page: number) => void }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  return <div className="pagination"><span>{total} {noun} · page {page} of {pages}</span><div className="form-actions">
+  return <div className="pagination"><span>{total} {noun}{pages > 1 ? ` · page ${page} of ${pages}` : ""}</span><div className="form-actions">
     <button className="secondary-button" disabled={page <= 1} onClick={() => onPage(page - 1)} type="button">Previous</button>
     <button className="secondary-button" disabled={page >= pages} onClick={() => onPage(page + 1)} type="button">Next</button>
   </div></div>;

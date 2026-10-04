@@ -39,7 +39,7 @@ function ProfileSection({ company, employees, mutate, busy }: { company: Company
     <h2>Profile &amp; billing</h2>
     <label>Company name<input maxLength={120} onChange={set("name")} required value={form.name} /></label>
     <label>Owner<select onChange={set("ownerId")} required value={form.ownerId}><option value="">Choose an employee</option>{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select><span className="hint">Must be an active employee of this company</span></label>
-    <label>Price tier<select onChange={set("priceTierId")} value={form.priceTierId}><option value="">Default tier ({tiers?.find((tier) => tier.isDefault)?.name ?? "..."})</option>{tiers?.map((tier) => <option key={tier.id} value={tier.id}>{tier.name}</option>)}</select><span className="hint">Sets the prices this company&apos;s employees see; changes apply to new orders only</span></label>
+    <label>Price tier<select onChange={set("priceTierId")} value={form.priceTierId}><option value="">Default tier ({tiers?.find((tier) => tier.isDefault)?.name ?? "..."})</option>{tiers?.map((tier) => <option key={tier.id} value={tier.id}>{tier.name}</option>)}</select><span className="hint">New orders only</span></label>
     <label>Billing contact<input maxLength={80} onChange={set("billingContactName")} required value={form.billingContactName} /></label>
     <label>Billing email<input onChange={set("billingContactEmail")} required type="email" value={form.billingContactEmail} /></label>
     <label>Billing phone<input onChange={set("billingContactPhone")} value={form.billingContactPhone} /></label>
@@ -65,14 +65,14 @@ function DeliverySection({ company, mutate, busy }: { company: CompanyDetail; mu
   return <form className="panel" onSubmit={save}><fieldset className="panel-fieldset" disabled={busy}>
     <h2>Delivery defaults</h2>
     <WeekdayPicker legend="Accepts deliveries on" onChange={(workingDays) => setForm({ ...form, workingDays })} value={form.workingDays} />
-    <p className="hint">Orders can only be placed for days the kitchen is open and the company accepts deliveries. The company calendar never moves the cut-off.</p>
+    <p className="hint">Orders only for days the kitchen is open and the company accepts deliveries.</p>
     <div className="form-grid">
       <label>Window from<input onChange={set("deliveryWindowStart")} required type="time" value={form.deliveryWindowStart} /></label>
       <label>Window to<input onChange={set("deliveryWindowEnd")} required type="time" value={form.deliveryWindowEnd} /></label>
       <label>Default time<input onChange={set("defaultDeliveryTime")} required type="time" value={form.defaultDeliveryTime} /></label>
       <label>Leaves kitchen (min before)<input min={0} max={480} onChange={set("dispatchLeadMinutes")} required type="number" value={form.dispatchLeadMinutes} /></label>
     </div>
-    <p className="hint">Employees allowed to change the delivery time pick inside the window.</p>
+    <p className="hint">Employees who may change the time pick inside the window.</p>
     <div className="form-grid">
       <label>Default packaging<select onChange={set("defaultPackagingTypeId")} value={form.defaultPackagingTypeId}><option value="">None</option>{packaging?.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>
       <label>Default driver<select onChange={set("defaultDriverId")} value={form.defaultDriverId}><option value="">None</option>{drivers?.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>
@@ -91,7 +91,7 @@ function DomainsSection({ company, mutate, busy }: { company: CompanyDetail; mut
   };
   return <section className="panel">
     <h2>Email domains</h2>
-    <p className="hint">Employee emails must use one of these. A domain can belong to only one company.</p>
+    <p className="hint">Employee emails must use one of these; each domain belongs to one company.</p>
     <div className="table-wrap"><table className="data-table"><tbody>
       {company.domains.map((entry) => <tr key={entry.id}><td>@{entry.domain}</td><td><div className="row-actions"><button className="danger-button" disabled={busy || company.domains.length < 2} onClick={() => void mutate(() => apiJson(`/companies/${company.id}/domains/${entry.id}`, sendJson("DELETE")), `@${entry.domain} removed.`)} type="button">Remove</button></div></td></tr>)}
     </tbody></table></div>
@@ -110,7 +110,7 @@ function AddressesSection({ company, mutate, busy }: { company: CompanyDetail; m
   };
   return <section className="panel">
     <div className="panel-heading"><h2>Delivery addresses</h2>{!adding ? <button className="secondary-button" onClick={() => setAdding(true)} type="button">Add address</button> : null}</div>
-    <p className="hint">Orders go to the default address unless the employee may choose another active one. Addresses are deactivated, never deleted, so past orders keep theirs.</p>
+    <p className="hint">Orders go to the default address unless the employee may choose another.</p>
     <div className="table-wrap"><table className="data-table"><thead><tr><th>Label</th><th>Address</th><th>Status</th><th /></tr></thead><tbody>
       {company.addresses.map((address) => <tr className={address.isActive ? "" : "inactive"} key={address.id}>
         <td><strong>{address.label}</strong></td>
@@ -142,7 +142,7 @@ function HolidaysSection({ company, mutate, busy }: { company: CompanyDetail; mu
   };
   return <section className="panel">
     <h2>Company holidays</h2>
-    <p className="hint">No deliveries to this company on these dates. Kitchen holidays are managed in Settings.</p>
+    <p className="hint">No deliveries on these dates. Kitchen holidays are in Settings.</p>
     {company.holidays.length ? <div className="table-wrap"><table className="data-table"><tbody>
       {company.holidays.map((holiday) => <tr key={holiday.id}><td>{formatDate(holiday.date)}</td><td>{holiday.name}</td><td><div className="row-actions"><button className="danger-button" disabled={busy} onClick={() => void mutate(() => apiJson(`/companies/${company.id}/holidays/${holiday.id}`, sendJson("DELETE")), `${holiday.name} removed.`)} type="button">Remove</button></div></td></tr>)}
     </tbody></table></div> : <p className="muted">No company holidays.</p>}
@@ -193,7 +193,7 @@ function VisibilitySection({ company, mutate, busy }: { company: CompanyDetail; 
   const save = async () => { if (await mutate(() => apiJson(`/menu/visibility/${company.id}`, sendJson("PUT", current)), "Menu visibility saved.")) { setDraft(null); reload(); } };
   return <section className="panel">
     <div className="panel-heading"><h2>Menu visibility</h2><div className="form-actions">{draft ? <button className="secondary-button" onClick={() => setDraft(null)} type="button">Discard</button> : null}<button className="primary-button" disabled={busy || !draft} onClick={() => void save()} type="button">Save visibility</button></div></div>
-    <p className="hint">Hidden categories and dishes never appear for this company&apos;s employees, not even through search. Preview the result from Menu → Preview.</p>
+    <p className="hint">Hidden items never appear for this company&apos;s employees. Preview under Menu.</p>
     <ChipSelect legend="Hidden categories" onChange={(hiddenCategoryIds) => setDraft({ ...current, hiddenCategoryIds })} options={categories.map((category) => ({ id: category.id, name: category.name }))} value={current.hiddenCategoryIds} />
     <ChipSelect legend="Hidden dishes" onChange={(hiddenDishIds) => setDraft({ ...current, hiddenDishIds })} options={dishes.map((dish) => ({ id: dish.id, name: dish.name }))} value={current.hiddenDishIds} />
   </section>;
@@ -222,7 +222,7 @@ function CompanyContent() {
   return <AppShell><main className="content-page wide">
     <BackLink href="/companies" label="Back to companies" />
     <div className="page-heading">
-      <div><p className="eyebrow"><Link className="link" href="/companies">Companies</Link></p><h1>{company.name}</h1></div>
+      <div><h1>{company.name}</h1></div>
       <div className="form-actions">{company.isActive ? <span className="badge green">Active</span> : <span className="badge grey">Deactivated</span>}<button className={company.isActive ? "danger-button" : "secondary-button"} disabled={busy} onClick={() => void toggleActive()} type="button">{company.isActive ? "Deactivate company" : "Reactivate company"}</button></div>
     </div>
     {!company.owner ? <p className="notice">This company has no owner yet. Add an employee, then pick them as owner.</p> : null}

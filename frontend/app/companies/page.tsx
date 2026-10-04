@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AppShell } from "../components/app-shell";
-import { Pagination } from "../components/form-controls";
+import { Avatar, Pagination } from "../components/form-controls";
 import { ProtectedPage } from "../components/protected-page";
 import { Capability } from "../lib/capabilities";
 import type { CompanySummary, Page } from "../lib/types";
@@ -17,7 +17,7 @@ function CompaniesContent() {
   const { data, error, loading } = useResource<Page<CompanySummary>>(`/companies?${query}`);
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Companies</h1></div><Link className="primary-button" href="/companies/new">New company</Link></div>
+    <div className="page-heading"><h1>Companies</h1><Link className="primary-button" href="/companies/new">New company</Link></div>
     <section className="panel">
       <div className="toolbar">
         <label>Search<input onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Name or email domain" value={search} /></label>
@@ -26,7 +26,7 @@ function CompaniesContent() {
       {error ? <p className="form-error">{error}</p> : null}
       {loading && !data ? <p className="muted">Loading companies...</p> : <div className="table-wrap"><table className="data-table"><thead><tr><th>Company</th><th>Email domains</th><th>Owner</th><th>Default address</th><th>Employees</th><th>Delivery</th><th>Status</th></tr></thead><tbody>
         {data?.items.map((company) => <tr className={company.isActive ? "" : "inactive"} key={company.id}>
-          <td><Link className="link" href={`/companies/${company.id}`}>{company.name}</Link></td>
+          <td><div className="cell-person"><Avatar name={company.name} small /><Link className="link" href={`/companies/${company.id}`}>{company.name}</Link></div></td>
           <td>{company.domains.map((domain) => `@${domain}`).join(", ")}</td>
           <td>{company.owner?.name ?? <span className="badge amber">No owner</span>}</td>
           <td>{company.defaultAddress ? `${company.defaultAddress.label}${company.defaultAddress.area ? `, ${company.defaultAddress.area}` : ""}` : <span className="badge amber">None</span>}</td>

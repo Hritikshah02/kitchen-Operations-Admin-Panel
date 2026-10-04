@@ -33,8 +33,8 @@ function MenuContent() {
   }
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Menu</h1></div><Link className="secondary-button" href="/menu/preview">Preview as an employee</Link></div>
-    <p className="hint">Categories and their dishes appear in this order. Secret categories aren&apos;t listed but their dishes can be found by searching when building an order. Hide categories or dishes for a company from that company&apos;s page.</p>
+    <div className="page-heading"><h1>Menu</h1><Link className="secondary-button" href="/menu/preview">Preview as an employee</Link></div>
+    <p className="muted">Categories and dishes appear in this order. Hide items per company from the company page.</p>
     {error || loadError ? <p aria-live="polite" className="form-error">{error || loadError}</p> : null}{notice ? <p className="success-text">{notice}</p> : null}
     <div className="section-grid" style={{ gridTemplateColumns: "minmax(300px, 1fr) minmax(360px, 1.4fr)" }}>
       <section className="panel">

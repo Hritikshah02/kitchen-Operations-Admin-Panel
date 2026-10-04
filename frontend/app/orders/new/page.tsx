@@ -9,7 +9,7 @@ import { Capability } from "../../lib/capabilities";
 export default function NewOrderPage() {
   return <ProtectedPage requires={[Capability.ORDERS_MANAGE]}><AppShell><main className="content-page wide">
     <BackLink href="/orders" label="Back to orders" />
-    <div className="page-heading"><div><p className="eyebrow">Orders</p><h1>New order</h1></div></div>
+    <h1>New order</h1>
     <OrderBuilder />
   </main></AppShell></ProtectedPage>;
 }

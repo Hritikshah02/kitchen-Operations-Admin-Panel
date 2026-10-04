@@ -66,14 +66,13 @@ function DispatchContent() {
     finally { setBusy(false); reload(); }
   }
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Operations</p><h1>Dispatch board</h1><p className="hint">Drops are orders for the same company, address and delivery time. Times are {board?.timezone ?? "Asia/Kolkata"}.</p></div>
+    <div className="page-heading"><div><h1>Dispatch board</h1><p className="muted">{formatDay(date)}{board ? ` · updated ${formatInstant(board.now)}` : ""}</p></div>
       <div className="form-actions">
         <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, -1)))} type="button">←</button>
         <input aria-label="Delivery date" onChange={(event) => event.target.value && reset(() => setDate(event.target.value))} type="date" value={date} />
         <button className="secondary-button" onClick={() => reset(() => setDate(shiftDay(date, 1)))} type="button">→</button>
         <button className="secondary-button" onClick={() => reset(() => setDate(kitchenToday()))} type="button">Today</button>
       </div></div>
-    <p className="hint">{formatDay(date)}{board ? ` · updated ${formatInstant(board.now)}` : ""} · refreshes every 30 seconds</p>
     {board ? <div className="stat-row">
       <div className="stat"><span>Drops</span><strong>{board.totals.drops}</strong></div>
       <div className="stat"><span>Out for delivery</span><strong>{board.totals.outForDelivery}</strong></div>
@@ -88,7 +87,7 @@ function DispatchContent() {
     {error ? <p className="form-error">{error}</p> : null}{actionError ? <p aria-live="polite" className="form-error">{actionError}</p> : null}
     {loading && !board ? <p className="muted">Loading the board...</p> : null}
     {board?.drops.items.map((drop) => <DropCard busy={busy} canUpdate={can(staff, Capability.DISPATCH_BOARD_UPDATE)} drivers={drivers ?? []} drop={drop} key={drop.id} onAct={(path, body) => void act(path, body)} />)}
-    {board && !board.drops.items.length ? <p className="muted">No drops match. Only confirmed orders appear here.</p> : null}
+    {board && !board.drops.items.length ? <p className="muted">No drops match.</p> : null}
     {board ? <Pagination noun="drops" onPage={setPage} page={board.drops.page} pageSize={board.drops.pageSize} total={board.drops.total} /> : null}
   </main></AppShell>;
 }

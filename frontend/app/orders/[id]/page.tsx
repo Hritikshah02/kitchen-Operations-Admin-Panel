@@ -28,8 +28,7 @@ function DeliveryOverride({ order, onDone }: { order: OrderDetail; onDone: (mess
     finally { setBusy(false); }
   }
   return <form className="panel" onSubmit={save}><fieldset className="panel-fieldset" disabled={busy}>
-    <h2>Admin override: delivery details</h2>
-    <p className="hint">Overrides ignore the employee&apos;s permissions. The kitchen and dispatch plans follow the new time.</p>
+    <h2>Override delivery details</h2>
     <div className="form-grid">
       <label>Time<input onChange={(event) => setTime(event.target.value)} required type="time" value={time} /></label>
       <label>Address<select onChange={(event) => setAddressId(event.target.value)} value={addressId}>{company?.addresses.filter((address) => address.isActive || address.id === order.addressId).map((address) => <option key={address.id} value={address.id}>{address.label}</option>)}</select></label>
@@ -57,7 +56,7 @@ function InvoicingPanel({ order, onChanged }: { order: OrderDetail; onChanged: (
     <p>{order.invoice ? <>On invoice {canBill ? <Link className="link" href={`/billing/invoices/${order.invoice.id}`}>{order.invoice.number}</Link> : order.invoice.number} <span className={`badge ${{ UNPAID: "amber", PAID: "green", VOID: "grey" }[order.invoice.status]}`}>{titleCase(order.invoice.status)}</span></> : <span className="muted">Not invoiced yet.</span>}</p>
     {order.credits.length ? <ul className="plain-list">{order.credits.map((credit) => <li key={credit.id}>Credit {formatCents(credit.amountCents)} · {titleCase(credit.kind.replace(/_/g, " "))}: {credit.reason} <span className="badge grey">{titleCase(credit.status)}</span></li>)}</ul> : null}
     {canBill && order.status === "DELIVERED" ? (open ? <div className="form-stack">
-      <p className="hint">Enter how many of each item did not arrive; the credit is that quantity × the unit price.</p>
+      <p className="hint">Enter how many of each item did not arrive.</p>
       {combinations.map((combination) => <label key={combination.id}>{combination.dish}{combination.choices.length ? ` (${combination.choices.map((choice) => choice.optionName).join(", ")})` : ""}: ordered {combination.quantity} at {formatCents(combination.unitPriceCents)}
         <input max={combination.quantity} min={0} onChange={(event) => setMissing({ ...missing, [combination.id!]: event.target.value })} placeholder="Missing" type="number" value={missing[combination.id!] ?? ""} /></label>)}
       <label>Reason<input maxLength={300} onChange={(event) => setReason(event.target.value)} placeholder="e.g. one box missing at delivery" value={reason} /></label>
@@ -93,7 +92,7 @@ function OrderContent() {
   return <AppShell><main className="content-page wide">
     <BackLink href="/orders" label="Back to orders" />
     <div className="page-heading">
-      <div><p className="eyebrow">Order #{order.id}</p><h1>{order.employee.name} <span className={`badge ${STATUS_TONE[order.status]}`}>{titleCase(order.status)}</span></h1></div>
+      <div><h1>Order #{order.id} <span className={`badge ${STATUS_TONE[order.status]}`}>{titleCase(order.status)}</span></h1><p className="muted">{order.employee.name} · {order.company.name}</p></div>
       <div className="form-actions">
         {order.permissions.edit ? <Link className="secondary-button" href={`/orders/${order.id}/edit`}>Edit</Link> : null}
         {order.permissions.place ? <button className="primary-button" disabled={busy} onClick={place} type="button">Place order</button> : null}
@@ -116,10 +115,10 @@ function OrderContent() {
         <dt>Cut-off</dt><dd>{formatInstant(order.cutoffAt)} {order.pastCutoff ? <span className="badge grey">passed</span> : <span className="badge amber">open</span>}</dd>
         {order.notes ? <><dt>Notes</dt><dd>{order.notes}</dd></> : null}
       </dl></section>
-      <section className="panel"><h2>Money</h2><dl className="kv">
+      <section className="panel"><h2>Summary</h2><dl className="kv">
         <dt>Price tier</dt><dd>{order.priceTier.name}</dd>
         <dt>Boxes</dt><dd>{boxes}</dd>
-        <dt>Total</dt><dd><strong>{formatCents(order.totalCents)}</strong> <span className="hint">(pre-tax, no delivery fee)</span></dd>
+        <dt>Total</dt><dd><strong>{formatCents(order.totalCents)}</strong> <span className="hint">pre-tax</span></dd>
         <dt>Employee</dt><dd>{order.employee.email}{order.employee.allergens.length ? <> · <span className="badge red">allergic: {order.employee.allergens.map((allergen) => allergen.name).join(", ")}</span></> : null}</dd>
         {order.allergyAcknowledged ? <><dt>Allergy</dt><dd><span className="badge amber">Acknowledged with employee</span></dd></> : null}
         <dt>Created by</dt><dd>{order.createdBy.name}</dd>
@@ -127,7 +126,7 @@ function OrderContent() {
     </div>
 
     <section className="panel">
-      <h2>Lines</h2>
+      <h2>Items</h2>
       <div className="table-wrap"><table className="data-table"><thead><tr><th>Dish</th><th>Combination</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>
         {order.lines.flatMap((line) => line.combinations.map((combination, index) => <tr key={`${line.id}-${combination.signature}`}>
           {index === 0 ? <td rowSpan={line.combinations.length}><strong>{line.dishName}</strong><div className="hint">{line.dishSku} · {line.quantity} × dish {formatCents(line.unitPriceCents)}</div></td> : null}
@@ -140,7 +139,6 @@ function OrderContent() {
 
     {order.status === "CONFIRMED" || order.kitchenStartedAt ? <section className="panel">
       <h2>Kitchen plan</h2>
-      <p className="hint">Worked back from the delivery time ({order.deliveryTime}); it moves if the time is overridden.</p>
       <p>Dispatch-ready by <strong>{formatTime(order.kitchen.plannedDispatchReadyAt)}</strong> · kitchen-ready by <strong>{formatTime(order.kitchen.plannedKitchenReadyAt)}</strong>
         {order.kitchen.timing ? <> <span className={`badge ${{ LATE: "red", AT_RISK: "amber", ON_TRACK: "grey", DONE: "green" }[order.kitchen.timing]}`}>{{ LATE: "Late", AT_RISK: "At risk", ON_TRACK: "On track", DONE: "Kitchen ready" }[order.kitchen.timing]}</span></> : null}</p>
       <p className="hint">Kitchen started {formatInstant(order.kitchenStartedAt)} · kitchen ready {formatInstant(order.kitchenReadyAt)}</p>

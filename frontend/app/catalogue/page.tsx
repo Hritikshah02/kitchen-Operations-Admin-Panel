@@ -70,7 +70,7 @@ function OptionForm({ option, onDone }: { option: CatalogueOption | null; onDone
       <label>Cost ($)<input inputMode="decimal" onChange={(event) => setCost(event.target.value)} placeholder="0.45" required value={cost} /></label>
       {sizes?.map((size) => <label key={size.id}>{size.name} surcharge ($)<input inputMode="decimal" onChange={(event) => setSurcharges({ ...surcharges, [size.id]: event.target.value })} placeholder="not sold" value={surcharges[size.id] ?? ""} /></label>)}
     </div>
-    <p className="hint">Surcharges are added on top of the option&apos;s tier price when it&apos;s sold in that size (same on every tier). Leave blank if the option isn&apos;t sold in that size; portioned groups require every size.</p>
+    <p className="hint">Surcharge per size, added to the option price on every tier. Portioned groups need every size.</p>
     <ChipSelect legend="Allergens" onChange={setAllergenIds} options={allergens ?? []} value={allergenIds} />
     <ChipSelect legend="Dietary tags" onChange={setTagIds} options={tags ?? []} value={tagIds} />
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
@@ -135,7 +135,7 @@ function GroupForm({ group, onDone }: { group: OptionGroup | null; onDone: (mess
 
   return <form className="panel" onSubmit={save}><fieldset className="panel-fieldset" disabled={busy}>
     <h2>{group ? `Edit ${group.name}` : "New option group"}</h2>
-    {group?.dishCount ? <p className="hint">Used by {group.dishCount} dish(es); changes apply to all of them.</p> : null}
+    {group?.dishCount ? <p className="hint">Used by {group.dishCount} dish(es); changes apply to all.</p> : null}
     <div className="form-grid">
       <label>Name<input maxLength={80} onChange={(event) => setName(event.target.value)} placeholder="Choose your protein" required value={name} /></label>
       <label>Minimum choices<input max={10} min={0} onChange={(event) => setMinSelect(event.target.value)} required type="number" value={minSelect} /><span className="hint">0 = optional, 1+ = required</span></label>
@@ -170,7 +170,7 @@ function GroupsTab() {
   return <>
     {editing ? <GroupForm group={editing === "new" ? null : editing} key={editing === "new" ? "new" : editing.id} onDone={done} /> : null}
     <section className="panel">
-      <div className="toolbar"><p className="hint">Reusable groups: define once, attach to any number of dishes.</p><button className="primary-button" onClick={() => setEditing("new")} style={{ marginLeft: "auto" }} type="button">New group</button></div>
+      <div className="toolbar"><p className="hint">Reusable option groups.</p><button className="primary-button" onClick={() => setEditing("new")} style={{ marginLeft: "auto" }} type="button">New group</button></div>
       {notice ? <p className="success-text">{notice}</p> : null}
       <div className="table-wrap"><table className="data-table"><thead><tr><th>Group</th><th>Choose</th><th>Portions</th><th>Options</th><th>Dishes</th><th /></tr></thead><tbody>
         {data?.map((group) => <tr className={group.isActive ? "" : "inactive"} key={group.id}>
@@ -187,7 +187,7 @@ function GroupsTab() {
 function CatalogueContent() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Dishes");
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Catalogue</h1></div><Link className="secondary-button" href="/menu/preview">Preview as an employee</Link></div>
+    <div className="page-heading"><h1>Catalogue</h1><Link className="secondary-button" href="/menu/preview">Preview as an employee</Link></div>
     <div className="tabs" role="tablist">{TABS.map((entry) => <button aria-selected={entry === tab} className={entry === tab ? "tab active" : "tab"} key={entry} onClick={() => setTab(entry)} role="tab" type="button">{entry}</button>)}</div>
     {tab === "Dishes" ? <DishesTab /> : tab === "Options" ? <OptionsTab /> : <GroupsTab />}
   </main></AppShell>;

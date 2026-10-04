@@ -49,7 +49,7 @@ function CalendarRules({ settings, onSaved, justSaved }: { settings: Settings; o
       <label>Cut-off time<input onChange={(event) => set("cutoffTime", event.target.value)} required type="time" value={form.cutoffTime} /><span className="hint">Kitchen local time</span></label>
       <label>Cut-off working days before<input min={0} max={14} onChange={(event) => set("cutoffWorkingDays", Number(event.target.value))} required type="number" value={form.cutoffWorkingDays} /><span className="hint">Holidays and non-working days are skipped</span></label>
       <label>Kitchen-ready buffer (min)<input min={0} max={240} onChange={(event) => set("kitchenReadyBufferMinutes", Number(event.target.value))} required type="number" value={form.kitchenReadyBufferMinutes} /><span className="hint">Kitchen-ready = dispatch-ready − this</span></label>
-      <label>On-time grace (min)<input min={0} max={120} onChange={(event) => set("onTimeGraceMinutes", Number(event.target.value))} required type="number" value={form.onTimeGraceMinutes} /><span className="hint">A delivery up to this late still counts as on time (the minutes are always recorded)</span></label>
+      <label>On-time grace (min)<input min={0} max={120} onChange={(event) => set("onTimeGraceMinutes", Number(event.target.value))} required type="number" value={form.onTimeGraceMinutes} /><span className="hint">Up to this late still counts as on time</span></label>
       <label>Default dispatch lead (min)<input min={0} max={480} onChange={(event) => set("defaultDispatchLeadMinutes", Number(event.target.value))} required type="number" value={form.defaultDispatchLeadMinutes} /><span className="hint">Default for new companies</span></label>
     </div>
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
@@ -95,7 +95,7 @@ function Holidays({ today, onChanged }: { today: string; onChanged: () => void }
     <div className="panel-heading"><h2>Kitchen holidays</h2>
       <div className="form-actions">{[currentYear, currentYear + 1].map((option) => <button className={option === year ? "primary-button" : "secondary-button"} key={option} onClick={() => setYear(option)} type="button">{option}</button>)}</div>
     </div>
-    <p className="hint">The kitchen is closed on these dates: no deliveries, and they are skipped when counting back to the cut-off. Entries marked “tentative” are not yet confirmed by the Gujarat government list.</p>
+    <p className="hint">Kitchen closed: no deliveries, skipped when counting back to the cut-off. “Tentative” dates are not yet confirmed.</p>
     <form className="form-grid" onSubmit={add}>
       <label>Date<input disabled={busy} onChange={(event) => setDate(event.target.value)} required type="date" value={date} /></label>
       <label>Name<input disabled={busy} maxLength={80} onChange={(event) => setName(event.target.value)} placeholder="e.g. Uttarayan" required value={name} /></label>
@@ -115,7 +115,7 @@ function SettingsContent() {
   const [previewVersion, setPreviewVersion] = useState(0); const [justSaved, setJustSaved] = useState(false);
   const refreshPreview = () => setPreviewVersion((value) => value + 1);
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Administration</p><h1>Settings</h1></div></div>
+    <h1>Settings</h1>
     {error ? <p className="form-error">{error}</p> : null}
     {settings ? <>
       <CalendarRules justSaved={justSaved} key={settings.updatedAt} onSaved={() => { setJustSaved(true); reload(); refreshPreview(); }} settings={settings} />

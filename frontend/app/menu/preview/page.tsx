@@ -16,7 +16,7 @@ function PreviewContent() {
   const { data: menu, error } = useResource<EmployeeMenu>(query);
   return <AppShell><main className="content-page wide">
     <BackLink href="/menu" label="Back to menu" />
-    <div className="page-heading"><div><p className="eyebrow">Menu</p><h1>Preview as an employee</h1><p className="hint">Exactly what this employee sees when ordering: their company&apos;s categories, hidden items removed, {" "}their tier&apos;s prices and their allergy warnings.</p></div></div>
+    <div className="page-heading"><h1>Preview as an employee</h1></div>
     <section className="panel"><EmployeePicker onChange={(employee) => setEmployeeId(employee?.id ?? null)} value={employeeId} /></section>
     {error ? <p className="form-error">{error}</p> : null}
     {menu ? <>

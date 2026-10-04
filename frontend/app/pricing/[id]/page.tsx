@@ -48,7 +48,7 @@ function Grid({ tier, kind }: { tier: PriceTier; kind: "dishes" | "options" }) {
         <button className="primary-button" disabled={!dirty || busy} onClick={() => void save()} type="button">{busy ? "Saving..." : "Save changes"}</button>
       </div>
     </div>
-    <p className="hint">{derivedTier ? "Leave the price blank to use the derived price; type one to override it." : "Type a price for every item that should be sold on this tier."} Tick “Not sold” to keep an item off this tier&apos;s menus.</p>
+    <p className="hint">{derivedTier ? "Blank uses the derived price; type one to override." : "Type a price for every item sold on this tier."} Tick “Not sold” to hide an item.</p>
     {error || loadError ? <p aria-live="polite" className="form-error">{error || loadError}</p> : null}{notice ? <p className="success-text">{notice}</p> : null}
     <div className="table-wrap"><table className="data-table"><thead><tr>
       {kind === "dishes" ? <th>SKU</th> : null}<th>{kind === "dishes" ? "Dish" : "Option"}</th><th>Cost</th>{derivedTier ? <th>Derived</th> : null}
@@ -75,7 +75,7 @@ function TierContent() {
   return <AppShell><main className="content-page wide">
     <BackLink href="/pricing" label="Back to pricing" />
     {error ? <p className="form-error">{error}</p> : !tiers ? <p className="muted">Loading...</p> : !tier ? <p className="form-error">Tier not found.</p> : <>
-      <div className="page-heading"><div><p className="eyebrow">Price tier</p><h1>{tier.name} {tier.isDefault ? <span className="badge green">Default</span> : null}</h1></div><span className="hint">{describeRule(tier)}</span></div>
+      <div className="page-heading"><div><h1>{tier.name} {tier.isDefault ? <span className="badge green">Default</span> : null}</h1></div><span className="hint">{describeRule(tier)}</span></div>
       <div className="tabs" role="tablist">{(["dishes", "options"] as const).map((entry) => <button aria-selected={entry === kind} className={entry === kind ? "tab active" : "tab"} key={entry} onClick={() => setKind(entry)} role="tab" type="button">{entry === "dishes" ? `Dishes${tier.unpricedDishes ? ` (${tier.unpricedDishes} missing)` : ""}` : `Options${tier.unpricedOptions ? ` (${tier.unpricedOptions} missing)` : ""}`}</button>)}</div>
       <Grid key={`${tier.id}-${kind}`} kind={kind} tier={tier} />
     </>}

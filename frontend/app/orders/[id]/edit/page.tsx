@@ -16,10 +16,10 @@ function EditContent() {
   const { data: menu } = useResource<EmployeeMenu & { requested: MenuDishView[] }>(order ? `/menu/preview?employeeId=${order.employee.id}&dishIds=${order.lines.map((line) => line.dishId).join(",")}` : null);
   return <AppShell><main className="content-page wide">
     <BackLink href={`/orders/${id}`} label="Back to order" />
-    <div className="page-heading"><div><p className="eyebrow">Orders</p><h1>Edit order #{id}</h1></div></div>
+    <h1>Edit order #{id}</h1>
     {error ? <p className="form-error">{error}</p> : !order ? <p className="muted">Loading order...</p>
       : !order.permissions.edit ? <p className="notice">This order can no longer be edited ({order.status.toLowerCase()}{order.pastCutoff ? ", past its cut-off" : ""}).</p>
-      : <>{order.status === "PLACED" ? <p className="hint">This order is placed: items you keep stay at the prices it was placed with; anything new is priced at today&apos;s prices.</p> : null}{menu ? <OrderBuilder initialLines={linesFromOrder(order, menu.requested)} key={order.version} order={order} /> : <p className="muted">Loading menu...</p>}</>}
+      : <>{order.status === "PLACED" ? <p className="hint">This order is placed: kept items keep their placed prices; new items use today&apos;s prices.</p> : null}{menu ? <OrderBuilder initialLines={linesFromOrder(order, menu.requested)} key={order.version} order={order} /> : <p className="muted">Loading menu...</p>}</>}
   </main></AppShell>;
 }
 

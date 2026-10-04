@@ -79,7 +79,7 @@ function MoveForm({ employee, onMoved }: { employee: Employee; onMoved: (message
 
   return <form className="panel" onSubmit={move}><fieldset className="panel-fieldset" disabled={busy || employee.isOwner || !employee.isActive}>
     <h2>Move to another company</h2>
-    <p className="hint">The new company&apos;s domains, calendar, prices and menu apply from then on. Draft and placed orders still before cut-off are cancelled; orders past cut-off or confirmed stay billed to {employee.company.name}.</p>
+    <p className="hint">Draft and placed orders before cut-off are cancelled; confirmed orders stay billed to {employee.company.name}.</p>
     {employee.isOwner ? <p className="notice">{employee.name} owns {employee.company.name}. Choose another owner on the company page first.</p> : null}
     <div className="form-grid">
       <label>New company<select onChange={(event) => pickCompany(event.target.value)} required value={companyId}><option value="">Choose a company</option>{companies?.items.filter((company) => company.id !== employee.company.id).map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
@@ -115,7 +115,7 @@ function EmployeeContent() {
   return <AppShell><main className="content-page">
     <BackLink href="/employees" label="Back" />
     <div className="page-heading">
-      <div><p className="eyebrow"><Link className="link" href={`/companies/${employee.company.id}`}>{employee.company.name}</Link></p><h1>{employee.name}</h1></div>
+      <div><h1>{employee.name}</h1><p className="muted"><Link className="link" href={`/companies/${employee.company.id}`}>{employee.company.name}</Link></p></div>
       <div className="form-actions">
         {employee.isOwner ? <span className="badge green">Company owner</span> : null}
         {employee.isActive ? <span className="badge green">Active</span> : <span className="badge grey">Deactivated</span>}

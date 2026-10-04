@@ -20,7 +20,7 @@ function BillingContent() {
   const owed = companies?.reduce((sum, company) => sum + company.uninvoicedCents, 0) ?? 0;
   const unpaid = companies?.reduce((sum, company) => sum + company.unpaidCents, 0) ?? 0;
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><div><p className="eyebrow">Finance</p><h1>Billing</h1><p className="hint">Every confirmed order is owed in full by its company. Invoices are internal records; no tax is added.</p></div></div>
+    <div className="page-heading"><h1>Billing</h1></div>
     {companies ? <div className="stat-row">
       <div className="stat"><span>Not yet invoiced</span><strong>{formatCents(owed)}</strong></div>
       <div className="stat"><span>Invoiced, unpaid</span><strong>{formatCents(unpaid)}</strong></div>

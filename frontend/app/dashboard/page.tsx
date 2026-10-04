@@ -17,10 +17,10 @@ function Admin({ data }: { data: NonNullable<Dashboard["admin"]> }) {
   const { attention, operating, upcoming, recent, performance, money } = data;
   return <>
     <div className="stat-row">
-      <Stat label="Late in the kitchen" tone={attention.lateKitchenOrders ? "alert" : undefined} value={attention.lateKitchenOrders} hint="confirmed orders past their kitchen-ready time" />
-      <Stat label="At risk in the kitchen" tone={attention.atRiskKitchenOrders ? "warn" : undefined} value={attention.atRiskKitchenOrders} hint="within 30 min of it" />
+      <Stat label="Late in the kitchen" tone={attention.lateKitchenOrders ? "alert" : undefined} value={attention.lateKitchenOrders} />
+      <Stat label="At risk in the kitchen" tone={attention.atRiskKitchenOrders ? "warn" : undefined} value={attention.atRiskKitchenOrders} />
       <Stat label="Drops without a driver" tone={attention.dropsWithoutDriver ? "warn" : undefined} value={attention.dropsWithoutDriver} />
-      <Stat label="Late drops" tone={attention.lateDrops ? "alert" : undefined} value={attention.lateDrops} hint="not dispatched by their time, or delivered late" />
+      <Stat label="Late drops" tone={attention.lateDrops ? "alert" : undefined} value={attention.lateDrops} />
     </div>
     <section className="panel"><h2>The working day</h2>
       <div className="stat-row">
@@ -29,20 +29,18 @@ function Admin({ data }: { data: NonNullable<Dashboard["admin"]> }) {
       </div>
       <div className="form-actions"><Link className="secondary-button" href="/kitchen">Kitchen board</Link><Link className="secondary-button" href="/dispatch">Dispatch board</Link></div>
     </section>
-    <section className="panel"><h2>Coming up</h2>
-      <p className="hint">Orders by status for the next delivery days. Drafts are cancelled and placed orders confirmed at each date&apos;s cut-off.</p>
-      <div className="table-wrap"><table className="data-table"><thead><tr><th>Delivery</th><th>Cut-off</th><th>Draft</th><th>Placed</th><th>Confirmed</th><th>Delivered</th><th>Cancelled / rejected</th></tr></thead><tbody>
+    <section className="panel"><div className="panel-heading"><h2>Coming up</h2><span className="hint">Orders by status per delivery day</span></div>
+            <div className="table-wrap"><table className="data-table"><thead><tr><th>Delivery</th><th>Cut-off</th><th>Draft</th><th>Placed</th><th>Confirmed</th><th>Delivered</th><th>Cancelled / rejected</th></tr></thead><tbody>
         {upcoming.map((day) => <tr key={day.date}><td>{formatDay(day.date)}</td><td>{formatInstant(day.cutoffAt)} {day.cutoffPassed ? <span className="badge grey">passed</span> : <span className="badge amber">open</span>}</td><td>{day.draft}</td><td>{day.placed}</td><td>{day.confirmed}</td><td>{day.delivered}</td><td>{day.cancelled} / {day.rejected}</td></tr>)}
       </tbody></table></div>
     </section>
-    <section className="panel"><h2>Last {recent.length} working days</h2>
-      <p className="hint">By delivery date. Billable = confirmed + delivered orders at their full total; cancelled and rejected orders are counted but never billed.</p>
+    <section className="panel"><div className="panel-heading"><h2>Last {recent.length} working days</h2><span className="hint" title="Billable = confirmed + delivered orders; cancelled and rejected are never billed">Billable = confirmed + delivered</span></div>
       <div className="table-wrap"><table className="data-table"><thead><tr><th>Delivery</th><th>Delivered</th><th>Confirmed, not delivered</th><th>Cancelled</th><th>Rejected</th><th>Billable</th><th>On time / late</th></tr></thead><tbody>
         {recent.map((day) => <tr key={day.date}><td>{formatDay(day.date)}</td><td>{day.delivered}</td><td>{day.confirmedNotDelivered}</td><td>{day.cancelled}</td><td>{day.rejected}</td><td>{formatCents(day.billableCents)}</td><td>{day.onTime} / {day.late}</td></tr>)}
         <tr><td><strong>Total</strong></td><td>{recent.reduce((sum, day) => sum + day.delivered, 0)}</td><td>{recent.reduce((sum, day) => sum + day.confirmedNotDelivered, 0)}</td><td>{recent.reduce((sum, day) => sum + day.cancelled, 0)}</td><td>{recent.reduce((sum, day) => sum + day.rejected, 0)}</td><td><strong>{formatCents(recent.reduce((sum, day) => sum + day.billableCents, 0))}</strong></td><td>{performance.onTime} / {performance.late}</td></tr>
       </tbody></table></div>
       <div className="stat-row">
-        <Stat label="Delivered on time" value={percent(performance.onTimeRate)} hint={`${performance.onTime} of ${performance.onTime + performance.late} timed deliveries, within the grace`} />
+        <Stat label="Delivered on time" value={percent(performance.onTimeRate)} hint={`${performance.onTime} of ${performance.onTime + performance.late} timed deliveries`} />
         <Stat label="Average lateness when late" value={performance.averageLateMinutes === null ? "—" : `${performance.averageLateMinutes} min`} />
       </div>
     </section>
@@ -63,12 +61,11 @@ function Kitchen({ data, date }: { data: NonNullable<Dashboard["kitchen"]>; date
     <div className="stat-row">
       <Stat label="Confirmed orders" value={data.totals.orders} />
       <Stat label="Prep units still to do" value={data.units.pending + data.units.started} hint={`${data.units.pending} not started · ${data.units.started} cooking · ${data.units.done} of ${total} done`} />
-      <Stat label="First kitchen-ready deadline" value={data.firstDeadline ? formatTime(data.firstDeadline) : "—"} hint="earliest unfinished order" />
+      <Stat label="First kitchen-ready deadline" value={data.firstDeadline ? formatTime(data.firstDeadline) : "—"} />
       <Stat label="Late / at risk" tone={data.totals.late ? "alert" : data.totals.atRisk ? "warn" : undefined} value={`${data.totals.late} / ${data.totals.atRisk}`} />
-      <Stat label="Orders with allergy sign-off" value={data.allergyOrders} hint="check these before packing" />
+      <Stat label="Orders with allergy sign-off" value={data.allergyOrders} />
     </div>
-    <section className="panel"><div className="panel-heading"><h2>What to cook ({formatDay(date)})</h2><Link className="secondary-button" href="/kitchen">Open kitchen board</Link></div>
-      <p className="hint">Portions still to do across all stations, biggest first.</p>
+    <section className="panel"><div className="panel-heading"><h2>What to cook · {formatDay(date)}</h2><Link className="secondary-button" href="/kitchen">Open kitchen board</Link></div>
       <div className="table-wrap"><table className="data-table"><thead><tr><th>Dish</th><th>Choices</th><th>Still to do</th><th>Of total</th></tr></thead><tbody>
         {data.prep.map((entry) => <tr key={`${entry.dish}-${entry.choices}`}><td>{entry.dish}</td><td className="muted">{entry.choices || "—"}</td><td><strong>{entry.remaining}</strong></td><td>{entry.total}</td></tr>)}
         {!data.prep.length ? <tr><td className="muted" colSpan={4}>Nothing left to cook.</td></tr> : null}
@@ -85,7 +82,7 @@ function Kitchen({ data, date }: { data: NonNullable<Dashboard["kitchen"]>; date
         {!data.mostUrgent.length ? <tr><td className="muted">No unfinished orders.</td></tr> : null}
       </tbody></table></div>
     </section>
-    {data.tomorrow ? <section className="panel"><h2>Next working day ({formatDay(data.tomorrow.date)})</h2><p>{data.tomorrow.placed} placed · {data.tomorrow.draft} draft · {data.tomorrow.confirmed} already confirmed</p><p className="hint">Placed orders are confirmed at the cut-off; this is a forecast, not final.</p></section> : null}
+    {data.tomorrow ? <section className="panel"><h2>Next working day ({formatDay(data.tomorrow.date)})</h2><p>{data.tomorrow.placed} placed · {data.tomorrow.draft} draft · {data.tomorrow.confirmed} already confirmed</p></section> : null}
   </>;
 }
 
@@ -123,12 +120,12 @@ function Driver({ data }: { data: NonNullable<Dashboard["driver"]> }) {
       {data.next ? <>
         <p className="drop-time">{data.next.deliveryTime}</p><p><strong>{data.next.company}</strong></p><p>{data.next.address}</p>
         {data.next.instructions ? <p className="notice">{data.next.instructions}</p> : null}
-        <p className="hint">{data.next.boxes} boxes · {data.next.status.replace(/_/g, " ").toLowerCase()}</p>
+        <p className="muted">{data.next.boxes} boxes · {data.next.status.replace(/_/g, " ").toLowerCase()}</p>
         <Link className="primary-button" href="/driver">{data.next.canDeliver ? "Open and mark delivered" : "Open my drops"}</Link>
       </> : <p className="muted">{data.totals.drops ? "All of today's drops are delivered." : "No drops assigned to you today."}</p>}
     </section>
     <section className="panel"><h2>My on-time record</h2>
-      <p><strong>{percent(data.record.onTimeRate)}</strong> <span className="hint">{data.record.onTime} on time, {data.record.late} late over the last {data.record.windowDays} working days (within the grace period)</span></p>
+      <p><strong>{percent(data.record.onTimeRate)}</strong> <span className="hint">{data.record.onTime} on time, {data.record.late} late over the last {data.record.windowDays} working days</span></p>
     </section>
   </>;
 }
@@ -140,9 +137,8 @@ function DashboardContent() {
   if (error) return <AppShell><main className="content-page"><p className="form-error">{error}</p></main></AppShell>;
   if (!data) return <AppShell><main className="content-page"><p className="muted">Loading your dashboard...</p></main></AppShell>;
   return <AppShell><main className="content-page wide">
-    <p className="eyebrow">{data.staff.name}</p>
-    <h1>{TITLES[data.kind]}</h1>
-    <p className="hint">{data.kind === "DRIVER" ? formatDay(data.today) : `${data.isToday ? "Today" : "Next working day"}: ${formatDay(data.operatingDate)}`} · times in {data.timezone}{data.isToday || data.kind === "DRIVER" ? "" : " (the kitchen is closed today)"}</p>
+    <div><h1>{TITLES[data.kind]}</h1>
+    <p className="muted">{data.kind === "DRIVER" ? formatDay(data.today) : `${data.isToday ? "Today" : "Next working day"}: ${formatDay(data.operatingDate)}`} · times in {data.timezone}{data.isToday || data.kind === "DRIVER" ? "" : " (the kitchen is closed today)"}</p></div>
     {data.admin ? <Admin data={data.admin} /> : null}
     {data.kitchen ? <Kitchen data={data.kitchen} date={data.operatingDate} /> : null}
     {data.dispatch ? <Dispatch data={data.dispatch} /> : null}
