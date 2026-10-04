@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
 import { MenuPreviewButton } from "../components/menu-preview-drawer";
+import { Icon } from "../components/icons";
 import { AppShell } from "../components/app-shell";
 import { ChipSelect, Pagination } from "../components/form-controls";
 import { ProtectedPage } from "../components/protected-page";
@@ -24,7 +25,7 @@ function DishesTab() {
       <label>Search<input onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Name or SKU" value={search} /></label>
       <label>Station<select onChange={(event) => { setStationId(event.target.value); setPage(1); }} value={stationId}><option value="">All stations</option>{stations?.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}</select></label>
       <label className="check"><input checked={includeInactive} onChange={(event) => { setIncludeInactive(event.target.checked); setPage(1); }} type="checkbox" />Show deactivated</label>
-      <Link className="primary-button" href="/catalogue/dishes/new" style={{ marginLeft: "auto" }}>New dish</Link>
+      <Link className="primary-button" href="/catalogue/dishes/new" style={{ marginLeft: "auto" }}><Icon name="plus" />New dish</Link>
     </div>
     {error ? <p className="form-error">{error}</p> : null}
     {loading && !data ? <p className="muted">Loading dishes...</p> : <div className="table-wrap"><table className="data-table"><thead><tr><th>SKU</th><th>Dish</th><th>Station</th><th>Temp</th><th>Cost</th><th>Option groups</th><th>Status</th></tr></thead><tbody>

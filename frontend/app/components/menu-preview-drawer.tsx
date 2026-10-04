@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Employee, EmployeeMenu } from "../lib/types";
 import { useResource } from "../lib/use-resource";
 import { DishCard } from "./dish-card";
+import { Icon } from "./icons";
 import { EmployeePicker } from "./employee-picker";
 
 /** The menu exactly as the chosen employee sees it when ordering, in a side panel over the current page. */
@@ -25,7 +26,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
   return <div className="drawer-backdrop" onClick={onClose} role="presentation">
     <aside aria-label="Menu preview" aria-modal="true" className="drawer" onClick={(event) => event.stopPropagation()} role="dialog">
       <header className="drawer-header">
-        <div className="drawer-title"><h2>Menu preview</h2><button aria-label="Close preview" className="drawer-close" onClick={onClose} type="button">✕</button></div>
+        <div className="drawer-title"><h2>Menu preview</h2><button aria-label="Close preview" className="drawer-close" onClick={onClose} type="button"><Icon name="close" /></button></div>
         {employee && !choosing
           ? <div className="drawer-employee"><span><strong>{employee.name}</strong> <span className="hint">· {employee.company.name}</span></span><button className="link-button" onClick={() => setChoosing(true)} type="button">Change</button></div>
           : <EmployeePicker onChange={(next) => { setEmployee(next); setSearch(""); if (next) setChoosing(false); }} value={employee?.id ?? null} />}
@@ -51,7 +52,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
 export function MenuPreviewButton() {
   const [open, setOpen] = useState(false);
   return <>
-    <button className="secondary-button" onClick={() => setOpen(true)} type="button">Preview as an employee</button>
+    <button className="secondary-button" onClick={() => setOpen(true)} type="button"><Icon name="eye" size={16} />Preview as an employee</button>
     {open ? <Drawer onClose={() => setOpen(false)} /> : null}
   </>;
 }

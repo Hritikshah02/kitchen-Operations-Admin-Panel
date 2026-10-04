@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon } from "../components/icons";
 import { AppShell } from "../components/app-shell";
 import { ProtectedPage } from "../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../lib/api";
@@ -36,14 +37,14 @@ function DeliverForm({ drop, onDone }: { drop: Drop; onDone: () => void }) {
       <div className="photo-row">
         <input accept="image/*" capture="environment" disabled={uploading} id={`camera-${drop.id}`} onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = ""; }} type="file" />
         <input accept="image/*" disabled={uploading} id={`gallery-${drop.id}`} onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = ""; }} type="file" />
-        <label className="secondary-button" htmlFor={`camera-${drop.id}`}>{photoUrl ? "Retake photo" : "Take a photo"}</label>
-        <label className="secondary-button" htmlFor={`gallery-${drop.id}`}>Upload a photo</label>
+        <label className="secondary-button" htmlFor={`camera-${drop.id}`}><Icon name="camera" size={16} />{photoUrl ? "Retake photo" : "Take a photo"}</label>
+        <label className="secondary-button" htmlFor={`gallery-${drop.id}`}><Icon name="upload" size={16} />Upload a photo</label>
         {photoUrl ? <button className="link-button" onClick={() => setPhotoUrl("")} type="button">Remove</button> : null}
         {uploading ? <span className="hint">Uploading...</span> : null}
       </div>
     </div> : null}
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
-    <button className="primary-button big-button" disabled={busy || uploading} onClick={() => void submit()} type="button">{busy ? "Saving..." : "Mark delivered"}</button>
+    <button className="primary-button big-button" disabled={busy || uploading} onClick={() => void submit()} type="button">{busy ? "Saving..." : <><Icon name="check" size={20} />Mark delivered</>}</button>
   </div>;
 }
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Icon } from "../components/icons";
 import { AppShell } from "../components/app-shell";
 import { can, useAuth } from "../components/auth-provider";
 import { Pagination } from "../components/form-controls";
@@ -63,7 +64,7 @@ function OrdersContent() {
   const toggleStatus = (status: OrderStatus) => reset(() => setStatuses(statuses.includes(status) ? statuses.filter((entry) => entry !== status) : [...statuses, status]));
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><h1>Orders</h1><Link className="primary-button" href="/orders/new">New order</Link></div>
+    <div className="page-heading"><h1>Orders</h1><Link className="primary-button" href="/orders/new"><Icon name="plus" />New order</Link></div>
     <CutoffPanel onProcessed={() => setRefresh((value) => value + 1)} />
     <section className="panel">
       <div className="toolbar">

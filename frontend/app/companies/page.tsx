@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Icon } from "../components/icons";
 import { AppShell } from "../components/app-shell";
 import { Avatar, Pagination } from "../components/form-controls";
 import { ProtectedPage } from "../components/protected-page";
@@ -17,7 +18,7 @@ function CompaniesContent() {
   const { data, error, loading } = useResource<Page<CompanySummary>>(`/companies?${query}`);
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><h1>Companies</h1><Link className="primary-button" href="/companies/new">New company</Link></div>
+    <div className="page-heading"><h1>Companies</h1><Link className="primary-button" href="/companies/new"><Icon name="plus" />New company</Link></div>
     <section className="panel">
       <div className="toolbar">
         <label>Search<input onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Name or email domain" value={search} /></label>
