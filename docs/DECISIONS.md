@@ -103,3 +103,9 @@ Running log of how ambiguous parts of the brief were interpreted. Feeds the READ
 - **Void:** unpaid invoices only, with a reason; its orders are released and can be invoiced again, credits carried from earlier invoices go back to open, and a credit raised on one of its own orders is netted off that order (or dropped if the order is no longer billable). **Paid invoices are final**: no void, no edits, only credits.
 - **Capability:** `billing:manage` (admin). The orders list has an "invoiced" filter, and the order detail shows its invoice and credits.
 - **Demo data:** delivered orders of finished weeks are invoiced per company (older weeks paid, the latest unpaid, one with a short-delivery credit); the current week stays uninvoiced.
+
+## Dashboards (Phase 10)
+
+- One dashboard per person, picked by capability (orders → kitchen → dispatch → driver, first match), never by role name. Admin, kitchen lead, dispatcher and driver each see only what their job needs; the exact figures and how they are calculated are defined in the README.
+- Kitchen and dispatch figures come from the same services as the boards, so a dashboard can never disagree with the board behind it (tested).
+- The "working day" is today, or the next kitchen working day when the kitchen is closed today, and the page says which.

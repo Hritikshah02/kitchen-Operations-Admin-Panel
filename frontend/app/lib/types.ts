@@ -159,3 +159,35 @@ export type Uninvoiced = {
   total: number; page: number; pageSize: number; allMatchingCents: number;
   openCredits: { id: number; orderId: number; amountCents: number; kind: string; reason: string }[];
 };
+
+export type DashboardTiming = KitchenTiming;
+export type Dashboard = {
+  kind: "ADMIN" | "KITCHEN" | "DISPATCH" | "DRIVER" | "NONE"; today: string; operatingDate: string; isToday: boolean; timezone: string; staff: { name: string };
+  admin?: {
+    attention: { lateKitchenOrders: number; atRiskKitchenOrders: number; dropsWithoutDriver: number; lateDrops: number };
+    operating: { kitchenOrders: number; kitchenReady: number; drops: number; delivered: number };
+    upcoming: { date: string; cutoffAt: string; cutoffPassed: boolean; draft: number; placed: number; confirmed: number; delivered: number; cancelled: number; rejected: number }[];
+    recent: { date: string; delivered: number; confirmedNotDelivered: number; cancelled: number; rejected: number; billableCents: number; onTime: number; late: number }[];
+    performance: { windowDays: number; onTime: number; late: number; onTimeRate: number | null; averageLateMinutes: number | null };
+    money: { uninvoicedOrders: number; uninvoicedCents: number; unpaidInvoices: number; unpaidCents: number; openCredits: number; openCreditCents: number } | null;
+  };
+  kitchen?: {
+    totals: { orders: number; ready: number; late: number; atRisk: number }; units: { pending: number; started: number; done: number };
+    stations: { id: number | null; name: string; pending: number; started: number; done: number }[];
+    prep: { dish: string; choices: string; total: number; remaining: number }[];
+    firstDeadline: string | null; mostUrgent: { orderId: number; company: string; employee: string; plannedKitchenReadyAt: string; timing: KitchenTiming; unitsLeft: number }[];
+    allergyOrders: number; tomorrow: { date: string; placed: number; draft: number; confirmed: number } | null;
+  };
+  dispatch?: {
+    totals: { drops: number; orders: number; delivered: number; outForDelivery: number; late: number; noDriver: number };
+    stages: { cooking: number; kitchenReady: number; dispatchReady: number; outForDelivery: number; delivered: number };
+    next: { id: string; company: string; deliveryTime: string; plannedDispatchReadyAt: string; status: DropStage; timing: KitchenTiming; driver: string | null; blockedReason: string | null }[];
+    outNow: { id: string; company: string; deliveryTime: string; driver: string | null }[];
+    drivers: { name: string; drops: number; delivered: number }[];
+  };
+  driver?: {
+    date: string; totals: { drops: number; delivered: number; outForDelivery: number; waiting: number };
+    next: { company: string; address: string; deliveryTime: string; status: DropStage; instructions: string | null; boxes: number; canDeliver: boolean } | null;
+    record: { windowDays: number; onTime: number; late: number; onTimeRate: number | null };
+  };
+};

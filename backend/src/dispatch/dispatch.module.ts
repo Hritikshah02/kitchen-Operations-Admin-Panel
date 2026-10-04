@@ -4,5 +4,5 @@ import { SettingsModule } from '../settings/settings.module.js';
 import { DispatchController, DriverController } from './dispatch.controller.js';
 import { DispatchService } from './dispatch.service.js';
 
-@Module({ imports: [SettingsModule, CatalogueModule], controllers: [DispatchController, DriverController], providers: [DispatchService] })
+@Module({ imports: [SettingsModule, CatalogueModule], controllers: [DispatchController, DriverController], providers: [DispatchService], exports: [DispatchService] })
 export class DispatchModule {}
