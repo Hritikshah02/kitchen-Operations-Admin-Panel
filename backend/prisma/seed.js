@@ -294,7 +294,7 @@ const meetingTrays = [
 async function seedDishImages() {
   const images = JSON.parse(readFileSync(new URL('./seed-data/dish-images.json', import.meta.url), 'utf8'));
   for (const [sku, imageUrl] of Object.entries(images)) {
-    await prisma.dish.updateMany({ where: { sku, OR: [{ imageUrl: null }, { imageUrl: { startsWith: 'https://upload.wikimedia.org' } }] }, data: { imageUrl } });
+    await prisma.dish.updateMany({ where: { sku, OR: [{ imageUrl: null }, { imageUrl: { contains: 'wikimedia.org' } }] }, data: { imageUrl } });
   }
 }
 
