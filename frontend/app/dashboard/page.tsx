@@ -100,10 +100,7 @@ function Dispatch({ data }: { data: NonNullable<Dashboard["dispatch"]> }) {
         {!data.next.length ? <tr><td className="muted">Nothing waiting to leave.</td></tr> : null}
       </tbody></table></div>
     </section>
-    <section className="panel"><h2>Where every drop is</h2>
-      <p>{data.stages.cooking} cooking · {data.stages.kitchenReady} kitchen ready · {data.stages.dispatchReady} dispatch ready · {data.stages.outForDelivery} out · {data.stages.delivered} delivered</p>
-      {data.outNow.length ? <><h3>Out now</h3><ul className="plain-list">{data.outNow.map((drop) => <li key={drop.id}>{drop.company} · due {drop.deliveryTime} · {drop.driver ?? "no driver"}</li>)}</ul></> : null}
-    </section>
+    {data.outNow.length ? <section className="panel"><h2>Out now</h2><ul className="plain-list">{data.outNow.map((drop) => <li key={drop.id}>{drop.company} · due {drop.deliveryTime} · {drop.driver ?? "no driver"}</li>)}</ul></section> : null}
     <section className="panel"><h2>Driver load</h2>
       <div className="table-wrap"><table className="data-table"><tbody>{data.drivers.map((driver) => <tr key={driver.name}><td>{driver.name}</td><td>{driver.drops} drop{driver.drops === 1 ? "" : "s"}</td><td>{driver.delivered} delivered</td></tr>)}</tbody></table></div>
     </section>

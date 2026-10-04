@@ -130,7 +130,7 @@ export type KitchenBoard = {
   orders: Page<KitchenCard>;
 };
 
-export type DropStage = "COOKING" | "KITCHEN_READY" | "DISPATCH_READY" | "OUT_FOR_DELIVERY" | "DELIVERED";
+export type DropStage = "NOT_STARTED" | "COOKING" | "KITCHEN_READY" | "DISPATCH_READY" | "OUT_FOR_DELIVERY" | "DELIVERED";
 export type Drop = {
   id: string; deliveryDate: string; deliveryTime: string; companyId: number; addressId: number; company: string; address: string; instructions: string | null; packaging: string | null;
   driver: { id: number; name: string; isDefault: boolean } | null; plannedDispatchReadyAt: string; plannedKitchenReadyAt: string;
@@ -180,7 +180,7 @@ export type Dashboard = {
   };
   dispatch?: {
     totals: { drops: number; orders: number; delivered: number; outForDelivery: number; late: number; noDriver: number };
-    stages: { cooking: number; kitchenReady: number; dispatchReady: number; outForDelivery: number; delivered: number };
+    stages: { notStarted: number; cooking: number; kitchenReady: number; dispatchReady: number; outForDelivery: number; delivered: number };
     next: { id: string; company: string; deliveryTime: string; plannedDispatchReadyAt: string; status: DropStage; timing: KitchenTiming; driver: string | null; blockedReason: string | null }[];
     outNow: { id: string; company: string; deliveryTime: string; driver: string | null }[];
     drivers: { name: string; drops: number; delivered: number }[];

@@ -3,12 +3,13 @@ import { deliveryTiming, dispatchGate, stageOf, type Member } from './dispatch-r
 
 const now = new Date('2026-10-06T05:00:00Z');
 const minutes = (offset: number) => new Date(now.getTime() + offset * 60_000);
-const member = (id: number, overrides: Partial<Member> = {}): Member => ({ id, kitchenReadyAt: null, dispatchReadyAt: null, outForDeliveryAt: null, deliveredAt: null, plannedKitchenReadyAt: minutes(20), ...overrides });
+const member = (id: number, overrides: Partial<Member> = {}): Member => ({ id, kitchenStartedAt: null, kitchenReadyAt: null, dispatchReadyAt: null, outForDeliveryAt: null, deliveredAt: null, plannedKitchenReadyAt: minutes(20), ...overrides });
 const ready = (id: number) => member(id, { kitchenReadyAt: minutes(-5) });
 
 describe('stageOf', () => {
   it('follows the order of steps', () => {
-    expect(stageOf(member(1))).toBe('COOKING');
+    expect(stageOf(member(1))).toBe('NOT_STARTED');
+    expect(stageOf(member(1, { kitchenStartedAt: now }))).toBe('COOKING');
     expect(stageOf(ready(1))).toBe('KITCHEN_READY');
     expect(stageOf({ ...ready(1), dispatchReadyAt: now })).toBe('DISPATCH_READY');
     expect(stageOf({ ...ready(1), dispatchReadyAt: now, outForDeliveryAt: now })).toBe('OUT_FOR_DELIVERY');

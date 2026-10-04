@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
+import { MenuPreviewButton } from "../components/menu-preview-drawer";
 import { AppShell } from "../components/app-shell";
 import { ChipSelect, Pagination } from "../components/form-controls";
 import { ProtectedPage } from "../components/protected-page";
@@ -187,7 +188,7 @@ function GroupsTab() {
 function CatalogueContent() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Dishes");
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><h1>Catalogue</h1><Link className="secondary-button" href="/menu/preview">Preview as an employee</Link></div>
+    <div className="page-heading"><h1>Catalogue</h1><MenuPreviewButton /></div>
     <div className="tabs" role="tablist">{TABS.map((entry) => <button aria-selected={entry === tab} className={entry === tab ? "tab active" : "tab"} key={entry} onClick={() => setTab(entry)} role="tab" type="button">{entry}</button>)}</div>
     {tab === "Dishes" ? <DishesTab /> : tab === "Options" ? <OptionsTab /> : <GroupsTab />}
   </main></AppShell>;

@@ -22,5 +22,5 @@ export class DeliverDto extends DropKeyDto {
 export class DispatchBoardQueryDto extends PaginationQueryDto {
   @IsRealDate({ message: 'date must be a real date in YYYY-MM-DD format.' }) date!: string;
   @IsOptional() @Transform(({ value }) => (value === 'none' ? 0 : Number(value))) @IsInt() driverId?: number; // 0 = unassigned
-  @IsOptional() @Matches(/^(COOKING|KITCHEN_READY|DISPATCH_READY|OUT_FOR_DELIVERY|DELIVERED)$/) stage?: string;
+  @IsOptional() @Matches(/^(NOT_STARTED|COOKING|KITCHEN_READY|DISPATCH_READY|OUT_FOR_DELIVERY|DELIVERED)$/) stage?: string;
 }

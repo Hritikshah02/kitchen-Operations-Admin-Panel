@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
+import { MenuPreviewButton } from "../components/menu-preview-drawer";
 import { AppShell } from "../components/app-shell";
 import { ProtectedPage } from "../components/protected-page";
 import { apiJson, messageOf, sendJson } from "../lib/api";
@@ -33,7 +34,7 @@ function MenuContent() {
   }
 
   return <AppShell><main className="content-page wide">
-    <div className="page-heading"><h1>Menu</h1><Link className="secondary-button" href="/menu/preview">Preview as an employee</Link></div>
+    <div className="page-heading"><h1>Menu</h1><MenuPreviewButton /></div>
     <p className="muted">Categories and dishes appear in this order. Hide items per company from the company page.</p>
     {error || loadError ? <p aria-live="polite" className="form-error">{error || loadError}</p> : null}{notice ? <p className="success-text">{notice}</p> : null}
     <div className="section-grid" style={{ gridTemplateColumns: "minmax(300px, 1fr) minmax(360px, 1.4fr)" }}>

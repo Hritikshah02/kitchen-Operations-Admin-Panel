@@ -12,8 +12,8 @@ import { formatDay, formatInstant, formatTime, kitchenToday, shiftDay } from "..
 import type { DispatchBoard, Drop, DropStage, Option } from "../lib/types";
 import { useResource } from "../lib/use-resource";
 
-const STAGE_LABEL: Record<DropStage, string> = { COOKING: "Cooking", KITCHEN_READY: "Kitchen ready", DISPATCH_READY: "Dispatch ready", OUT_FOR_DELIVERY: "Out for delivery", DELIVERED: "Delivered" };
-const STAGE_BADGE: Record<DropStage, string> = { COOKING: "grey", KITCHEN_READY: "amber", DISPATCH_READY: "amber", OUT_FOR_DELIVERY: "amber", DELIVERED: "green" };
+const STAGE_LABEL: Record<DropStage, string> = { NOT_STARTED: "Not started", COOKING: "Cooking", KITCHEN_READY: "Kitchen ready", DISPATCH_READY: "Dispatch ready", OUT_FOR_DELIVERY: "Out for delivery", DELIVERED: "Delivered" };
+const STAGE_BADGE: Record<DropStage, string> = { NOT_STARTED: "grey", COOKING: "grey", KITCHEN_READY: "amber", DISPATCH_READY: "amber", OUT_FOR_DELIVERY: "amber", DELIVERED: "green" };
 const TIMING_BADGE = { LATE: "red", AT_RISK: "amber", ON_TRACK: "grey", DONE: "green" } as const;
 const TIMING_LABEL = { LATE: "Late", AT_RISK: "At risk", ON_TRACK: "On track", DONE: "Done" } as const;
 const keyOf = (drop: Drop) => ({ deliveryDate: drop.deliveryDate, companyId: drop.companyId, addressId: drop.addressId, deliveryTime: drop.deliveryTime });

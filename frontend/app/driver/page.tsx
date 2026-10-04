@@ -10,7 +10,7 @@ import type { Drop, DriverDrops } from "../lib/types";
 import { uploadImage } from "../lib/upload";
 import { useResource } from "../lib/use-resource";
 
-const STATUS: Record<Drop["status"], string> = { COOKING: "Being cooked", KITCHEN_READY: "Cooked, being packed", DISPATCH_READY: "Packed: wait for dispatch", OUT_FOR_DELIVERY: "Out for delivery", DELIVERED: "Delivered" };
+const STATUS: Record<Drop["status"], string> = { NOT_STARTED: "Kitchen hasn't started", COOKING: "Being cooked", KITCHEN_READY: "Cooked, being packed", DISPATCH_READY: "Packed: wait for dispatch", OUT_FOR_DELIVERY: "Out for delivery", DELIVERED: "Delivered" };
 
 function DeliverForm({ drop, onDone }: { drop: Drop; onDone: () => void }) {
   const { data: photos } = useResource<{ uploadsEnabled: boolean }>("/driver/photo-status");

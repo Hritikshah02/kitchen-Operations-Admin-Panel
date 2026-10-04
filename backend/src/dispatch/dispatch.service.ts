@@ -11,7 +11,7 @@ import { deliveryTiming, dispatchGate, dropId, stageOf, type DropKey, type Membe
 import type { DeliverDto, DispatchBoardQueryDto } from './dispatch.dto.js';
 
 type Tx = Prisma.TransactionClient;
-const STAGE_RANK: Record<Stage, number> = { COOKING: 0, KITCHEN_READY: 1, DISPATCH_READY: 2, OUT_FOR_DELIVERY: 3, DELIVERED: 4 };
+const STAGE_RANK: Record<Stage, number> = { NOT_STARTED: 0, COOKING: 0, KITCHEN_READY: 1, DISPATCH_READY: 2, OUT_FOR_DELIVERY: 3, DELIVERED: 4 };
 
 const orderInclude = {
   employee: { select: { name: true } },
@@ -63,7 +63,7 @@ export class DispatchService {
     const count = (stage: Stage) => drops.filter((drop) => drop.status === stage).length;
     return {
       totals: this.totalsOf(drops),
-      stages: { cooking: count('COOKING'), kitchenReady: count('KITCHEN_READY'), dispatchReady: count('DISPATCH_READY'), outForDelivery: count('OUT_FOR_DELIVERY'), delivered: count('DELIVERED') },
+      stages: { notStarted: count('NOT_STARTED'), cooking: count('COOKING'), kitchenReady: count('KITCHEN_READY'), dispatchReady: count('DISPATCH_READY'), outForDelivery: count('OUT_FOR_DELIVERY'), delivered: count('DELIVERED') },
       next: pending.filter((drop) => drop.status !== 'OUT_FOR_DELIVERY').sort((a, b) => a.plannedDispatchReadyAt.getTime() - b.plannedDispatchReadyAt.getTime()).slice(0, 6)
         .map((drop) => ({ id: drop.id, company: drop.company, deliveryTime: drop.deliveryTime, plannedDispatchReadyAt: drop.plannedDispatchReadyAt, status: drop.status, timing: drop.timing, driver: drop.driver?.name ?? null, blockedReason: drop.blockedReason })),
       outNow: pending.filter((drop) => drop.status === 'OUT_FOR_DELIVERY').map((drop) => ({ id: drop.id, company: drop.company, deliveryTime: drop.deliveryTime, driver: drop.driver?.name ?? null })),
@@ -174,7 +174,7 @@ export class DispatchService {
   private effectiveDriver(row: OrderRow) { return row.driver ?? row.company.defaultDriver; }
 
   private member(row: OrderRow, plan: { kitchenReadyAt: Date }): Member {
-    return { id: row.id, kitchenReadyAt: row.kitchenReadyAt, dispatchReadyAt: row.dispatchReadyAt, outForDeliveryAt: row.outForDeliveryAt, deliveredAt: row.deliveredAt, plannedKitchenReadyAt: plan.kitchenReadyAt };
+    return { id: row.id, kitchenStartedAt: row.kitchenStartedAt, kitchenReadyAt: row.kitchenReadyAt, dispatchReadyAt: row.dispatchReadyAt, outForDeliveryAt: row.outForDeliveryAt, deliveredAt: row.deliveredAt, plannedKitchenReadyAt: plan.kitchenReadyAt };
   }
 
   private async dropsFor(date: string, settings: { kitchenReadyBufferMinutes: number; timezone: string }) {
@@ -213,7 +213,7 @@ export class DispatchService {
       instructions: first.company.driverInstructions, packaging: first.packagingType?.name ?? null,
       driver: driver ? { id: driver.id, name: driver.name, isDefault: !lead.driver } : null,
       plannedDispatchReadyAt: drop.plan.dispatchReadyAt, plannedKitchenReadyAt: drop.plan.kitchenReadyAt,
-      status, counts, timing, canDispatchReady: gate.ids.length > 0, blockedReason: gate.ids.length ? null : (stages.some((stage) => stage === 'COOKING' || stage === 'KITCHEN_READY') ? gate.blockedReason : null),
+      status, counts, timing, canDispatchReady: gate.ids.length > 0, blockedReason: gate.ids.length ? null : (stages.some((stage) => stage === 'NOT_STARTED' || stage === 'COOKING' || stage === 'KITCHEN_READY') ? gate.blockedReason : null),
       canAssign: stages.some((stage) => STAGE_RANK[stage] < STAGE_RANK.OUT_FOR_DELIVERY),
       canOutForDelivery: stages.includes('DISPATCH_READY') && Boolean(driver),
       canDeliver: stages.includes('OUT_FOR_DELIVERY'),

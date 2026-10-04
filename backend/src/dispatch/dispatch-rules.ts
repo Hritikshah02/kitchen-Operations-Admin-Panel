@@ -6,10 +6,11 @@ export type DropKey = { companyId: number; addressId: number; deliveryDate: IsoD
 /** 4.8: orders for the same company, address and exact delivery time are one drop. */
 export const dropId = (key: DropKey) => `${key.deliveryDate}|${key.companyId}|${key.addressId}|${key.deliveryTime}`;
 
-export type Stage = 'COOKING' | 'KITCHEN_READY' | 'DISPATCH_READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
+export type Stage = 'NOT_STARTED' | 'COOKING' | 'KITCHEN_READY' | 'DISPATCH_READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
 
 export type Member = {
   id: number;
+  kitchenStartedAt: Date | null;
   kitchenReadyAt: Date | null;
   dispatchReadyAt: Date | null;
   outForDeliveryAt: Date | null;
@@ -17,8 +18,8 @@ export type Member = {
   plannedKitchenReadyAt: Date;
 };
 
-export const stageOf = (member: Pick<Member, 'kitchenReadyAt' | 'dispatchReadyAt' | 'outForDeliveryAt' | 'deliveredAt'>): Stage =>
-  member.deliveredAt ? 'DELIVERED' : member.outForDeliveryAt ? 'OUT_FOR_DELIVERY' : member.dispatchReadyAt ? 'DISPATCH_READY' : member.kitchenReadyAt ? 'KITCHEN_READY' : 'COOKING';
+export const stageOf = (member: Pick<Member, 'kitchenStartedAt' | 'kitchenReadyAt' | 'dispatchReadyAt' | 'outForDeliveryAt' | 'deliveredAt'>): Stage =>
+  member.deliveredAt ? 'DELIVERED' : member.outForDeliveryAt ? 'OUT_FOR_DELIVERY' : member.dispatchReadyAt ? 'DISPATCH_READY' : member.kitchenReadyAt ? 'KITCHEN_READY' : member.kitchenStartedAt ? 'COOKING' : 'NOT_STARTED';
 
 export type DispatchGate = { ids: number[]; blockedReason: string | null };
 
@@ -28,9 +29,10 @@ export type DispatchGate = { ids: number[]; blockedReason: string | null };
  * is not waited for and follows later as a second trip.
  */
 export function dispatchGate(members: Member[], now: Date): DispatchGate {
+  const stillCooking = (member: Member) => stageOf(member) === 'COOKING' || stageOf(member) === 'NOT_STARTED';
   const ready = members.filter((member) => stageOf(member) === 'KITCHEN_READY');
-  if (!ready.length) return { ids: [], blockedReason: members.some((member) => stageOf(member) === 'COOKING') ? 'No order in this drop is kitchen ready yet.' : 'Nothing is waiting to be dispatched.' };
-  const waiting = members.filter((member) => stageOf(member) === 'COOKING' && member.plannedKitchenReadyAt.getTime() >= now.getTime());
+  if (!ready.length) return { ids: [], blockedReason: members.some(stillCooking) ? 'No order in this drop is kitchen ready yet.' : 'Nothing is waiting to be dispatched.' };
+  const waiting = members.filter((member) => stillCooking(member) && member.plannedKitchenReadyAt.getTime() >= now.getTime());
   if (waiting.length) return { ids: [], blockedReason: `Waiting for ${waiting.length} order${waiting.length === 1 ? '' : 's'} still due from the kitchen.` };
   return { ids: ready.map((member) => member.id), blockedReason: null };
 }
