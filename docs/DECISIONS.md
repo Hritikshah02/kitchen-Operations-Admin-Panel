@@ -3,6 +3,7 @@
 Running log of how ambiguous parts of the brief were interpreted. Feeds the README's prioritisation notes.
 
 ## Platform
+- **Brand and look:** the product is "Fernleaf Kitchen" (the name in the brief; it was briefly shown as just "Kitchen"). Warm theme: cream background, espresso-brown navigation, saffron accents; green is kept only for success states (delivered, active, paid).
 - **Kitchen timezone:** Asia/Kolkata (kitchen in Ahmedabad). Cut-offs, delivery dates and "today" are computed in it, independent of server or browser timezone. The timezone is fixed at setup, not editable, because changing it would reinterpret every stored time.
 - **Currency:** USD (prices entered in dollars; derived prices round up to the next 5 cents as the brief states).
 - **Kitchen working days:** Mon–Sat by default; editable in Settings. Kitchen holidays are seeded from the 2026 Gujarat government list (verified) and 2027 estimates (marked "tentative").

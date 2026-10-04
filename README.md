@@ -1,6 +1,6 @@
-# Kitchen: operations admin panel
+# Fernleaf Kitchen: operations admin panel
 
-An internal admin panel for a corporate boxed-lunch kitchen in Ahmedabad (a fictional company, "Kitchen"). Companies sign up, their employees order individual boxed meals for specific delivery dates, and the kitchen cooks, packs and delivers them. Employees never pay: every order is billed to their company. Staff create orders on behalf of employees, so every workflow can be exercised from the panel.
+An internal admin panel for a corporate boxed-lunch kitchen in Ahmedabad (a fictional company, "Fernleaf Kitchen"). Companies sign up, their employees order individual boxed meals for specific delivery dates, and the kitchen cooks, packs and delivers them. Employees never pay: every order is billed to their company. Staff create orders on behalf of employees, so every workflow can be exercised from the panel.
 
 **Stack:** Next.js 16 (frontend) · NestJS 12 (API) · Prisma 6 on PostgreSQL. The frontend talks to the API over HTTP only; there are no server actions and no business logic in Next.js.
 

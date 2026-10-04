@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   async function handleLogout() { await logout(); router.replace("/login"); }
   const visible = sections.map((section) => ({ ...section, items: section.items.filter((item) => can(staff, item.requires)) })).filter((section) => section.items.length);
   return <div className="app-frame"><aside className="sidebar">
-    <Link className="wordmark" href="/dashboard"><span aria-hidden="true" className="brand-mark"><Icon name="bowl" size={20} /></span>Kitchen</Link>
+    <Link className="wordmark" href="/dashboard"><span aria-hidden="true" className="brand-mark"><Icon name="bowl" size={20} /></span>Fernleaf Kitchen</Link>
     <nav aria-label="Primary navigation" className="navigation">{visible.map((section) => <div className="nav-section" key={section.title}>
       <span className="nav-heading">{section.title}</span>
       {section.items.map((item) => { const active = pathname.startsWith(item.href); return <Link aria-current={active ? "page" : undefined} className={active ? "nav-link active" : "nav-link"} href={item.href} key={item.href}><Icon name={item.icon} />{item.label}</Link>; })}

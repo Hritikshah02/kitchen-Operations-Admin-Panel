@@ -17,7 +17,7 @@ export default function LoginPage() {
     finally { setSubmitting(false); }
   }
   return <main className="login-page"><form className="login-form" onSubmit={handleSubmit}>
-    <p className="brand">Kitchen</p><h1>Sign in</h1>
+    <p className="brand">Fernleaf Kitchen</p><h1>Sign in</h1>
     <label>Email address<input autoComplete="email" disabled={submitting} onChange={(event) => setEmail(event.target.value)} required type="email" value={email} /></label>
     <label>Password<input autoComplete="current-password" disabled={submitting} onChange={(event) => setPassword(event.target.value)} required type="password" value={password} /></label>
     {error ? <p aria-live="polite" className="form-error">{error}</p> : null}
