@@ -1,0 +1,17 @@
+# Backup for the uptime pinger (UptimeRobot is the primary): stops the free Render instance sleeping.
+name: Keep API awake
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the health endpoint
+        env:
+          URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          if [ -z "$URL" ]; then echo "PROD_API_URL not set, skipping"; exit 0; fi
+          curl -fsS --max-time 60 "$URL/api/health"

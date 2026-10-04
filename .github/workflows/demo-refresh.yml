@@ -1,0 +1,24 @@
+# Keeps the live demo realistic as days pass: finishes past days' orders and generates orders around the new
+# "today" (idempotent). Needs repository secrets: DEMO_REFRESH_TOKEN (same value as on Render),
+# PROD_API_URL and DEV_API_URL (e.g. https://kitchenops-api-prod.onrender.com, no trailing slash).
+name: Refresh demo data
+on:
+  schedule:
+    - cron: "30 19 * * *" # 01:00 in Ahmedabad (IST = UTC+5:30)
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [PROD_API_URL, DEV_API_URL]
+    steps:
+      - name: Call the refresh endpoint
+        env:
+          TOKEN: ${{ secrets.DEMO_REFRESH_TOKEN }}
+          URL: ${{ secrets[matrix.target] }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$TOKEN" ]; then echo "Secret missing for ${{ matrix.target }}, skipping"; exit 0; fi
+          # The free Render instance may be asleep: allow a slow first response and retry once.
+          curl -fsS --max-time 120 --retry 2 --retry-delay 20 -X POST -H "x-demo-token: $TOKEN" "$URL/api/demo/refresh"

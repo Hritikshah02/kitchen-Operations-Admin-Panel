@@ -57,3 +57,23 @@ describe('Dashboards (e2e)', () => {
     expect(dash.driver.totals.drops).toBe(mine.drops.length);
   });
 });
+
+describe('Demo refresh (e2e)', () => {
+  let app: INestApplication<App>;
+  beforeAll(async () => {
+    process.env.DEMO_REFRESH_TOKEN = 'test-demo-token';
+    const moduleFixture = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    app = moduleFixture.createNestApplication();
+    configureApp(app);
+    await app.init();
+  });
+  afterAll(async () => { delete process.env.DEMO_REFRESH_TOKEN; await app.close(); });
+
+  it('needs the shared secret and is safe to call repeatedly', async () => {
+    await request(app.getHttpServer()).post('/api/demo/refresh').expect(403);
+    await request(app.getHttpServer()).post('/api/demo/refresh').set('x-demo-token', 'wrong').expect(403);
+    await request(app.getHttpServer()).post('/api/demo/refresh').set('x-demo-token', 'test-demo-token').expect(201);
+    const second = await request(app.getHttpServer()).post('/api/demo/refresh').set('x-demo-token', 'test-demo-token').expect(201);
+    expect((second.body as { created: number }).created).toBe(0);
+  });
+});

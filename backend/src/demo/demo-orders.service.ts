@@ -44,12 +44,14 @@ export class DemoOrdersService {
     const settings = await this.settings.get();
     const calendar = await this.settings.calendar(addDays(settings.today, -30), addDays(settings.today, 30));
     const dates = this.workingDays(settings.today, calendar);
+    await this.closeOutPastDays(settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, settings.onTimeGraceMinutes, now);
     const existing = new Set((await this.prisma.order.groupBy({ by: ['deliveryDate'], where: { deliveryDate: { in: dates.map(toDbDate) } } })).map((row) => fromDbDate(row.deliveryDate)));
     const todo = dates.filter((date) => !existing.has(date));
     if (!todo.length) {
       await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
       await this.simulateDispatch(dates, settings.today, settings.timezone, settings.onTimeGraceMinutes, now);
       await this.simulateBilling(settings.today, now);
+      await this.ensureDriverHasDrops(settings.today);
       return { created: 0, dates: [] as string[] };
     }
 
@@ -111,6 +113,7 @@ export class DemoOrdersService {
     await this.simulateKitchen(dates, settings.today, settings.timezone, settings.kitchenReadyBufferMinutes, now);
     await this.simulateDispatch(dates, settings.today, settings.timezone, settings.onTimeGraceMinutes, now);
     await this.simulateBilling(settings.today, now);
+    await this.ensureDriverHasDrops(settings.today);
     this.logger.log(`Demo orders: created ${created} for ${todo.join(', ')}.`);
     return { created, dates: todo };
   }
@@ -250,6 +253,52 @@ export class DemoOrdersService {
         }
       });
     }
+  }
+
+  /**
+   * Yesterday's work is finished by the time anyone looks: confirmed orders from past days are completed through
+   * the kitchen, dispatch and delivery (mostly on time), so the daily refresh moves "today" into history.
+   */
+  private async closeOutPastDays(today: IsoDate, timezone: string, bufferMinutes: number, graceMinutes: number, now: Date) {
+    const orders = await this.prisma.order.findMany({
+      where: { status: OrderStatus.CONFIRMED, deliveryDate: { lt: toDbDate(today) } },
+      include: { company: { select: { dispatchLeadMinutes: true, defaultDriverId: true } }, lines: { include: { combinations: true } } },
+    });
+    if (!orders.length) return;
+    const drivers = await this.prisma.staff.findMany({ where: { role: { capabilities: { has: 'driver-drops:update' } }, isActive: true }, orderBy: { id: 'asc' } });
+    for (const order of orders) {
+      const date = fromDbDate(order.deliveryDate);
+      const plan = planFor(date, order.deliveryTime, order.company.dispatchLeadMinutes, bufferMinutes, timezone);
+      const key = `${order.id}:closeout`;
+      const delivery = DateTime.fromISO(`${date}T${order.deliveryTime}`, { zone: timezone }).toJSDate();
+      const at = (base: Date, minutes: number) => new Date(base.getTime() + minutes * 60_000);
+      const kitchenStartedAt = order.kitchenStartedAt ?? at(plan.kitchenReadyAt, -(40 + Math.round(chance(`${key}:s`) * 30)));
+      const kitchenReadyAt = order.kitchenReadyAt ?? at(plan.kitchenReadyAt, Math.round(chance(`${key}:r`) * 10) - 4);
+      const dispatchReadyAt = order.dispatchReadyAt ?? at(kitchenReadyAt, 3);
+      const outForDeliveryAt = order.outForDeliveryAt ?? at(dispatchReadyAt, 5 + Math.round(chance(`${key}:o`) * 10));
+      const driverId = order.driverId ?? order.company.defaultDriverId ?? pick(drivers, `${key}:driver`)?.id ?? null;
+      const deliveredAt = at(delivery, Math.round(chance(`${key}:arrive`) ** 2 * 30) - 10);
+      const lateMinutes = Math.max(0, Math.ceil((deliveredAt.getTime() - delivery.getTime()) / 60_000));
+      await this.prisma.$transaction(async (tx) => {
+        for (const unit of order.lines.flatMap((line) => line.combinations).filter((entry) => !entry.doneAt)) {
+          await tx.orderCombination.update({ where: { id: unit.id }, data: { startedAt: unit.startedAt ?? kitchenStartedAt, doneAt: kitchenReadyAt } });
+        }
+        await tx.order.update({ where: { id: order.id }, data: { status: OrderStatus.DELIVERED, kitchenStartedAt, kitchenReadyAt, dispatchReadyAt, outForDeliveryAt, driverId, deliveredById: driverId, deliveredAt, deliveryLateMinutes: lateMinutes, deliveredOnTime: lateMinutes <= graceMinutes } });
+        await tx.orderEvent.create({ data: { orderId: order.id, type: OrderEventType.DELIVERED, message: lateMinutes > graceMinutes ? `Delivered ${lateMinutes} min late.` : 'Delivered on time.', actorId: null, createdAt: now } });
+      });
+    }
+    this.logger.log(`Demo orders: closed out ${orders.length} order(s) from past days.`);
+  }
+
+  /** The brief wants deliveries assigned to driver@test.com today: if none are, give them one of today's drops. */
+  private async ensureDriverHasDrops(today: IsoDate) {
+    const driver = await this.prisma.staff.findUnique({ where: { email: 'driver@test.com' } });
+    if (!driver) return;
+    const mine = await this.prisma.order.count({ where: { deliveryDate: toDbDate(today), status: { in: [OrderStatus.CONFIRMED, OrderStatus.DELIVERED] }, OR: [{ driverId: driver.id }, { driverId: null, company: { defaultDriverId: driver.id } }] } });
+    if (mine) return;
+    const first = await this.prisma.order.findFirst({ where: { deliveryDate: toDbDate(today), status: OrderStatus.CONFIRMED, outForDeliveryAt: null }, orderBy: [{ deliveryTime: 'asc' }, { id: 'asc' }] });
+    if (!first) return;
+    await this.prisma.order.updateMany({ where: { deliveryDate: toDbDate(today), companyId: first.companyId, addressId: first.addressId, deliveryTime: first.deliveryTime, status: OrderStatus.CONFIRMED, outForDeliveryAt: null }, data: { driverId: driver.id } });
   }
 
   private workingDays(today: IsoDate, calendar: Parameters<typeof isKitchenWorkingDay>[1]) {

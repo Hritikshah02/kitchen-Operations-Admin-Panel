@@ -29,6 +29,10 @@ services:
         sync: false
       - key: FRONTEND_ORIGIN
         sync: false
+      - key: CLOUDINARY_URL
+        sync: false # cloudinary://<api_key>:<api_secret>@<cloud_name>, for dish and delivery photo uploads
+      - key: DEMO_REFRESH_TOKEN
+        sync: false # shared secret for the daily demo refresh (GitHub Actions)
 
   - type: web
     name: kitchenops-api-dev
@@ -54,3 +58,7 @@ services:
         sync: false
       - key: FRONTEND_ORIGIN
         sync: false
+      - key: CLOUDINARY_URL
+        sync: false # cloudinary://<api_key>:<api_secret>@<cloud_name>, for dish and delivery photo uploads
+      - key: DEMO_REFRESH_TOKEN
+        sync: false # shared secret for the daily demo refresh (GitHub Actions)
